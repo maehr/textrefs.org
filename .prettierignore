@@ -1,0 +1,11 @@
+dist/
+node_modules/
+.astro/
+lychee/
+public/fonts/
+open-research-data-template/
+pnpm-lock.yaml
+package-lock.json
+LICENSE-AGPL.md
+LICENSE-CC-BY-SA.md
+LICENSE-CC0.md

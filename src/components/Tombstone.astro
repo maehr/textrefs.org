@@ -1,0 +1,39 @@
+---
+interface Props {
+	status: string;
+}
+
+const { status } = Astro.props;
+
+const isTombstone = status === 'withdrawn';
+---
+
+{
+	isTombstone && (
+		<aside class="reg-tombstone" role="note">
+			<p class="reg-tombstone-title">
+				<strong>This record has been withdrawn.</strong>
+			</p>
+			<p>
+				If a successor exists, it is linked from an <code>exactMatch</code>{' '}
+				mapping listed on this page.
+			</p>
+		</aside>
+	)
+}
+
+<style>
+	.reg-tombstone {
+		border-left: 4px solid var(--sl-color-orange, #d97706);
+		background: var(--sl-color-bg-nav, rgba(217, 119, 6, 0.08));
+		padding: 0.75rem 1rem;
+		margin: 1rem 0;
+		border-radius: 0.25rem;
+	}
+	.reg-tombstone-title {
+		margin-top: 0;
+	}
+	.reg-tombstone p {
+		margin: 0.25rem 0;
+	}
+</style>

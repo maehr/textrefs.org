@@ -1,0 +1,81 @@
+{
+  "@context": {
+    "tr": "https://textrefs.org/ontology#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "@id",
+    "type": "@type",
+    "Work": "tr:Work",
+    "CitationSystem": "tr:CitationSystem",
+    "CanonicalReference": "tr:CanonicalReference",
+    "MappingAssertion": "tr:MappingAssertion",
+    "key": "tr:key",
+    "preferred_label": "skos:prefLabel",
+    "creators": "schema:creator",
+    "kind": "tr:creatorKind",
+    "family": "schema:familyName",
+    "given": "schema:givenName",
+    "name": "schema:name",
+    "inScheme": {
+      "@id": "skos:inScheme",
+      "@type": "@id"
+    },
+    "work_key": "tr:workKey",
+    "citation_system_key": "tr:citationSystemKey",
+    "locator": "tr:locator",
+    "normalization_version": "tr:normalizationVersion",
+    "status": "tr:status",
+    "source": "dcterms:source",
+    "created": {
+      "@id": "dcterms:created",
+      "@type": "xsd:date"
+    },
+    "modified": {
+      "@id": "dcterms:modified",
+      "@type": "xsd:date"
+    },
+    "relation": "tr:relation",
+    "exactMatch": {
+      "@id": "skos:exactMatch",
+      "@type": "@id"
+    },
+    "closeMatch": {
+      "@id": "skos:closeMatch",
+      "@type": "@id"
+    },
+    "subject": {
+      "@id": "tr:subject",
+      "@type": "@id"
+    },
+    "target": "tr:target",
+    "target_kind": "tr:targetKind",
+    "identifier": {
+      "@id": "tr:identifier",
+      "@type": "@id"
+    },
+    "resolver_targets": "tr:resolverTargets",
+    "provider": "schema:provider",
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    "language": "dcterms:language",
+    "edition": "schema:bookEdition",
+    "access": "tr:access",
+    "license": "dcterms:license",
+    "license_url": {
+      "@id": "dcterms:license",
+      "@type": "@id"
+    },
+    "last_checked": {
+      "@id": "tr:lastChecked",
+      "@type": "xsd:date"
+    },
+    "locator_regex": "tr:locatorRegex",
+    "examples": "tr:examples",
+    "valid": "tr:validExample",
+    "invalid": "tr:invalidExample"
+  }
+}

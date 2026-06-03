@@ -1,0 +1,183 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import AliasList from '../../../../components/AliasList.astro';
+import Tombstone from '../../../../components/Tombstone.astro';
+import {
+	loadAliases,
+	loadWorks,
+	loadSystems,
+	loadReferences,
+	loadMappings,
+	uuidOf,
+} from '../../../../lib/registry.ts';
+import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
+
+export async function getStaticPaths() {
+	const PAGE_SIZE = 200;
+	const PREVIEW = 20;
+	const works = loadWorks();
+	const systems = loadSystems();
+	const refs = loadReferences();
+	const mappings = loadMappings();
+	const aliases = loadAliases();
+
+	const refsByWork = new Map<string, typeof refs>();
+	for (const r of refs) {
+		const arr = refsByWork.get(r.work_key);
+		if (arr) arr.push(r);
+		else refsByWork.set(r.work_key, [r]);
+	}
+	const mappingsBySubject = new Map<string, typeof mappings>();
+	for (const m of mappings) {
+		const arr = mappingsBySubject.get(m.subject);
+		if (arr) arr.push(m);
+		else mappingsBySubject.set(m.subject, [m]);
+	}
+	const systemsByKey = new Map(systems.map((s) => [s.key, s]));
+
+	return works.map((work) => {
+		const workIri = work.id;
+		const workRefs = (refsByWork.get(work.key) ?? [])
+			.slice()
+			.sort((a, b) =>
+				a.locator.localeCompare(b.locator, undefined, { numeric: true }),
+			);
+		const workMappings = mappingsBySubject.get(workIri) ?? [];
+		const usedSystemKeys = Array.from(
+			new Set(workRefs.map((r) => r.citation_system_key)),
+		);
+		const usedSystems = usedSystemKeys
+			.map((k) => systemsByKey.get(k))
+			.filter((s): s is NonNullable<typeof s> => Boolean(s));
+		const workAliases = Object.entries(aliases)
+			.filter(([key, target]) => target === workIri && !key.includes('://'))
+			.map(([key]) => key)
+			.sort();
+		const pageCount = Math.max(1, Math.ceil(workRefs.length / PAGE_SIZE));
+		return {
+			params: { key: work.key },
+			props: {
+				work,
+				preview: workRefs.slice(0, PREVIEW),
+				refCount: workRefs.length,
+				pageCount,
+				pageSize: PAGE_SIZE,
+				mappings: workMappings,
+				systems: usedSystems,
+				aliases: workAliases,
+			},
+		};
+	});
+}
+
+const {
+	work,
+	preview,
+	refCount,
+	pageCount,
+	pageSize,
+	mappings,
+	systems,
+	aliases,
+} = Astro.props;
+const jsonHref = `/id/work/${work.key}.json`;
+---
+
+<StarlightPage
+	frontmatter={{
+		title: work.preferred_label,
+		description: `Registry record for the work ${work.preferred_label}.`,
+		template: 'doc',
+		tableOfContents: false,
+		banner: UNSTABLE_BANNER,
+		head: [
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/json',
+					href: jsonHref,
+				},
+			},
+		],
+	}}
+>
+	<p class="reg-sub">
+		<span class="reg-tag">Work</span>
+		<span class="reg-tag">{work.status}</span>
+		<code class="reg-iri">{work.id}</code>
+		<a href={jsonHref} class="reg-json">JSON</a>
+	</p>
+
+	<Tombstone status={work.status} />
+
+	<h2>Citation systems</h2>
+	{
+		systems.length === 0 ? (
+			<p class="reg-empty">No citation systems registered for this work yet.</p>
+		) : (
+			<ul class="reg-list">
+				{systems.map((s) => (
+					<li>
+						<a href={`/id/system/${s.key}/`}>{s.preferred_label}</a>{' '}
+						<code class="reg-iri">{s.key}</code>
+					</li>
+				))}
+			</ul>
+		)
+	}
+
+	<h2>Aliases ({aliases.length})</h2>
+	<AliasList aliases={aliases} empty="No aliases registered for this work." />
+
+	<h2>Mappings ({mappings.length})</h2>
+	{
+		mappings.length === 0 ? (
+			<p class="reg-empty">No mappings yet.</p>
+		) : (
+			<ul class="reg-list">
+				{mappings.map((m) => (
+					<li>
+						<a href={`/id/mapping/${uuidOf(m.id)}/`}>
+							<span class="reg-tag">{m.relation}</span>
+						</a>
+						{m.target.target_kind && (
+							<span class="reg-tag">{m.target.target_kind}</span>
+						)}
+						<a href={m.target.identifier}>{m.target.identifier}</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
+
+	<section data-pagefind-ignore>
+		<h2>References ({refCount})</h2>
+		{
+			refCount === 0 ? (
+				<p class="reg-empty">No references registered yet.</p>
+			) : (
+				<>
+					<ul class="reg-list">
+						{preview.map((r) => (
+							<li>
+								<a href={`/id/ref/${uuidOf(r.id)}/`}>
+									<code>{r.locator}</code>
+								</a>{' '}
+								<span class="reg-tag">
+									{r.resolver_targets.length} target(s)
+								</span>
+							</li>
+						))}
+					</ul>
+					<p>
+						<a href={`/reg/work/${work.key}/refs/1/`}>
+							Browse all {refCount} reference(s){' '}
+							{pageCount > 1 ? `(${pageCount} pages of ${pageSize})` : ''} →
+						</a>
+					</p>
+				</>
+			)
+		}
+	</section>
+</StarlightPage>

@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build:data
+
+      - name: List dump artifacts
+        run: ls -la dist/dump/
+
+      - name: Attach dump to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/dump/*.jsonl
+            dist/dump/datapackage.json
+          fail_on_unmatched_files: true
+          generate_release_notes: true

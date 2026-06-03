@@ -1,0 +1,128 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import Tombstone from '../../../../components/Tombstone.astro';
+import {
+	loadSystems,
+	loadReferences,
+	uuidOf,
+} from '../../../../lib/registry.ts';
+import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
+
+function intersperse<T>(items: T[], separator: T): T[] {
+	return items.flatMap((item, i) => (i === 0 ? [item] : [separator, item]));
+}
+
+export async function getStaticPaths() {
+	const PAGE_SIZE = 200;
+	const PREVIEW = 20;
+	const systems = loadSystems();
+	const refs = loadReferences();
+	const refsBySystem = new Map<string, typeof refs>();
+	for (const r of refs) {
+		const arr = refsBySystem.get(r.citation_system_key);
+		if (arr) arr.push(r);
+		else refsBySystem.set(r.citation_system_key, [r]);
+	}
+	return systems.map((system) => {
+		const systemRefs = (refsBySystem.get(system.key) ?? [])
+			.slice()
+			.sort((a, b) =>
+				a.locator.localeCompare(b.locator, undefined, { numeric: true }),
+			);
+		const pageCount = Math.max(1, Math.ceil(systemRefs.length / PAGE_SIZE));
+		return {
+			params: { key: system.key },
+			props: {
+				system,
+				preview: systemRefs.slice(0, PREVIEW),
+				refCount: systemRefs.length,
+				pageCount,
+				pageSize: PAGE_SIZE,
+			},
+		};
+	});
+}
+
+const { system, preview, refCount, pageCount, pageSize } = Astro.props;
+const jsonHref = `/id/system/${system.key}.json`;
+---
+
+<StarlightPage
+	frontmatter={{
+		title: system.preferred_label,
+		description: `Registry record for the citation system ${system.preferred_label}.`,
+		template: 'doc',
+		tableOfContents: false,
+		banner: UNSTABLE_BANNER,
+		head: [
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/json',
+					href: jsonHref,
+				},
+			},
+		],
+	}}
+>
+	<p class="reg-sub">
+		<span class="reg-tag">CitationSystem</span>
+		<span class="reg-tag">{system.status}</span>
+		<code class="reg-iri">{system.id}</code>
+		<a href={jsonHref} class="reg-json">JSON</a>
+	</p>
+
+	<Tombstone status={system.status} />
+
+	<h2>Locator format</h2>
+	<p>Regex: <code>{system.locator_regex}</code></p>
+	<p>Normalization version: <code>{system.normalization_version}</code></p>
+
+	<h2>Examples</h2>
+	<p>
+		<strong>Valid:</strong>
+		{
+			intersperse(
+				system.examples.valid.map((v) => <code>{v}</code>),
+				' · ',
+			)
+		}
+	</p>
+	<p>
+		<strong>Invalid:</strong>
+		{
+			intersperse(
+				system.examples.invalid.map((v) => <code>{v}</code>),
+				' · ',
+			)
+		}
+	</p>
+
+	<section data-pagefind-ignore>
+		<h2>References using this system ({refCount})</h2>
+		{
+			refCount === 0 ? (
+				<p class="reg-empty">No references registered yet.</p>
+			) : (
+				<>
+					<ul class="reg-list">
+						{preview.map((r) => (
+							<li>
+								<a href={`/id/ref/${uuidOf(r.id)}/`}>
+									<code>{r.work_key}</code> · <code>{r.locator}</code>
+								</a>
+							</li>
+						))}
+					</ul>
+					<p>
+						<a href={`/reg/system/${system.key}/refs/1/`}>
+							Browse all {refCount} reference(s){' '}
+							{pageCount > 1 ? `(${pageCount} pages of ${pageSize})` : ''} →
+						</a>
+					</p>
+				</>
+			)
+		}
+	</section>
+</StarlightPage>

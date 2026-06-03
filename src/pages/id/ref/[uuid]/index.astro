@@ -1,0 +1,150 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import AliasList from '../../../../components/AliasList.astro';
+import CitationBox from '../../../../components/CitationBox.astro';
+import Tombstone from '../../../../components/Tombstone.astro';
+import {
+	loadAliases,
+	loadReferences,
+	loadWorks,
+	loadSystems,
+	uuidOf,
+} from '../../../../lib/registry.ts';
+import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
+
+export async function getStaticPaths() {
+	const refs = loadReferences();
+	const works = loadWorks();
+	const systems = loadSystems();
+	const aliases = loadAliases();
+	const worksByKey = new Map(works.map((w) => [w.key, w]));
+	const systemsByKey = new Map(systems.map((s) => [s.key, s]));
+	const aliasesByTarget = new Map<string, string[]>();
+	for (const [key, target] of Object.entries(aliases)) {
+		if (key.includes('://')) continue;
+		const targetAliases = aliasesByTarget.get(target);
+		if (targetAliases) targetAliases.push(key);
+		else aliasesByTarget.set(target, [key]);
+	}
+	return refs.map((ref) => {
+		const work = worksByKey.get(ref.work_key);
+		const system = systemsByKey.get(ref.citation_system_key);
+		const refAliases = (aliasesByTarget.get(ref.id) ?? []).slice().sort();
+		const targets = ref.resolver_targets ?? [];
+		const langs = Array.from(
+			new Set(targets.map((t) => t.language ?? '—')),
+		).sort();
+		const byLang = langs.map((lang) => ({
+			lang,
+			items: targets.filter((t) => (t.language ?? '—') === lang),
+		}));
+		return {
+			params: { uuid: uuidOf(ref.id) },
+			props: { ref, work, system, aliases: refAliases, byLang },
+		};
+	});
+}
+
+const { ref, work, system, aliases, byLang } = Astro.props;
+const pageTitle = `${work?.preferred_label ?? ref.work_key} ${ref.locator}`;
+const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
+---
+
+<StarlightPage
+	frontmatter={{
+		title: pageTitle,
+		description: `Canonical reference ${ref.locator} in ${work?.preferred_label ?? ref.work_key}.`,
+		template: 'doc',
+		tableOfContents: false,
+		pagefind: false,
+		banner: UNSTABLE_BANNER,
+		head: [
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/json',
+					href: jsonHref,
+				},
+			},
+		],
+	}}
+>
+	<p class="reg-sub">
+		<span class="reg-tag">CanonicalReference</span>
+		<span class="reg-tag">{ref.status}</span>
+		<code class="reg-iri">{ref.id}</code>
+		<a href={jsonHref} class="reg-json">JSON</a>
+	</p>
+
+	<Tombstone status={ref.status} />
+
+	<h2>In context</h2>
+	<ul class="reg-list">
+		<li>
+			Work:
+			{
+				work ? (
+					<a href={`/id/work/${work.key}/`}>{work.preferred_label}</a>
+				) : (
+					<code>{ref.work_key}</code>
+				)
+			}
+		</li>
+		<li>
+			Citation system:
+			{
+				system ? (
+					<a href={`/id/system/${system.key}/`}>{system.preferred_label}</a>
+				) : (
+					<code>{ref.citation_system_key}</code>
+				)
+			}
+		</li>
+		<li>
+			Locator: <code>{ref.locator}</code>
+			(normalization <code>{ref.normalization_version}</code>)
+		</li>
+	</ul>
+
+	<CitationBox work={work} ref={ref} system={system} />
+
+	<h2>Aliases ({aliases.length})</h2>
+	<AliasList
+		aliases={aliases}
+		empty="No aliases registered for this reference."
+	/>
+
+	<h2>Resolver targets ({ref.resolver_targets.length})</h2>
+	{
+		ref.resolver_targets.length === 0 ? (
+			<p class="reg-empty">
+				No resolver targets registered for this reference.
+			</p>
+		) : (
+			<div>
+				{byLang.map((group) => (
+					<div class="reg-lang-group">
+						<div class="reg-lang-label">
+							Language: <code>{group.lang}</code>
+						</div>
+						<ul class="reg-list">
+							{group.items.map((t) => (
+								<li>
+									<a href={t.url} target="_blank" rel="noopener noreferrer">
+										{t.provider ?? t.url}
+									</a>
+									{t.edition && <span class="reg-tag">{t.edition}</span>}
+									<span class="reg-tag">{t.access}</span>
+									{t.license && <span class="reg-tag">{t.license}</span>}
+									<br />
+									<code class="reg-iri">{t.url}</code>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</div>
+		)
+	}
+</StarlightPage>
