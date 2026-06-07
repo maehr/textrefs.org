@@ -53,7 +53,7 @@ The identity is the Stephanus reference, not any one Greek text, translation, or
       "provider": "Perseus Digital Library",
       "access": "open",
       "license": "CC-BY-SA-3.0",
-      "license_url": "https://www.perseus.tufts.edu/hopper/about/copyright",
+      "license_url": "https://www.perseus.tufts.edu/hopper/opensource",
       "last_checked": "2026-06-03"
     }
   ],
