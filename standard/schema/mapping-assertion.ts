@@ -20,8 +20,8 @@ export const MappingAssertionBase = AdminMetadata.extend({
 	subject: WorkIri,
 	relation: z.enum(['exactMatch', 'closeMatch']),
 	target: z.object({
-		target_kind: z.string().optional(),
 		identifier: Iri,
+		conforms_to: z.union([Iri, z.array(Iri).min(1)]).optional(),
 	}),
 	source: z.string().min(1),
 });

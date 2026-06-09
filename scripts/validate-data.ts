@@ -22,11 +22,12 @@ let checked = 0;
 
 function reportIssue(
 	label: string,
-	issues: { path: (string | number)[]; message: string }[],
+	issues: readonly { path: readonly PropertyKey[]; message: string }[],
 ): void {
 	console.error(`✗ ${label}:`);
 	for (const issue of issues) {
-		console.error(`    ${issue.path.join('.') || '(root)'}: ${issue.message}`);
+		const path = issue.path.map((p) => String(p)).join('.');
+		console.error(`    ${path || '(root)'}: ${issue.message}`);
 	}
 	failed++;
 }

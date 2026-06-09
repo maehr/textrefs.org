@@ -17,7 +17,7 @@ export const CitationSystemBase = AdminMetadata.extend({
 export const CitationSystem = CitationSystemBase.superRefine((s, ctx) => {
 	if (s.id !== `https://textrefs.org/id/system/${s.key}`) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
+			code: 'custom',
 			message: 'id MUST be https://textrefs.org/id/system/{key}',
 			path: ['id'],
 		});
@@ -27,7 +27,7 @@ export const CitationSystem = CitationSystemBase.superRefine((s, ctx) => {
 		re = new RegExp(s.locator_regex);
 	} catch {
 		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
+			code: 'custom',
 			message: 'locator_regex is not a valid ECMAScript regex',
 			path: ['locator_regex'],
 		});
@@ -36,7 +36,7 @@ export const CitationSystem = CitationSystemBase.superRefine((s, ctx) => {
 	s.examples.valid.forEach((v, i) => {
 		if (!re.test(v))
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
 				message: `examples.valid[${i}] does not match locator_regex`,
 				path: ['examples', 'valid', i],
 			});
@@ -44,7 +44,7 @@ export const CitationSystem = CitationSystemBase.superRefine((s, ctx) => {
 	s.examples.invalid.forEach((v, i) => {
 		if (re.test(v))
 			ctx.addIssue({
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
 				message: `examples.invalid[${i}] must NOT match locator_regex`,
 				path: ['examples', 'invalid', i],
 			});

@@ -26,7 +26,7 @@ export const WorkBase = AdminMetadata.extend({
 export const Work = WorkBase.superRefine((w, ctx) => {
 	if (w.id !== `https://textrefs.org/id/work/${w.key}`) {
 		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
+			code: 'custom',
 			message: 'id MUST be https://textrefs.org/id/work/{key}',
 			path: ['id'],
 		});

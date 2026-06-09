@@ -12,7 +12,7 @@ export const IsoDate = z
 	.string()
 	.regex(/^\d{4}-\d{2}-\d{2}$/, 'must be YYYY-MM-DD');
 
-export const Iri = z.string().url();
+export const Iri = z.url();
 
 export const AdminMetadata = z.object({
 	status: Status,

@@ -40,8 +40,8 @@ Use `exactMatch` only when the target identifies the same work with enough preci
   "subject": "https://textrefs.org/id/work/dhammapada",
   "relation": "exactMatch",
   "target": {
-    "target_kind": "wikidata",
-    "identifier": "https://www.wikidata.org/entity/Q220114"
+    "identifier": "https://www.wikidata.org/entity/Q220114",
+    "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation"
 }

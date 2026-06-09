@@ -36,8 +36,8 @@ citation_system: dhammapada-chapter-verse
 
 mappings:
   - relation: exactMatch
-    target_kind: wikidata
     identifier: 'https://www.wikidata.org/entity/Q220114'
+    conforms_to: 'https://www.wikidata.org/'
     source: manual-curation
     status: candidate
     created: 2026-05-31

@@ -50,9 +50,12 @@
       "@type": "@id"
     },
     "target": "tr:target",
-    "target_kind": "tr:targetKind",
     "identifier": {
       "@id": "tr:identifier",
+      "@type": "@id"
+    },
+    "conforms_to": {
+      "@id": "dcterms:conformsTo",
       "@type": "@id"
     },
     "resolver_targets": "tr:resolverTargets",

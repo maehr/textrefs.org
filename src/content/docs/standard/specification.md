@@ -14,7 +14,7 @@ sidebar:
 
 TextRefs defines a minimal registry standard for stable, machine-addressable references to texts.
 
-A conforming TextRefs registry MUST provide persistent identifiers for canonical references and MUST describe the citation systems by which those references are formed. It MAY record dereferenceable locations for those references and curated mappings to external identifiers or other references.
+A conforming TextRefs registry MUST provide persistent identifiers for canonical references and MUST describe the citation systems by which those references are formed. It SHOULD record dereferenceable locations for those references and MAY record curated mappings to external identifiers or other references.
 
 The standard is deliberately small. Its centre is a single idea: **a reference is an abstract identity, separate from any location, edition, or translation where the referenced text can be read.**
 
@@ -246,8 +246,8 @@ A `MappingAssertion` records a curated equivalence claim between a TextRefs `Wor
   "subject": "https://textrefs.org/id/work/new-testament",
   "relation": "exactMatch",
   "target": {
-    "target_kind": "wikidata",
-    "identifier": "https://www.wikidata.org/entity/Q18813"
+    "identifier": "https://www.wikidata.org/entity/Q18813",
+    "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
   "status": "candidate",
@@ -260,7 +260,7 @@ Required: `id`, `type` (`MappingAssertion`), `subject`, `relation`, `target`, `s
 
 - `subject` MUST be a `Work` IRI of the form `https://textrefs.org/id/work/{work_key}`. Per-passage external identifiers (e.g. the CTS URN of a single verse) are derived from work-level mappings combined with the reference locator at resolve time; they MUST NOT be stored as separate `MappingAssertion` records.
 - `target.identifier` MUST be an IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)) that identifies a **textual resource**: a work, edition, manuscript, citation system, or another TextRefs `Work`.
-- `target.target_kind` is OPTIONAL and is a human-readable scheme hint (e.g. `"cts"`, `"doi"`, `"wikidata"`, `"textrefs"`). Validators MUST NOT key behaviour off it. The presence or absence of `target_kind` carries no normative weight; the IRI in `identifier` is authoritative. See [Appendix B](#appendix-b-well-known-external-identifier-schemes-informative) for non-normative examples.
+- `target.conforms_to` is OPTIONAL. When present, it MUST be a dereferenceable IRI — or an array of such IRIs — identifying the specification or identifier scheme to which `target.identifier` conforms (e.g. the home page of the CTS specification, the Wikidata project, or a DOI handbook section). It is informative: validators MUST NOT key behaviour off it; the IRI in `identifier` is authoritative. See [Appendix B](#appendix-b-well-known-external-identifier-schemes-informative) for non-normative examples.
 - `relation` MUST be one of the SKOS-compatible values `exactMatch` or `closeMatch`. Use `exactMatch` only when the mapped resource identifies the same work with sufficient precision; if there is any uncertainty about edition, coverage, or work boundaries, use `closeMatch`.
 - `source` documents the basis for the assertion. A structured [W3C PROV-O](https://www.w3.org/TR/prov-o/) mapping is reserved for a future version.
 
@@ -308,32 +308,62 @@ This is the case that motivates separating identity from location. The New Testa
 
 ```json
 {
-  "work": {
-    "key": "new-testament",
-    "type": "Work",
-    "preferred_label": "New Testament"
-  },
-  "citation_system": {
-    "key": "bible-book-chapter-verse",
-    "type": "CitationSystem",
-    "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$"
-  },
-  "canonical_reference": {
-    "type": "CanonicalReference",
-    "work_key": "new-testament",
-    "citation_system_key": "bible-book-chapter-verse",
-    "locator": "John.3.16",
-    "resolver_targets": [
-      {
-        "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
-        "language": "grc",
-        "edition": "SBL Greek New Testament",
-        "provider": "STEP Bible",
-        "access": "open",
-        "license": "CC-BY-4.0"
-      }
-    ]
-  }
+  "@context": "https://textrefs.org/contexts/v1.jsonld",
+  "@graph": [
+    {
+      "id": "https://textrefs.org/id/work/new-testament",
+      "key": "new-testament",
+      "type": "Work",
+      "preferred_label": "New Testament",
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    },
+    {
+      "id": "https://textrefs.org/id/system/bible-book-chapter-verse",
+      "key": "bible-book-chapter-verse",
+      "type": "CitationSystem",
+      "preferred_label": "Bible book-chapter-verse (OSIS-style)",
+      "normalization_version": "1.0.0",
+      "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
+      "examples": {
+        "valid": ["Genesis.1.1", "Psalms.23.1", "Matthew.5.3"],
+        "invalid": ["Genesis.0.1", "Genesis.1", "1.1.1", "Genesis 1:1"]
+      },
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    },
+    {
+      "id": "https://textrefs.org/id/ref/59a2d83f-6aff-5fbf-b8f7-b243c3ed0594",
+      "type": "CanonicalReference",
+      "work_key": "new-testament",
+      "citation_system_key": "bible-book-chapter-verse",
+      "locator": "John.3.16",
+      "normalization_version": "1.0.0",
+      "resolver_targets": [
+        {
+          "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
+          "language": "grc-Grek",
+          "edition": "SBL Greek New Testament",
+          "provider": "STEP Bible",
+          "access": "open",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "url": "https://www.biblegateway.com/passage/?search=John%203%3A16&version=KJV",
+          "language": "en",
+          "edition": "King James Version",
+          "provider": "Bible Gateway",
+          "access": "open",
+          "license": "CC0-1.0"
+        }
+      ],
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    }
+  ]
 }
 ```
 
@@ -401,19 +431,19 @@ Build on the core registry by keeping these concerns in application, extension, 
 
 ## Appendix B. Well-known external identifier schemes (informative)
 
-The following identifier schemes commonly satisfy [§10](#10-mappingassertion)'s "textual resource" rule and are useful values for `MappingAssertion.target.identifier`. Treat this table as implementation guidance: the authoritative rule is still whether the IRI identifies a textual resource.
+The following identifier schemes commonly satisfy [§10](#10-mappingassertion)'s "textual resource" rule and are useful values for `MappingAssertion.target.identifier`. Treat this table as implementation guidance: the authoritative rule is still whether the IRI identifies a textual resource. The `conforms_to` column gives a representative scheme IRI; any dereferenceable IRI that identifies the same specification is equally valid.
 
-| Scheme   | `target_kind` hint | Example identifier                                |
-| -------- | ------------------ | ------------------------------------------------- |
-| TextRefs | `textrefs`         | `https://textrefs.org/id/ref/988e0b39-…`          |
-| CTS URN  | `cts`              | `urn:cts:greekLit:tlg0031.tlg004:3.16`            |
-| DTS      | `dts`              | `https://dts.example/api/collection?id=urn:cts:…` |
-| DOI      | `doi`              | `https://doi.org/10.5281/zenodo.7702622`          |
-| ARK      | `ark`              | `https://n2t.net/ark:/12148/btv1b8451636f`        |
-| Handle   | `handle`           | `https://hdl.handle.net/1887/4531`                |
-| PURL     | `purl`             | `https://purl.org/dc/terms/`                      |
-| URN:NBN  | `urn-nbn`          | `urn:nbn:de:bvb:12-bsb00012345-2`                 |
-| Wikidata | `wikidata`         | `https://www.wikidata.org/entity/Q42`             |
+| Scheme   | Example identifier                                | Example `conforms_to`                                         |
+| -------- | ------------------------------------------------- | ------------------------------------------------------------- |
+| TextRefs | `https://textrefs.org/id/ref/988e0b39-…`          | `https://textrefs.org/`                                       |
+| CTS URN  | `urn:cts:greekLit:tlg0031.tlg004:3.16`            | `https://cite-architecture.github.io/`                        |
+| DTS      | `https://dts.example/api/collection?id=urn:cts:…` | `https://distributed-text-services.github.io/specifications/` |
+| DOI      | `https://doi.org/10.5281/zenodo.7702622`          | `https://www.doi.org/`                                        |
+| ARK      | `https://n2t.net/ark:/12148/btv1b8451636f`        | `https://arks.org/`                                           |
+| Handle   | `https://hdl.handle.net/1887/4531`                | `https://www.handle.net/`                                     |
+| PURL     | `https://purl.org/dc/terms/`                      | `https://purl.archive.org/`                                   |
+| URN:NBN  | `urn:nbn:de:bvb:12-bsb00012345-2`                 | `https://nbn-resolving.org/`                                  |
+| Wikidata | `https://www.wikidata.org/entity/Q42`             | `https://www.wikidata.org/`                                   |
 
 TextRefs keeps mappings focused on textual resources. Identifiers of agents, organisations, instruments, or non-textual datasets (e.g. ROR, ORCID, ISNI) belong in external authority systems reached through mapped textual resources, not in `MappingAssertion.target`.
 

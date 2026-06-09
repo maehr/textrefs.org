@@ -141,9 +141,6 @@ const jsonHref = `/id/work/${work.key}.json`;
 						<a href={`/id/mapping/${uuidOf(m.id)}/`}>
 							<span class="reg-tag">{m.relation}</span>
 						</a>
-						{m.target.target_kind && (
-							<span class="reg-tag">{m.target.target_kind}</span>
-						)}
 						<a href={m.target.identifier}>{m.target.identifier}</a>
 					</li>
 				))}

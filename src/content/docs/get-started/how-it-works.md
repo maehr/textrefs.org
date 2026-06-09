@@ -53,7 +53,7 @@ The identity is the Stephanus reference, not any one Greek text, translation, or
       "provider": "Perseus Digital Library",
       "access": "open",
       "license": "CC-BY-SA-3.0",
-      "license_url": "https://www.perseus.tufts.edu/hopper/about/copyright",
+      "license_url": "https://www.perseus.tufts.edu/hopper/opensource",
       "last_checked": "2026-06-03"
     }
   ],
@@ -98,8 +98,8 @@ Work-level equivalences live in a `MappingAssertion`:
   "subject": "https://textrefs.org/id/work/plato.republic",
   "relation": "exactMatch",
   "target": {
-    "target_kind": "wikidata",
-    "identifier": "https://www.wikidata.org/entity/Q123397"
+    "identifier": "https://www.wikidata.org/entity/Q123397",
+    "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
   "status": "candidate",

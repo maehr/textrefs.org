@@ -20,7 +20,7 @@ https://textrefs.org/contexts/v1.jsonld
 | --------- | -------------------------------------- | -------------------------------------------------------------------------- |
 | `tr`      | `https://textrefs.org/ontology#`       | TextRefs object types, keys, and TextRefs-specific metadata                |
 | `skos`    | `http://www.w3.org/2004/02/skos/core#` | Labels, schemes (`inScheme`), and mapping relations                        |
-| `dcterms` | `http://purl.org/dc/terms/`            | `created`, `modified`, `source`, `language`, `license`                     |
+| `dcterms` | `http://purl.org/dc/terms/`            | `created`, `modified`, `source`, `language`, `license`, `conformsTo`       |
 | `schema`  | `https://schema.org/`                  | `url`, `provider`, `edition`, `creator`, `familyName`, `givenName`, `name` |
 | `xsd`     | `http://www.w3.org/2001/XMLSchema#`    | `xsd:date` typing for `created` / `modified` / `last_checked`              |
 
@@ -70,8 +70,8 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "closeMatch": { "@id": "skos:closeMatch", "@type": "@id" },
     "subject": { "@id": "tr:subject", "@type": "@id" },
     "target": "tr:target",
-    "target_kind": "tr:targetKind",
     "identifier": { "@id": "tr:identifier", "@type": "@id" },
+    "conforms_to": { "@id": "dcterms:conformsTo", "@type": "@id" },
     "resolver_targets": "tr:resolverTargets",
     "provider": "schema:provider",
     "url": { "@id": "schema:url", "@type": "@id" },

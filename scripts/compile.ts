@@ -127,8 +127,8 @@ function expandRange(range: ReferenceRange): string[] {
 
 type MappingSource = {
 	relation: 'exactMatch' | 'closeMatch';
-	target_kind?: string;
 	identifier: string;
+	conforms_to?: string | string[];
 	source: string;
 	status: string;
 	created: string;
@@ -433,10 +433,10 @@ export function compileRegistry(): CompiledRegistry {
 				subject: workIri,
 				relation: mapping.relation,
 				target: {
-					...(mapping.target_kind !== undefined && {
-						target_kind: mapping.target_kind,
-					}),
 					identifier: mapping.identifier,
+					...(mapping.conforms_to !== undefined && {
+						conforms_to: mapping.conforms_to,
+					}),
 				},
 				source: mapping.source,
 				status: mapping.status,

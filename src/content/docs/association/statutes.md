@@ -107,7 +107,7 @@ In the event of a tied vote on substantive matters, the President decides with t
 
 ## Art. 11 Board
 
-The Board consists of at least three persons.
+The Board consists of at least two persons.
 
 The term of office is two years. Re-election is possible.
 

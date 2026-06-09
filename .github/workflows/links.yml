@@ -28,7 +28,14 @@ jobs:
       - name: Collect external URLs from sources
         run: |
           mkdir -p lychee
-          grep -rhoE 'https?://[^"'\''<>) ]+' data/ src/content/docs/ \
+          # Allow `)` inside URLs (Wikipedia disambiguation titles), then strip
+          # a single trailing `)` only when unbalanced (handles markdown
+          # `[text](url)`). Drop resolver templates containing `{placeholder}`.
+          # Restrict to YAML/MD so lockfiles inside data/ are not scanned.
+          grep -rhoE --include='*.yaml' --include='*.yml' --include='*.md' --include='*.mdx' \
+              'https?://[^]["'\''<>[:space:]]+' data/ src/content/docs/ \
+            | awk '{ n=gsub(/\(/,"&"); m=gsub(/\)/,"&"); if (m>n) sub(/\)$/,""); print }' \
+            | grep -v '[{}]' \
             | sed -E 's/[.,;:]+$//' \
             | sort -u > lychee/urls.txt
           echo "Collected $(wc -l < lychee/urls.txt) unique URLs"

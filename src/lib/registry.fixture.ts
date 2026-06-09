@@ -58,7 +58,6 @@ export const fixtureRegistry: CompiledRegistry = {
 			subject: fixtureWorkIri,
 			relation: 'exactMatch',
 			target: {
-				target_kind: 'fixture',
 				identifier: 'https://example.org/fixture-work',
 			},
 			source: 'Local fixture for fast site validation.',
