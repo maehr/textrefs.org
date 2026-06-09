@@ -107,7 +107,7 @@ Bei Stimmengleichheit entscheidet bei Sachgeschäften die Präsidentin oder der 
 
 ## Art. 11 Vorstand
 
-Der Vorstand besteht aus mindestens drei Personen.
+Der Vorstand besteht aus mindestens zwei Personen.
 
 Die Amtsdauer beträgt zwei Jahre. Wiederwahl ist möglich.
 
