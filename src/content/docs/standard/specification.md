@@ -14,7 +14,7 @@ sidebar:
 
 TextRefs defines a minimal registry standard for stable, machine-addressable references to texts.
 
-A conforming TextRefs registry MUST provide persistent identifiers for canonical references and MUST describe the citation systems by which those references are formed. It MAY record dereferenceable locations for those references and curated mappings to external identifiers or other references.
+A conforming TextRefs registry MUST provide persistent identifiers for canonical references and MUST describe the citation systems by which those references are formed. It SHOULD record dereferenceable locations for those references and MAY record curated mappings to external identifiers or other references.
 
 The standard is deliberately small. Its centre is a single idea: **a reference is an abstract identity, separate from any location, edition, or translation where the referenced text can be read.**
 
