@@ -308,32 +308,62 @@ This is the case that motivates separating identity from location. The New Testa
 
 ```json
 {
-  "work": {
-    "key": "new-testament",
-    "type": "Work",
-    "preferred_label": "New Testament"
-  },
-  "citation_system": {
-    "key": "bible-book-chapter-verse",
-    "type": "CitationSystem",
-    "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$"
-  },
-  "canonical_reference": {
-    "type": "CanonicalReference",
-    "work_key": "new-testament",
-    "citation_system_key": "bible-book-chapter-verse",
-    "locator": "John.3.16",
-    "resolver_targets": [
-      {
-        "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
-        "language": "grc",
-        "edition": "SBL Greek New Testament",
-        "provider": "STEP Bible",
-        "access": "open",
-        "license": "CC-BY-4.0"
-      }
-    ]
-  }
+  "@context": "https://textrefs.org/contexts/v1.jsonld",
+  "@graph": [
+    {
+      "id": "https://textrefs.org/id/work/new-testament",
+      "key": "new-testament",
+      "type": "Work",
+      "preferred_label": "New Testament",
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    },
+    {
+      "id": "https://textrefs.org/id/system/bible-book-chapter-verse",
+      "key": "bible-book-chapter-verse",
+      "type": "CitationSystem",
+      "preferred_label": "Bible book-chapter-verse (OSIS-style)",
+      "normalization_version": "1.0.0",
+      "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
+      "examples": {
+        "valid": ["Genesis.1.1", "Psalms.23.1", "Matthew.5.3"],
+        "invalid": ["Genesis.0.1", "Genesis.1", "1.1.1", "Genesis 1:1"]
+      },
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    },
+    {
+      "id": "https://textrefs.org/id/ref/59a2d83f-6aff-5fbf-b8f7-b243c3ed0594",
+      "type": "CanonicalReference",
+      "work_key": "new-testament",
+      "citation_system_key": "bible-book-chapter-verse",
+      "locator": "John.3.16",
+      "normalization_version": "1.0.0",
+      "resolver_targets": [
+        {
+          "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
+          "language": "grc-Grek",
+          "edition": "SBL Greek New Testament",
+          "provider": "STEP Bible",
+          "access": "open",
+          "license": "CC-BY-4.0"
+        },
+        {
+          "url": "https://www.biblegateway.com/passage/?search=John%203%3A16&version=KJV",
+          "language": "en",
+          "edition": "King James Version",
+          "provider": "Bible Gateway",
+          "access": "open",
+          "license": "CC0-1.0"
+        }
+      ],
+      "status": "active",
+      "created": "2026-05-31",
+      "modified": "2026-05-31"
+    }
+  ]
 }
 ```
 
