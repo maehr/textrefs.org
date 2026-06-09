@@ -98,8 +98,8 @@ Work-level equivalences live in a `MappingAssertion`:
   "subject": "https://textrefs.org/id/work/plato.republic",
   "relation": "exactMatch",
   "target": {
-    "target_kind": "wikidata",
-    "identifier": "https://www.wikidata.org/entity/Q123397"
+    "identifier": "https://www.wikidata.org/entity/Q123397",
+    "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
   "status": "candidate",

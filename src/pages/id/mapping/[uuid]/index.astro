@@ -71,11 +71,6 @@ const jsonHref = `/id/mapping/${uuidOf(mapping.id)}.json`;
 		</li>
 		<li>
 			Target:
-			{
-				mapping.target.target_kind && (
-					<span class="reg-tag">{mapping.target.target_kind}</span>
-				)
-			}
 			<a
 				href={mapping.target.identifier}
 				target="_blank"
