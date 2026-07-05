@@ -99,6 +99,15 @@ const jsonHref = `/id/work/${work.key}.json`;
 					href: jsonHref,
 				},
 			},
+			// Draft records are excluded from search indexing (ADR-0003).
+			...(work.status === 'draft'
+				? [
+						{
+							tag: 'meta' as const,
+							attrs: { name: 'robots', content: 'noindex' },
+						},
+					]
+				: []),
 		],
 	}}
 >
@@ -109,7 +118,7 @@ const jsonHref = `/id/work/${work.key}.json`;
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
 
-	<Tombstone status={work.status} />
+	<Tombstone status={work.status} supersededBy={work.superseded_by} />
 
 	<h2>Citation systems</h2>
 	{

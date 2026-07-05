@@ -67,6 +67,15 @@ const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
 					href: jsonHref,
 				},
 			},
+			// Draft records are excluded from search indexing (ADR-0003).
+			...(ref.status === 'draft'
+				? [
+						{
+							tag: 'meta' as const,
+							attrs: { name: 'robots', content: 'noindex' },
+						},
+					]
+				: []),
 		],
 	}}
 >
@@ -77,7 +86,7 @@ const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
 
-	<Tombstone status={ref.status} />
+	<Tombstone status={ref.status} supersededBy={ref.superseded_by} />
 
 	<h2>In context</h2>
 	<ul class="reg-list">

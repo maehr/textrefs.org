@@ -1,23 +1,48 @@
 ---
 interface Props {
 	status: string;
+	supersededBy?: string;
 }
 
-const { status } = Astro.props;
+const { status, supersededBy } = Astro.props;
 
-const isTombstone = status === 'withdrawn';
+const isDraft = status === 'draft';
+const isTombstone = status === 'withdrawn' || status === 'blocked';
 ---
+
+{
+	isDraft && (
+		<aside class="reg-draft" role="note">
+			<p class="reg-draft-title">
+				<strong>Draft record.</strong>
+			</p>
+			<p>
+				This record has not been promoted by expert review. Its identifier
+				carries no persistence promise yet: the record may be corrected (which
+				mints a different identifier) or retracted without a tombstone. Do not
+				cite it as stable.
+			</p>
+		</aside>
+	)
+}
 
 {
 	isTombstone && (
 		<aside class="reg-tombstone" role="note">
 			<p class="reg-tombstone-title">
-				<strong>This record has been withdrawn.</strong>
+				<strong>
+					{status === 'blocked'
+						? 'This record is blocked by a rights, trust, or policy dispute.'
+						: 'This record has been withdrawn.'}
+				</strong>
 			</p>
-			<p>
-				If a successor exists, it is linked from an <code>exactMatch</code>{' '}
-				mapping listed on this page.
-			</p>
+			{supersededBy ? (
+				<p>
+					Superseded by <a href={supersededBy}>{supersededBy}</a>.
+				</p>
+			) : (
+				<p>No successor record exists.</p>
+			)}
 		</aside>
 	)
 }
@@ -34,6 +59,19 @@ const isTombstone = status === 'withdrawn';
 		margin-top: 0;
 	}
 	.reg-tombstone p {
+		margin: 0.25rem 0;
+	}
+	.reg-draft {
+		border-left: 4px solid var(--sl-color-blue, #2563eb);
+		background: var(--sl-color-bg-nav, rgba(37, 99, 235, 0.08));
+		padding: 0.75rem 1rem;
+		margin: 1rem 0;
+		border-radius: 0.25rem;
+	}
+	.reg-draft-title {
+		margin-top: 0;
+	}
+	.reg-draft p {
 		margin: 0.25rem 0;
 	}
 </style>

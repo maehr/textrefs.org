@@ -59,6 +59,15 @@ const jsonHref = `/id/system/${system.key}.json`;
 					href: jsonHref,
 				},
 			},
+			// Draft records are excluded from search indexing (ADR-0003).
+			...(system.status === 'draft'
+				? [
+						{
+							tag: 'meta' as const,
+							attrs: { name: 'robots', content: 'noindex' },
+						},
+					]
+				: []),
 		],
 	}}
 >
@@ -69,7 +78,7 @@ const jsonHref = `/id/system/${system.key}.json`;
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
 
-	<Tombstone status={system.status} />
+	<Tombstone status={system.status} supersededBy={system.superseded_by} />
 
 	<h2>Locator format</h2>
 	<p>{system.description}</p>

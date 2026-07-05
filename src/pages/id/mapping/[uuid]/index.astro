@@ -39,6 +39,15 @@ const jsonHref = `/id/mapping/${uuidOf(mapping.id)}.json`;
 					href: jsonHref,
 				},
 			},
+			// Draft records are excluded from search indexing (ADR-0003).
+			...(mapping.status === 'draft'
+				? [
+						{
+							tag: 'meta' as const,
+							attrs: { name: 'robots', content: 'noindex' },
+						},
+					]
+				: []),
 		],
 	}}
 >
@@ -49,7 +58,7 @@ const jsonHref = `/id/mapping/${uuidOf(mapping.id)}.json`;
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
 
-	<Tombstone status={mapping.status} />
+	<Tombstone status={mapping.status} supersededBy={mapping.superseded_by} />
 
 	<ul class="reg-list">
 		<li>
