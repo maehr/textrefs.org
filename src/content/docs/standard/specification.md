@@ -144,9 +144,9 @@ A `CitationSystem.key` is a single flat registry key for a locator notation and 
   "id": "https://textrefs.org/id/system/bible-book-chapter-verse",
   "key": "bible-book-chapter-verse",
   "type": "CitationSystem",
-  "preferred_label": "Bible book-chapter-verse (OSIS-style)",
-  "description": "OSIS-style locator: `Book.Chapter.Verse`. The book component accepts OSIS-compatible book identifiers (letters, digits, and underscores, starting with a letter; no spaces). Both the Hebrew Bible and the New Testament cite with this grammar.",
-  "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
+  "preferred_label": "Bible book-chapter-verse (OSIS)",
+  "description": "OSIS locator: `Book.Chapter.Verse`. The canonical book vocabulary is the OSIS book abbreviation list (CrossWire), case-sensitive as published there — e.g. `Gen`, `Exod`, `Matt`, `John`, `1Cor`. Chapter and verse are positive integers without leading zeros. Both the Hebrew Bible and the New Testament cite with this grammar.",
+  "locator_regex": "^(?<book>[1-4]?[A-Za-z][A-Za-z0-9]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
   "status": "candidate",
   "created": "2026-05-31",
   "modified": "2026-05-31"
@@ -298,7 +298,7 @@ Deprecated, withdrawn, and blocked records SHOULD remain visible unless removal 
 
 ## 13. Worked example: a multi-translation work
 
-This is the case that motivates separating identity from location. The New Testament exists in many editions and translations, yet `John.3.16` is **one** reference in the OSIS-style book-chapter-verse system.
+This is the case that motivates separating identity from location. The New Testament exists in many editions and translations, yet `John.3.16` is **one** reference in the OSIS book-chapter-verse system.
 
 **One identity** — a single `Work`, `CitationSystem`, and `CanonicalReference`. The reference embeds all language-tagged locations as `resolver_targets`:
 
@@ -319,9 +319,9 @@ This is the case that motivates separating identity from location. The New Testa
       "id": "https://textrefs.org/id/system/bible-book-chapter-verse",
       "key": "bible-book-chapter-verse",
       "type": "CitationSystem",
-      "preferred_label": "Bible book-chapter-verse (OSIS-style)",
-      "description": "OSIS-style locator: `Book.Chapter.Verse`. The book component accepts OSIS-compatible book identifiers (letters, digits, and underscores, starting with a letter; no spaces). Both the Hebrew Bible and the New Testament cite with this grammar.",
-      "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
+      "preferred_label": "Bible book-chapter-verse (OSIS)",
+      "description": "OSIS locator: `Book.Chapter.Verse`. The canonical book vocabulary is the OSIS book abbreviation list (CrossWire), case-sensitive as published there — e.g. `Gen`, `Exod`, `Matt`, `John`, `1Cor`. Chapter and verse are positive integers without leading zeros. Both the Hebrew Bible and the New Testament cite with this grammar.",
+      "locator_regex": "^(?<book>[1-4]?[A-Za-z][A-Za-z0-9]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
       "status": "active",
       "created": "2026-05-31",
       "modified": "2026-05-31"

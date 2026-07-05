@@ -198,10 +198,10 @@ references_range:
     counts: [16, 24, 26, 26, 28, 30, 38, 21, 31, 27, 26, 24, 30, 47, 42, 14, 26, 11, 25, 5]
 
 # Genesis — 1,533 references from per-chapter verse counts:
-#   'Genesis.1.1', …, 'Genesis.50.26'
+#   'Gen.1.1', …, 'Gen.50.26'
 references_range:
   - kind: book_chapter_verse
-    book: Genesis
+    book: Gen
     counts: [31, 25, 24, 26, 32, 22 /* …, 26 */]
 
 # Dhammapada — 423 references from per-chapter verse counts (no book prefix):
