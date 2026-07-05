@@ -48,6 +48,7 @@
     "pagefind": "^1.5.2",
     "prettier": "^3.8.3",
     "prettier-plugin-astro": "^0.14.1",
+    "spdx-license-ids": "^3.0.23",
     "starlight-links-validator": "^0.24.0",
     "starlight-llms-txt": "^0.10.0",
     "starlight-openapi": "^0.25.3",

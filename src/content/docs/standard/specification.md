@@ -182,7 +182,7 @@ A `CanonicalReference` represents one atomized, **language-independent** referen
       "edition": "SBL Greek New Testament",
       "provider": "STEP Bible",
       "access": "open",
-      "license": "CC-BY-4.0"
+      "license": "https://spdx.org/licenses/CC-BY-4.0"
     }
   ],
   "status": "candidate",
@@ -212,7 +212,7 @@ Required: `id`, `type` (`CanonicalReference`), `work_key`, `citation_system_key`
   "edition": "King James Version",
   "provider": "Bible Gateway",
   "access": "open",
-  "license": "CC0-1.0",
+  "license": "https://spdx.org/licenses/CC0-1.0",
   "license_url": null,
   "last_checked": "2026-01-01"
 }
@@ -223,7 +223,7 @@ Required per entry: `url`, `access`.
 - `url` MUST be a dereferenceable external IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)).
 - `language` MUST be present when the entry is language-specific (e.g. a translation), as a [BCP 47](https://www.rfc-editor.org/info/bcp47) language tag ([RFC 5646](https://www.rfc-editor.org/rfc/rfc5646)). Tags MUST include an [ISO 15924](https://www.unicode.org/iso15924/) script subtag when the entry uses a non-default script for the language (e.g. `grc-Grek`, `hbo-Hebr`, `grc-Latn`). `edition` SHOULD name the specific edition or version when known.
 - `access` MUST be one of `open`, `paywalled`, `restricted`, `unknown`.
-- `license` SHOULD be a current [SPDX license identifier](https://spdx.org/licenses/) (e.g. `CC0-1.0`, `CC-BY-4.0`) when the licence of the target resource is known. For licences not in the SPDX list, omit `license` and use the optional `license_url` to point at the licence text.
+- `license` SHOULD be authored as a current [SPDX license identifier](https://spdx.org/licenses/) (e.g. `CC0-1.0`, `CC-BY-4.0`) when the licence of the target resource is known; published JSON-LD carries the canonical SPDX IRI (`https://spdx.org/licenses/{id}`), so `dcterms:license` has a single IRI-typed range. For licences not in the SPDX list, omit `license` and use the optional `license_url` to point at the licence text.
 - Values implying permission to host copyrighted full text (e.g. a `license` of `proprietary` accompanied by hosted text) are forbidden; the no-text rule in [§2](#2-conformance) governs.
 - A `CanonicalReference` whose `resolver_targets` is an empty array remains a valid identity record; adding or removing an entry MUST NOT change the parent reference's `id`.
 - Tombstoning a single bad URL is done by removing the entry; tombstoning the whole reference uses the parent `status` field. There is no independent status on individual entries.
@@ -271,7 +271,7 @@ The persistence promise attaches at **promotion**: the first time a record is pu
 
 An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated` or `withdrawn`, [§12](#12-administrative-metadata)) and SHOULD be linked to its replacement through an `exactMatch` `MappingAssertion` ([§10](#10-mappingassertion)).
 
-A conforming registry SHOULD publish each `/id/{type}/{key}` IRI at two static URLs: the canonical URL itself (HTML for browsers) and a sibling with a `.json` extension carrying the JSON-LD payload. The HTML representation SHOULD advertise the JSON-LD sibling via `<link rel="alternate" type="application/json" href="…json">` in the document head. `Accept`-header content negotiation is not required.
+A conforming registry SHOULD publish each `/id/{type}/{key}` IRI at two static URLs: the canonical URL itself (HTML for browsers) and a sibling with a `.json` extension carrying the JSON-LD payload. The HTML representation SHOULD advertise the JSON-LD sibling via `<link rel="alternate" type="application/ld+json" href="…json">` in the document head. `Accept`-header content negotiation is not required.
 
 ## 12. Administrative metadata
 
@@ -291,7 +291,7 @@ Every registry object MUST include:
   - `candidate` — proposed but not yet accepted as stable. Promotion from `draft` attaches the persistence promise.
   - `active` — accepted and recommended for use.
   - `deprecated` — retained but no longer recommended.
-  - `withdrawn` — removed from active use because it was erroneous or has been superseded. If a successor exists, it is linked by an `exactMatch` `MappingAssertion`; see [Versioning](/standard/versioning/) for tombstones.
+  - `withdrawn` — removed from active use because it was erroneous or has been superseded. If a successor exists, the record's `superseded_by` field carries the successor IRI; see [Versioning](/standard/versioning/) for tombstones.
   - `blocked` — retained as a visible tombstone because of a rights, trust, or policy dispute.
 
 Deprecated, withdrawn, and blocked records SHOULD remain visible unless removal is required for legal, privacy, or safety reasons.
@@ -339,7 +339,7 @@ This is the case that motivates separating identity from location. The New Testa
           "edition": "SBL Greek New Testament",
           "provider": "STEP Bible",
           "access": "open",
-          "license": "CC-BY-4.0"
+          "license": "https://spdx.org/licenses/CC-BY-4.0"
         },
         {
           "url": "https://www.biblegateway.com/passage/?search=John%203%3A16&version=KJV",
@@ -399,7 +399,7 @@ This standard relies on the following external standards. Each is normative wher
 | Dates                                | [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)                                   |
 | URIs                                 | [RFC 3986](https://www.rfc-editor.org/rfc/rfc3986)                                                   |
 | IRIs                                 | [RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)                                                   |
-| UUIDs                                | [RFC 4122](https://www.rfc-editor.org/rfc/rfc4122)                                                   |
+| UUIDs                                | [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562)                                                   |
 | Unicode normalization (NFC)          | [Unicode Standard Annex #15](https://www.unicode.org/reports/tr15/)                                  |
 | Regular expression dialect           | [ECMA-262](https://262.ecma-international.org/) §22.2                                                |
 | Versioning                           | [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html)                                                  |

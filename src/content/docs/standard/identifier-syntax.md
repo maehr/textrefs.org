@@ -20,7 +20,7 @@ The TextRefs reference namespace UUID is:
 b1a3670e-2ac7-544c-a1b9-396e0dc193f7
 ```
 
-This namespace is derived from `uuidv5(uuid.NAMESPACE_DNS, "textrefs.org/reference")` and is frozen for `v0.1.0-draft`.
+This namespace is derived from `uuidv5(uuid.NAMESPACE_DNS, "textrefs.org/reference")` and is frozen for `v0.1.0-draft`. (`NAMESPACE_DNS` here is only a frozen UUID constant used as salt; UUIDv5 treats its name input as opaque bytes, so the slash in the name string is intentional and valid.)
 
 ## Seed sequence
 
@@ -109,7 +109,7 @@ The mapping namespace UUID is:
 f16bb214-4241-549d-ad41-7b011f02befb
 ```
 
-This namespace is derived from `uuidv5(uuid.NAMESPACE_DNS, "textrefs.org/mapping")` and is frozen for `v0.1.0-draft`.
+This namespace is derived from `uuidv5(uuid.NAMESPACE_DNS, "textrefs.org/mapping")` and is frozen for `v0.1.0-draft`. (As above, `NAMESPACE_DNS` is a frozen salt constant; the name input is opaque bytes, not a DNS label.)
 
 The seed string is the following three-field sequence, joined with single line feed characters and no trailing newline:
 

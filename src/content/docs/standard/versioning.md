@@ -86,15 +86,15 @@ Registry identity is permanent once promoted: the IRI of a `Work`, `CitationSyst
 
 ### Schema
 
-Tombstones use one status value, no extra fields. The old record stays in the data tree with `status: withdrawn`. If a successor exists, a single `MappingAssertion` with `relation: exactMatch`, `subject: <old IRI>`, and `target: <new IRI>` carries the link. Consumers walk the mapping to find the successor.
+Tombstones use one status value plus one optional field. The old record stays in the data tree with `status: withdrawn`. If a successor exists, the tombstoned record carries its IRI in `superseded_by` (`dcterms:isReplacedBy` in the published context). Consumers follow `superseded_by` to find the successor. `MappingAssertion`s are reserved for genuine work-level equivalence claims and MUST NOT be used for succession links.
 
 ### On-disk representation
 
-Tombstones are full records, not deletions. The old record retains every other field unchanged; only `status` flips to `withdrawn` and `modified` is bumped. If a successor exists, the successor is a separately authored record at the new IRI, and the linking `MappingAssertion` is committed alongside.
+Tombstones are full records, not deletions. The old record retains every other field unchanged; `status` flips to `withdrawn`, `modified` is bumped, and `superseded_by` is set when a successor exists. The successor is a separately authored record at the new IRI.
 
 ### HTTP behavior
 
-Old IRI HTML pages render a tombstone banner. The page already lists every `MappingAssertion` whose subject is this record, so the successor (if any) appears in that list with no extra rendering logic. The `.json` JSON-LD sibling returns the withdrawn record verbatim. Old IRIs are **not** hard-redirected: archival consumers MUST be able to inspect the tombstone payload.
+Old IRI HTML pages render a tombstone banner; when `superseded_by` is present the banner links the successor IRI. The `.json` JSON-LD sibling returns the withdrawn record verbatim. Old IRIs are **not** hard-redirected: archival consumers MUST be able to inspect the tombstone payload.
 
 ### Export inclusion
 
@@ -102,14 +102,14 @@ Tombstones MUST appear in monthly exports inside the same `.jsonl` file as their
 
 ### Compiler invariants
 
-The compiler enforces: an active `CanonicalReference` MUST NOT reference a tombstoned `Work` or `CitationSystem` through `work_key` or `citation_system_key`. `MappingAssertion`s are exempt — successor links from a withdrawn subject to an active target are exactly the documented pattern.
+The compiler enforces: an active `CanonicalReference` MUST NOT reference a tombstoned `Work` or `CitationSystem` through `work_key` or `citation_system_key`. `superseded_by` MUST only appear on records whose `status` is `withdrawn` or `blocked`.
 
 Analogously, a promoted (`candidate` or higher) record MUST NOT reference a `draft` `Work` or `CitationSystem` through its keys: systems and works are promoted before or together with the records that depend on them.
 
 ### Aliases vs. tombstones
 
-`aliases.json` handles **presentational** URL aliases (multiple paths pointing at the same canonical record). Tombstones handle **identity** changes (the record itself is no longer canonical). These are distinct mechanisms and MUST NOT be conflated.
+The compiler maintains a presentational alias map (multiple lookup paths — external identifiers, `{work_key}/{locator}` pairs — pointing at the same canonical record). Tombstones handle **identity** changes (the record itself is no longer canonical). These are distinct mechanisms and MUST NOT be conflated.
 
 ## Rights and content guardrails
 
-Exports MUST NOT contain primary full text, commentary, apparatus, or rights metadata that implies TextRefs may redistribute copyrighted text. Disputed resolver endpoints remain in exports with `status: blocked` and tombstone rationale fields.
+Exports MUST NOT contain primary full text, commentary, apparatus, or rights metadata that implies TextRefs may redistribute copyrighted text. Disputed resolver endpoints remain in exports with `status: blocked`.

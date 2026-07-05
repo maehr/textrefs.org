@@ -19,6 +19,9 @@ export const AdminMetadata = z.object({
 	status: Status,
 	created: IsoDate,
 	modified: IsoDate,
+	// Successor link on tombstoned records (dcterms:isReplacedBy). MUST only
+	// appear when status is withdrawn or blocked.
+	superseded_by: Iri.optional(),
 });
 
 export const FlatKey = z

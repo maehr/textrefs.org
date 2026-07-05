@@ -9,6 +9,7 @@ import { join, basename, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { v5 as uuidv5 } from 'uuid';
 import { parse as parseYaml } from 'yaml';
+import { createRequire } from 'node:module';
 import {
 	Work,
 	CitationSystem,
@@ -18,6 +19,11 @@ import {
 
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
+
+const require = createRequire(import.meta.url);
+const spdxLicenseIds: string[] = require('spdx-license-ids');
+const spdxDeprecatedIds: string[] = require('spdx-license-ids/deprecated');
+const SPDX_IDS = new Set<string>([...spdxLicenseIds, ...spdxDeprecatedIds]);
 
 const projectRoot = resolve(process.cwd());
 const dataRoot = join(projectRoot, 'data');
@@ -145,6 +151,7 @@ type WorkSource = {
 		status: string;
 		created: string;
 		modified: string;
+		superseded_by?: string;
 		creators?: CreatorSource[];
 	};
 	citation_system: string;
@@ -162,6 +169,7 @@ type SystemSource = {
 	status: string;
 	created: string;
 	modified: string;
+	superseded_by?: string;
 	// Per-chapter verse counts for chapter/verse systems. When present, the
 	// compiler exposes a `verseGlobal` template variable (cumulative 1..N
 	// across chapters) for resolvers whose anchors use a single running counter.
@@ -295,7 +303,17 @@ function buildResolverEntry(
 	if (resolver.edition !== undefined) entry.edition = resolver.edition;
 	if (resolver.provider !== undefined) entry.provider = resolver.provider;
 	entry.access = resolver.access ?? 'unknown';
-	if (resolver.license !== undefined) entry.license = resolver.license;
+	if (resolver.license !== undefined) {
+		if (SPDX_IDS.has(resolver.license)) {
+			// Emit the canonical SPDX IRI so dcterms:license has a single
+			// IRI-typed range in the JSON-LD output.
+			entry.license = `https://spdx.org/licenses/${resolver.license}`;
+		} else {
+			console.warn(
+				`⚠ license "${resolver.license}" is not an SPDX id; omitted from output (use license_url for non-SPDX terms)`,
+			);
+		}
+	}
 	if (resolver.license_url !== undefined)
 		entry.license_url = resolver.license_url;
 	if (resolver.last_checked !== undefined)
@@ -373,6 +391,7 @@ export function compileRegistry(): CompiledRegistry {
 			status: src.status,
 			created: src.created,
 			modified: src.modified,
+			...(src.superseded_by ? { superseded_by: src.superseded_by } : {}),
 		};
 		const parsed = CitationSystem.safeParse(record);
 		if (!parsed.success) {
@@ -399,6 +418,18 @@ export function compileRegistry(): CompiledRegistry {
 			);
 		}
 
+		// Direct SKOS mapping edges (skos:exactMatch / skos:closeMatch via the
+		// context) derived from the work's accepted mapping assertions, in
+		// addition to the reified MappingAssertion records below.
+		const exactMatches: string[] = [];
+		const closeMatches: string[] = [];
+		for (const m of src.mappings ?? []) {
+			if (m.status === 'withdrawn' || m.status === 'blocked') continue;
+			(m.relation === 'exactMatch' ? exactMatches : closeMatches).push(
+				m.identifier,
+			);
+		}
+
 		const workRecord = {
 			id: workIri,
 			key: workKey,
@@ -407,7 +438,12 @@ export function compileRegistry(): CompiledRegistry {
 			status: src.work.status,
 			created: src.work.created,
 			modified: src.work.modified,
+			...(src.work.superseded_by
+				? { superseded_by: src.work.superseded_by }
+				: {}),
 			...(src.work.creators ? { creators: src.work.creators } : {}),
+			...(exactMatches.length ? { exactMatch: exactMatches } : {}),
+			...(closeMatches.length ? { closeMatch: closeMatches } : {}),
 		};
 		const workParsed = Work.safeParse(workRecord);
 		if (!workParsed.success) {
@@ -533,6 +569,7 @@ export function compileRegistry(): CompiledRegistry {
 type TombstoneRecord = {
 	id: string;
 	status: string;
+	superseded_by?: string;
 };
 
 const TOMBSTONE_STATUSES = new Set(['withdrawn']);
@@ -557,10 +594,24 @@ function enforceTombstoneInvariants(reg: {
 
 	const errors: string[] = [];
 
+	// superseded_by is a tombstone-only field: it MUST NOT appear on records
+	// that are still part of the live registry surface.
+	for (const r of all) {
+		if (
+			r.superseded_by !== undefined &&
+			r.status !== 'withdrawn' &&
+			r.status !== 'blocked'
+		) {
+			errors.push(
+				`${r.id}: superseded_by is only allowed on withdrawn/blocked records (status: ${r.status})`,
+			);
+		}
+	}
+
 	// Active CanonicalReferences MUST NOT point at tombstoned work/system —
-	// those break resolution. MappingAssertions are intentionally exempt:
-	// successor links are carried by active exactMatch mappings whose subject
-	// is the withdrawn IRI and whose target is the active successor.
+	// those break resolution. Successor links are carried by the tombstoned
+	// record's own superseded_by field (dcterms:isReplacedBy), not by
+	// MappingAssertions, which are reserved for work-level equivalence.
 	const isActive = (r: TombstoneRecord) => !TOMBSTONE_STATUSES.has(r.status);
 	for (const ref of reg.references) {
 		if (!isActive(ref)) continue;
