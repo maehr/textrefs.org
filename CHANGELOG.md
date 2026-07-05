@@ -2,4 +2,36 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Changelog tracking begins at `v0.1.0`. Pre-release history lives in the git log.
+## [0.1.0] - 2026-07-05
+
+### Added
+
+- Replace target_kind with dcterms:conformsTo (#6)
+- Seed CanonicalReference UUIDs from the semantic identity tuple (ADR-0002) (#21)
+- Draft lifecycle with retractable pre-promotion identity (ADR-0003) (#23)
+- Require explicit canonical ASCII digit and case forms in profiles (#24)
+- Flag draft records and exclude them from search indexing (#26)
+
+### Documentation
+
+- Revise get-started prose and document staging deploy flow
+- Sync statutes board size and review tracks with dossier
+- Tighten dereferenceable-location guidance to should (#7)
+- Self-contained §13 example with @context (#8)
+- Add ORCID for Luz Christopher Seiberth (#19)
+
+### Fixed
+
+- Repair URL extraction in link-check workflow
+- Mark docs/404.mdx as draft to drop catch-all route conflict
+- Repair link-check workflow + bump deps to zod 4 (#5)
+- Erratum batch and spec-consistency fixes (#10, #11, #12, #14) (#25)
+
+### Misc
+
+- Add textrefs/.github as submodule at github-profile/
+- Bump astro 6.4.4 and migrate to zod 4
+- Bump submodule with second resolvers on single-resolver works
+- Bump submodule to registry main (36cae56)
+- Bump submodule to registry main (40af385)
+- Astro 6.4.8, dompurify 3.4.11, actions/checkout v7
