@@ -51,12 +51,7 @@ for (const ref of registry.references) {
 		reportIssue(`ref/${ref.work_key}/${ref.locator}`, r.error.issues);
 		continue;
 	}
-	const seed = [
-		ref.work_key,
-		ref.citation_system_key,
-		ref.locator,
-		ref.normalization_version,
-	].join('\n');
+	const seed = [ref.work_key, ref.citation_system_key, ref.locator].join('\n');
 	const expected = `https://textrefs.org/id/ref/${uuidv5(seed, REFERENCE_NS)}`;
 	if (ref.id !== expected) {
 		console.error(

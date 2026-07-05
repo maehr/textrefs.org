@@ -8,6 +8,10 @@ sidebar:
 
 TextRefs canonical-reference identifiers use deterministic UUID v5 generation. The algorithm is intentionally strict so that independent implementations produce identical identifiers from the same input.
 
+## Purpose of determinism
+
+Deterministic identity means anyone holding the semantic identity tuple — `work_key`, `citation_system_key`, and the canonical `locator` — can compute the registry UUID offline, without a lookup. The registry remains authoritative for which locators are canonical and attested: a computed UUID identifies a reference, but only a registered `CanonicalReference` makes it a valid TextRefs reference (see [Specification §14](/standard/specification/#14-validation-requirements)). See [ADR-0002](https://github.com/textrefs/textrefs.org/blob/main/decisions/ADR-0002-uuid-seed-semantic-identity.md) for the rationale.
+
 ## Namespace
 
 The TextRefs reference namespace UUID is:
@@ -20,21 +24,20 @@ This namespace is derived from `uuidv5(uuid.NAMESPACE_DNS, "textrefs.org/referen
 
 ## Seed sequence
 
-The UUID seed string is the following four-field sequence, in this exact order:
+The UUID seed string is the following three-field sequence, in this exact order:
 
 ```text
 work_key
 citation_system_key
 locator
-normalization_version
 ```
 
 Serialization rules:
 
 - Encode the seed as UTF-8.
-- Join the four values with a single line feed character, `U+000A`.
+- Join the three values with a single line feed character, `U+000A`.
 - Use each field exactly as normalized, with no leading or trailing whitespace.
-- End the seed after `normalization_version`, with no final trailing line feed.
+- End the seed after `locator`, with no final trailing line feed.
 - Use the registry key fields themselves; labels, URIs, aliases, and external identifiers belong in metadata or mappings.
 - Each field MUST already be normalized by its owning profile before UUID generation.
 
@@ -61,7 +64,8 @@ Deterministic identifiers depend on byte-identical seed strings. Before validati
 - `locator` MUST NOT contain leading or trailing whitespace, control characters, or internal whitespace unless the citation-system profile explicitly allows it.
 - Implementations MUST NOT apply NFKC, case folding, digit folding, punctuation folding, transliteration, or script conversion unless the citation-system profile explicitly defines that rule.
 - Profiles for mixed-script locators MUST state the allowed scripts and enforce them through `locator_regex`.
-- Any change to locator normalization that can change a normalized locator MUST change the citation system's `normalization_version`.
+- The `locator` stored on a `CanonicalReference` is the canonical spelling defined by the citation-system profile. Non-canonical spellings MUST be rejected at validation time, never silently folded into the canonical form.
+- A profile change that would alter the canonical spelling of any accepted locator changes reference identity. It MUST be handled as a registry migration (pre-1.0), a breaking registry release, or — when the distinction is genuinely semantic — a new `citation_system_key`. It MUST NOT be applied silently.
 
 The seed bytes used for UUID v5 generation are ASCII-restricted (keys) and NFC-normalized UTF-8 (locators). This is independent of whether downstream TextRefs identifiers are expressed as URIs ([RFC 3986](https://www.rfc-editor.org/rfc/rfc3986)) or IRIs ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)).
 
@@ -73,7 +77,6 @@ Input tuple:
 work_key = plato.republic
 citation_system_key = stephanus
 locator = 514a
-normalization_version = 1.0.0
 ```
 
 Seed string:
@@ -82,19 +85,18 @@ Seed string:
 plato.republic
 stephanus
 514a
-1.0.0
 ```
 
 Result:
 
 ```text
-884e8b51-b9cc-5f4b-9e49-60c636c0cd1a
+dc799d4b-9b17-5d76-85aa-dfd001c5321d
 ```
 
 Canonical URI:
 
 ```text
-https://textrefs.org/id/ref/884e8b51-b9cc-5f4b-9e49-60c636c0cd1a
+https://textrefs.org/id/ref/dc799d4b-9b17-5d76-85aa-dfd001c5321d
 ```
 
 ## MappingAssertion seed

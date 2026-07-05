@@ -74,15 +74,14 @@ classDiagram
         +URI id
         +string key
         +string preferred_label
+        +string description
         +string locator_regex
-        +string normalization_version
     }
     class CanonicalReference {
         +URI id
         +string work_key
         +string citation_system_key
         +string locator
-        +string normalization_version
         +ResolverTargetEntry[] resolver_targets
     }
     class ResolverTargetEntry {
@@ -146,33 +145,28 @@ A `CitationSystem.key` is a single flat registry key for a locator notation and 
   "key": "bible-book-chapter-verse",
   "type": "CitationSystem",
   "preferred_label": "Bible book-chapter-verse (OSIS-style)",
-  "normalization_version": "1.0.0",
+  "description": "OSIS-style locator: `Book.Chapter.Verse`. The book component accepts OSIS-compatible book identifiers (alphanumeric, no spaces). Both the Hebrew Bible and the New Testament cite with this grammar.",
   "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
-  "examples": {
-    "valid": ["Genesis.1.1", "Psalms.23.1", "Matthew.5.3"],
-    "invalid": ["Genesis.0.1", "Genesis.1", "1.1.1", "Genesis 1:1"]
-  },
   "status": "candidate",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
 ```
 
-Required: `id`, `key`, `type` (`CitationSystem`), `preferred_label`, `normalization_version`, `locator_regex`, `examples.valid`, `examples.invalid`, plus administrative metadata. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/system/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment.
+Required: `id`, `key`, `type` (`CitationSystem`), `preferred_label`, `description`, `locator_regex`, plus administrative metadata. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/system/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment.
 
+- `description` documents the citation tradition and its canonical locator form in prose, including any canonical-form rules that cannot be expressed in `locator_regex`.
 - `locator_regex` MUST be a valid ECMAScript regular expression.
 - `locator_regex` provides machine-checkable pre-validation for locator shape only; it need not fully describe citation systems whose valid references cannot be expressed completely as a regular language.
 - Citation systems SHOULD use an anchored `locator_regex` when the pattern is intended to describe the full locator string.
 - Regex success does not by itself prove that a reference point exists in a work.
-- `normalization_version` MUST use semantic versioning.
-- `examples.valid` MUST all match `locator_regex`; `examples.invalid` MUST all fail it.
 - Unicode handling for keys and locators MUST follow [Identifier syntax](/standard/identifier-syntax/#unicode-normalization).
-- A pull request that adds or changes a citation system MUST include the profile, valid examples, and invalid examples. See [Citation-system profiles](/standard/system-profiles/).
+- A pull request that adds or changes a citation system MUST include the full profile record. See [Citation-system profiles](/standard/system-profiles/).
 - A `CanonicalReference` links to its citation system through `citation_system_key`. JSON-LD serializations MAY additionally expose that relation with `skos:inScheme`.
 
 ## 8. CanonicalReference
 
-A `CanonicalReference` represents one atomized, **language-independent** reference point, identified by combining a work, a citation system, a normalized locator, and a normalization version. It also carries the set of dereferenceable external locations for that reference as an embedded `resolver_targets` array (see [§9](#9-embedded-resolver-targets)).
+A `CanonicalReference` represents one atomized, **language-independent** reference point, identified by combining a work, a citation system, and a canonical locator. It also carries the set of dereferenceable external locations for that reference as an embedded `resolver_targets` array (see [§9](#9-embedded-resolver-targets)).
 
 ```json
 {
@@ -181,7 +175,6 @@ A `CanonicalReference` represents one atomized, **language-independent** referen
   "work_key": "new-testament",
   "citation_system_key": "bible-book-chapter-verse",
   "locator": "John.3.16",
-  "normalization_version": "1.0.0",
   "resolver_targets": [
     {
       "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
@@ -198,13 +191,13 @@ A `CanonicalReference` represents one atomized, **language-independent** referen
 }
 ```
 
-Required: `id`, `type` (`CanonicalReference`), `work_key`, `citation_system_key`, `locator`, `normalization_version`, `resolver_targets` (MAY be empty), plus administrative metadata.
+Required: `id`, `type` (`CanonicalReference`), `work_key`, `citation_system_key`, `locator`, `resolver_targets` (MAY be empty), plus administrative metadata.
 
 - `work_key` MUST reference a known `Work`; `citation_system_key` MUST reference a known `CitationSystem`.
 - `work_key` and `citation_system_key` MUST be treated as opaque flat keys. Implementations MUST NOT infer author, corpus, title, hierarchy, or resolver behaviour by splitting either key.
-- `locator` MUST match the system's `locator_regex`; additional profile-specific validation MAY be required for systems that are not fully regex-checkable.
+- `locator` MUST be the canonical spelling defined by the citation-system profile and MUST match the system's `locator_regex`; additional profile-specific validation MAY be required for systems that are not fully regex-checkable. Non-canonical spellings MUST be rejected at validation time, never silently normalized (see [Identifier syntax](/standard/identifier-syntax/#unicode-normalization)).
 - An accepted `CanonicalReference` MUST represent an attested reference point for the referenced `Work` under the referenced `CitationSystem`.
-- `normalization_version` is part of the reference's identity and is fixed when the reference is minted; it records the normalization in force at that time and need not equal the citation system's current `normalization_version`. Its correctness is verified by the deterministic identifier (see [§14](#14-validation-requirements) and [Identifier syntax](/standard/identifier-syntax/)).
+- A profile change that would alter the canonical spelling of any accepted locator changes reference identity and MUST be handled as a registry migration, a breaking registry release, or a new `citation_system_key` (see [Identifier syntax](/standard/identifier-syntax/#unicode-normalization)).
 - The `id` MUST be generated deterministically per [Identifier syntax](/standard/identifier-syntax/); its UUID component is the deterministic seed output.
 - `resolver_targets` MUST validate per [§9](#9-embedded-resolver-targets).
 
@@ -270,7 +263,7 @@ TextRefs identifiers MUST be persistent HTTP URIs ([RFC 3986](https://www.rfc-ed
 
 `Work` identifiers MUST use `https://textrefs.org/id/work/{key}` and `CitationSystem` identifiers MUST use `https://textrefs.org/id/system/{key}`. In both cases `{key}` is the complete flat key and MUST NOT contain additional path segments. For example, `https://textrefs.org/id/work/plato.republic` is valid; `https://textrefs.org/id/work/plato/republic` is not.
 
-A `CanonicalReference` identifier MUST be generated deterministically. The identity seed MUST include `work_key`, `citation_system_key`, `locator`, and `normalization_version`, in that order (see [Identifier syntax](/standard/identifier-syntax/)).
+A `CanonicalReference` identifier MUST be generated deterministically. The identity seed MUST include `work_key`, `citation_system_key`, and `locator`, in that order (see [Identifier syntax](/standard/identifier-syntax/)).
 
 A `MappingAssertion` identifier MUST be generated deterministically from `subject`, `relation`, and `target.identifier`, in that order, using the `mapping` namespace (see [Identifier syntax](/standard/identifier-syntax/#mappingassertion-seed)). It MUST remain UUID-based and MUST NOT be derived from provider URLs, corpus paths, or resolver structures. Resolver-target entries do not have their own identifiers.
 
@@ -324,23 +317,18 @@ This is the case that motivates separating identity from location. The New Testa
       "key": "bible-book-chapter-verse",
       "type": "CitationSystem",
       "preferred_label": "Bible book-chapter-verse (OSIS-style)",
-      "normalization_version": "1.0.0",
+      "description": "OSIS-style locator: `Book.Chapter.Verse`. The book component accepts OSIS-compatible book identifiers (alphanumeric, no spaces). Both the Hebrew Bible and the New Testament cite with this grammar.",
       "locator_regex": "^(?<book>[A-Za-z][A-Za-z0-9_]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
-      "examples": {
-        "valid": ["Genesis.1.1", "Psalms.23.1", "Matthew.5.3"],
-        "invalid": ["Genesis.0.1", "Genesis.1", "1.1.1", "Genesis 1:1"]
-      },
       "status": "active",
       "created": "2026-05-31",
       "modified": "2026-05-31"
     },
     {
-      "id": "https://textrefs.org/id/ref/59a2d83f-6aff-5fbf-b8f7-b243c3ed0594",
+      "id": "https://textrefs.org/id/ref/b6438d55-f3f2-5fc7-ab40-4f582f8774c3",
       "type": "CanonicalReference",
       "work_key": "new-testament",
       "citation_system_key": "bible-book-chapter-verse",
       "locator": "John.3.16",
-      "normalization_version": "1.0.0",
       "resolver_targets": [
         {
           "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
@@ -379,8 +367,8 @@ A conforming validator MUST check:
 2. object `type` values and TextRefs URI patterns, including `Work` and `CitationSystem` IDs whose keys occupy exactly one path segment;
 3. flat-key syntax and uniqueness for `Work.key` and `CitationSystem.key`;
 4. administrative metadata and `status` values;
-5. citation-system `locator_regex` syntax, and its valid/invalid examples;
-6. canonical-reference locator syntax (the `normalization_version` is the value fixed at minting, verified by the deterministic identifier in item 8, not matched against the system's current version);
+5. citation-system `locator_regex` syntax;
+6. canonical-reference locator syntax: the locator MUST be the profile's canonical spelling and match `locator_regex`; non-canonical spellings MUST be rejected, not normalized;
 7. canonical-reference semantic validity: accepted records must be registered, attested reference points for their `Work` and `CitationSystem`;
 8. deterministic-identifier correctness for canonical references and mapping assertions;
 9. UUID-based identifier shape for `CanonicalReference` and `MappingAssertion` records;

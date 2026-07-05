@@ -69,7 +69,6 @@ Each entry records what a reader needs to understand the link: `language` (BCP 4
   "work_key": "dhammapada",
   "citation_system_key": "dhammapada-chapter-verse",
   "locator": "1.1",
-  "normalization_version": "1.0.0",
   "resolver_targets": [
     {
       "url": "https://en.wikisource.org/wiki/Dhammapada_(Muller)#Chapter_I:_The_Twin-Verses",

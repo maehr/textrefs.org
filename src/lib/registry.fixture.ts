@@ -22,9 +22,8 @@ export const fixtureRegistry: CompiledRegistry = {
 			key: 'fixture-section',
 			type: 'CitationSystem',
 			preferred_label: 'Fixture section',
-			normalization_version: '1.0.0',
+			description: 'Single positive integer section number.',
 			locator_regex: '^(?<section>\\d+)$',
-			examples: { valid: ['1'], invalid: ['a'] },
 			status: 'candidate',
 			created: '2026-01-01',
 			modified: '2026-01-01',
@@ -37,7 +36,6 @@ export const fixtureRegistry: CompiledRegistry = {
 			work_key: 'fixture.work',
 			citation_system_key: 'fixture-section',
 			locator: '1',
-			normalization_version: '1.0.0',
 			resolver_targets: [
 				{
 					url: 'https://example.org/fixture-work/1',

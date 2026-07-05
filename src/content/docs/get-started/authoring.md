@@ -235,7 +235,10 @@ A citation system declares its locator format once and is reused by every work t
 # data/systems/dhammapada-chapter-verse.yaml
 key: dhammapada-chapter-verse
 preferred_label: Dhammapada chapter-and-verse
-normalization_version: 1.0.0
+description: >-
+  Dhammapada cited by chapter and verse (`chapter.verse`), e.g. 1.1 through
+  26.41, following the standard Pali Text Society numbering of 423 verses
+  in 26 chapters.
 locator_regex: '^(?<chapter>[1-9]|1[0-9]|2[0-6])\.(?<verse>[1-9][0-9]*)$'
 # Optional: per-chapter verse counts. When present, the compiler exposes
 # `{verseGlobal}` (cumulative 1..N) to URL templates of works using this system.
@@ -268,9 +271,6 @@ chapter_sizes:
     23,
     41,
   ]
-examples:
-  valid: ['1.1', '1.20', '8.3', '26.41']
-  invalid: ['0.1', '27.1', '1', '1.0']
 status: candidate
 created: 2026-05-31
 modified: 2026-06-01

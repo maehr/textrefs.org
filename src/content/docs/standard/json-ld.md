@@ -51,6 +51,7 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "MappingAssertion": "tr:MappingAssertion",
     "key": "tr:key",
     "preferred_label": "skos:prefLabel",
+    "description": "dcterms:description",
     "creators": "schema:creator",
     "kind": "tr:creatorKind",
     "family": "schema:familyName",
@@ -60,7 +61,6 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "work_key": "tr:workKey",
     "citation_system_key": "tr:citationSystemKey",
     "locator": "tr:locator",
-    "normalization_version": "tr:normalizationVersion",
     "status": "tr:status",
     "source": "dcterms:source",
     "created": { "@id": "dcterms:created", "@type": "xsd:date" },
@@ -81,10 +81,7 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "license": "dcterms:license",
     "license_url": { "@id": "dcterms:license", "@type": "@id" },
     "last_checked": { "@id": "tr:lastChecked", "@type": "xsd:date" },
-    "locator_regex": "tr:locatorRegex",
-    "examples": "tr:examples",
-    "valid": "tr:validExample",
-    "invalid": "tr:invalidExample"
+    "locator_regex": "tr:locatorRegex"
   }
 }
 ```
