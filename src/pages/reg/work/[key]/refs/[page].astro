@@ -57,10 +57,21 @@ const to = Math.min(page * pageSize, total);
 		tableOfContents: false,
 		pagefind: false,
 		banner: UNSTABLE_BANNER,
+		// Draft records are excluded from search indexing (ADR-0003).
+		head:
+			work.status === 'draft'
+				? [
+						{
+							tag: 'meta' as const,
+							attrs: { name: 'robots', content: 'noindex' },
+						},
+					]
+				: [],
 	}}
 >
 	<p class="reg-sub">
 		<a href={`/id/work/${work.key}/`}>← {work.preferred_label}</a>
+		{work.status === 'draft' && <span class="reg-tag">draft</span>}
 	</p>
 
 	<p>
