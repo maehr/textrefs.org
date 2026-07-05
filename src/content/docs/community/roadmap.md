@@ -9,7 +9,7 @@ This is the public roadmap. The same content is mirrored on the docs site at [te
 
 ## Status
 
-- **Current spec version:** `v0.1.0-draft` (frozen baseline, unreleased).
+- **Current spec version:** `v0.1.0-draft`, published with release `v0.1.0`. All registry data is `draft` (ADR-0003): identifiers carry no persistence promise until expert review promotes them.
 - **Phase:** static registry MVP. The site, governance, standard workspace, schemas, compiler, and seed registry data are in place; public resolver/API behavior is the next milestone.
 
 Status legend: done · in progress · planned · blocked.
@@ -29,7 +29,7 @@ Status legend: done · in progress · planned · blocked.
 
 ## Next
 
-- planned: Publish the Standard draft v0.1.0 as the first citable baseline.
+- done: Publish the Standard draft v0.1.0 as the first citable baseline (release `v0.1.0`).
 - planned: Serve the generated JSON Schema at a stable `/schemas/` path or update the specification if the publication path changes.
 - planned: Add `Accept-Language` / `edition`-based 303 redirect on `/id/ref/{uuid}` to a matching `resolver_targets` entry.
 - planned: Publish regular registry exports from the compiled data bundle.
