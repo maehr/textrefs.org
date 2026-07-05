@@ -27,7 +27,7 @@ A dataset conforms to the TextRefs Standard if it satisfies all of the following
 3. Every `Work.key` and `CitationSystem.key` is a flat, stable key that occupies one URI path segment.
 4. Every `CanonicalReference` points to one known `Work` and one known `CitationSystem`.
 5. Every `CanonicalReference.locator` validates syntactically against the referenced `CitationSystem` and semantically by being a registered reference point for the referenced `Work`.
-6. Every `CitationSystem` declares valid and invalid examples for automated tests.
+6. Every `CitationSystem` declares a `description` of its citation tradition and a `locator_regex` that is a valid ECMAScript regular expression.
 7. Every dereferenceable location is represented as an entry in the `resolver_targets` array of its `CanonicalReference`, and every external identifier or cross-reference equivalence through a `MappingAssertion`.
 8. Every registry object includes administrative metadata.
 9. Registry records contain identifiers, metadata, mappings, provenance, and resolver targets rather than primary text content.
