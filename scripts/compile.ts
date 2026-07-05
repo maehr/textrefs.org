@@ -18,7 +18,6 @@ import {
 
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
-const NORMALIZATION_VERSION = '1.0.0';
 
 const projectRoot = resolve(process.cwd());
 const dataRoot = join(projectRoot, 'data');
@@ -158,9 +157,8 @@ type WorkSource = {
 type SystemSource = {
 	key: string;
 	preferred_label: string;
-	normalization_version: string;
+	description: string;
 	locator_regex: string;
-	examples: { valid: string[]; invalid: string[] };
 	status: string;
 	created: string;
 	modified: string;
@@ -309,9 +307,8 @@ function referenceUuid(
 	workKey: string,
 	systemKey: string,
 	locator: string,
-	normalizationVersion: string,
 ): string {
-	const seed = [workKey, systemKey, locator, normalizationVersion].join('\n');
+	const seed = [workKey, systemKey, locator].join('\n');
 	return uuidv5(seed, REFERENCE_NS);
 }
 
@@ -371,9 +368,8 @@ export function compileRegistry(): CompiledRegistry {
 			key,
 			type: 'CitationSystem' as const,
 			preferred_label: src.preferred_label,
-			normalization_version: src.normalization_version,
+			description: src.description,
 			locator_regex: src.locator_regex,
-			examples: src.examples,
 			status: src.status,
 			created: src.created,
 			modified: src.modified,
@@ -486,19 +482,13 @@ export function compileRegistry(): CompiledRegistry {
 				const entry = buildResolverEntry(resolver, vars);
 				if (entry) targets.push(entry);
 			}
-			const uuid = referenceUuid(
-				workKey,
-				systemKey,
-				locator,
-				NORMALIZATION_VERSION,
-			);
+			const uuid = referenceUuid(workKey, systemKey, locator);
 			const record = {
 				id: `https://textrefs.org/id/ref/${uuid}`,
 				type: 'CanonicalReference' as const,
 				work_key: workKey,
 				citation_system_key: systemKey,
 				locator,
-				normalization_version: NORMALIZATION_VERSION,
 				resolver_targets: targets,
 				status: src.work.status,
 				created: src.work.created,

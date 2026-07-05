@@ -69,7 +69,6 @@ Each entry records what a reader needs to understand the link: `language` (BCP 4
   "work_key": "dhammapada",
   "citation_system_key": "dhammapada-chapter-verse",
   "locator": "1.1",
-  "normalization_version": "1.0.0",
   "resolver_targets": [
     {
       "url": "https://en.wikisource.org/wiki/Dhammapada_(Muller)#Chapter_I:_The_Twin-Verses",
@@ -92,7 +91,7 @@ Contributors author resolver targets as URL templates, not raw URLs — see [Aut
 
 ## Good first candidates
 
-The best TextRefs candidates are works with established, edition-independent citation systems. The examples below are illustrative; each actual profile still needs documented normalization rules, valid examples, invalid examples, and review.
+The best TextRefs candidates are works with established, edition-independent citation systems. The examples below are illustrative; each actual profile still needs a documented canonical locator form, a `locator_regex`, and review.
 
 | Area       | Citation example                         | Citation system      | Notes                                                         |
 | ---------- | ---------------------------------------- | -------------------- | ------------------------------------------------------------- |
@@ -125,8 +124,8 @@ An author's name alone is not a `Work`. For example, "Confucius" is an authority
 
 Before proposing mappings or resolver targets, check that:
 
-- the cited passage has a clear `Work`, `CitationSystem`, and normalized locator;
-- the citation system has valid and invalid examples;
+- the cited passage has a clear `Work`, `CitationSystem`, and canonical locator;
+- the citation system documents its canonical locator form and declares a `locator_regex`;
 - each `MappingAssertion` subject is a Work IRI and its target identifies a textual resource;
 - each `exactMatch` is precise enough to survive review;
 - each `resolver_targets` entry has a dereferenceable URL and honest access metadata;

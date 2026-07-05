@@ -8,10 +8,6 @@ import {
 } from '../../../../lib/registry.ts';
 import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
 
-function intersperse<T>(items: T[], separator: T): T[] {
-	return items.flatMap((item, i) => (i === 0 ? [item] : [separator, item]));
-}
-
 export async function getStaticPaths() {
 	const PAGE_SIZE = 200;
 	const PREVIEW = 20;
@@ -76,28 +72,8 @@ const jsonHref = `/id/system/${system.key}.json`;
 	<Tombstone status={system.status} />
 
 	<h2>Locator format</h2>
+	<p>{system.description}</p>
 	<p>Regex: <code>{system.locator_regex}</code></p>
-	<p>Normalization version: <code>{system.normalization_version}</code></p>
-
-	<h2>Examples</h2>
-	<p>
-		<strong>Valid:</strong>
-		{
-			intersperse(
-				system.examples.valid.map((v) => <code>{v}</code>),
-				' · ',
-			)
-		}
-	</p>
-	<p>
-		<strong>Invalid:</strong>
-		{
-			intersperse(
-				system.examples.invalid.map((v) => <code>{v}</code>),
-				' · ',
-			)
-		}
-	</p>
 
 	<section data-pagefind-ignore>
 		<h2>References using this system ({refCount})</h2>

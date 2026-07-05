@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminMetadata, FlatKey, Iri, IsoDate, SemVer } from './common.js';
+import { AdminMetadata, FlatKey, Iri, IsoDate } from './common.js';
 
 export const ResolverTargetEntry = z.object({
 	url: Iri,
@@ -24,7 +24,6 @@ export const CanonicalReferenceBase = AdminMetadata.extend({
 	work_key: FlatKey,
 	citation_system_key: FlatKey,
 	locator: z.string().min(1),
-	normalization_version: SemVer,
 	resolver_targets: z.array(ResolverTargetEntry).default([]),
 });
 

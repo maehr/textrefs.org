@@ -23,8 +23,8 @@ In one line:
 Plato's _Republic_ 514a — the Stephanus passage where Socrates begins the Allegory of the Cave — is one canonical reference. Here is what each prefix gives you for it:
 
 - **Canonical identifier** — the URL you cite, link from a paper, or paste into a tool:
-  - `https://textrefs.org/id/ref/884e8b51-b9cc-5f4b-9e49-60c636c0cd1a/` (HTML for browsers)
-  - `https://textrefs.org/id/ref/884e8b51-b9cc-5f4b-9e49-60c636c0cd1a.json` (JSON-LD for machines)
+  - `https://textrefs.org/id/ref/dc799d4b-9b17-5d76-85aa-dfd001c5321d/` (HTML for browsers)
+  - `https://textrefs.org/id/ref/dc799d4b-9b17-5d76-85aa-dfd001c5321d.json` (JSON-LD for machines)
 - **Browseable index** — the registry's human entry point, where readers find works, citation systems, and (via the work page) every reference:
   - `https://textrefs.org/reg/`
 - **Short alias** — a memorable, hand-typeable shortcut that redirects to the canonical URL:
@@ -37,7 +37,7 @@ Plato's _Republic_ 514a — the Stephanus passage where Socrates begins the Alle
 There is no `Accept`-header content negotiation. Every HTML record page advertises its JSON-LD sibling in the document head:
 
 ```html
-<link rel="alternate" type="application/json" href="/id/ref/884e8b51-….json" />
+<link rel="alternate" type="application/json" href="/id/ref/dc799d4b-….json" />
 ```
 
 A client either reads that `<link>` tag, or simply appends `.json` to the canonical URL. The JSON payload carries the JSON-LD `@context` at [`/contexts/v1.jsonld`](/contexts/v1.jsonld) and is valid JSON-LD by content.

@@ -180,9 +180,6 @@ components:
     IsoDate:
       type: string
       pattern: '^\d{4}-\d{2}-\d{2}$'
-    SemVer:
-      type: string
-      pattern: '^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$'
     Status:
       type: string
       enum: [candidate, active, deprecated, withdrawn, blocked]
@@ -209,16 +206,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
         - type: object
-          required:
-            [
-              id,
-              key,
-              type,
-              preferred_label,
-              normalization_version,
-              locator_regex,
-              examples,
-            ]
+          required: [id, key, type, preferred_label, description, locator_regex]
           properties:
             id:
               type: string
@@ -226,20 +214,8 @@ components:
             key: { $ref: '#/components/schemas/FlatKey' }
             type: { type: string, enum: [CitationSystem] }
             preferred_label: { type: string, minLength: 1 }
-            normalization_version: { $ref: '#/components/schemas/SemVer' }
+            description: { type: string, minLength: 1 }
             locator_regex: { type: string, minLength: 1 }
-            examples:
-              type: object
-              required: [valid, invalid]
-              properties:
-                valid:
-                  type: array
-                  items: { type: string }
-                  minItems: 1
-                invalid:
-                  type: array
-                  items: { type: string }
-                  minItems: 1
     ResolverTargetEntry:
       type: object
       required: [url, access]
@@ -262,15 +238,7 @@ components:
         - $ref: '#/components/schemas/AdminMetadata'
         - type: object
           required:
-            [
-              id,
-              type,
-              work_key,
-              citation_system_key,
-              locator,
-              normalization_version,
-              resolver_targets,
-            ]
+            [id, type, work_key, citation_system_key, locator, resolver_targets]
           properties:
             id:
               type: string
@@ -279,7 +247,6 @@ components:
             work_key: { $ref: '#/components/schemas/FlatKey' }
             citation_system_key: { $ref: '#/components/schemas/FlatKey' }
             locator: { type: string, minLength: 1 }
-            normalization_version: { $ref: '#/components/schemas/SemVer' }
             resolver_targets:
               type: array
               default: []

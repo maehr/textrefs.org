@@ -23,7 +23,3 @@ export const AdminMetadata = z.object({
 export const FlatKey = z
 	.string()
 	.regex(/^[a-z0-9][a-z0-9._-]*$/, 'flat key syntax: ^[a-z0-9][a-z0-9._-]*$');
-
-export const SemVer = z
-	.string()
-	.regex(/^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/);
