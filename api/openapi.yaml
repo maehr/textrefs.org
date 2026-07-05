@@ -182,7 +182,7 @@ components:
       pattern: '^\d{4}-\d{2}-\d{2}$'
     Status:
       type: string
-      enum: [candidate, active, deprecated, withdrawn, blocked]
+      enum: [draft, candidate, active, deprecated, withdrawn, blocked]
     AdminMetadata:
       type: object
       required: [status, created, modified]

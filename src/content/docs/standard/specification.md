@@ -267,7 +267,9 @@ A `CanonicalReference` identifier MUST be generated deterministically. The ident
 
 A `MappingAssertion` identifier MUST be generated deterministically from `subject`, `relation`, and `target.identifier`, in that order, using the `mapping` namespace (see [Identifier syntax](/standard/identifier-syntax/#mappingassertion-seed)). It MUST remain UUID-based and MUST NOT be derived from provider URLs, corpus paths, or resolver structures. Resolver-target entries do not have their own identifiers.
 
-An implementation MUST NOT silently change the identity-defining fields of an existing `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated` or `withdrawn`, [§12](#12-administrative-metadata)) and SHOULD be linked to its replacement through an `exactMatch` `MappingAssertion` ([§10](#10-mappingassertion)).
+The persistence promise attaches at **promotion**: the first time a record is published at status `candidate` or higher ([§12](#12-administrative-metadata)). Promotion changes `status` only and MUST NOT change identity-defining fields, so the identifier survives promotion unchanged. Records at status `draft` are excluded from the persistence policy: they MAY be corrected (changing an identity field mints a different identifier; the previous one ceases to resolve) or retracted (the record is deleted) without a tombstone.
+
+An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated` or `withdrawn`, [§12](#12-administrative-metadata)) and SHOULD be linked to its replacement through an `exactMatch` `MappingAssertion` ([§10](#10-mappingassertion)).
 
 A conforming registry SHOULD publish each `/id/{type}/{key}` IRI at two static URLs: the canonical URL itself (HTML for browsers) and a sibling with a `.json` extension carrying the JSON-LD payload. The HTML representation SHOULD advertise the JSON-LD sibling via `<link rel="alternate" type="application/json" href="…json">` in the document head. `Accept`-header content negotiation is not required.
 
@@ -285,7 +287,8 @@ Every registry object MUST include:
 
 - `created` and `modified` MUST be [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) calendar dates in `YYYY-MM-DD` form.
 - `status` MUST be one of:
-  - `candidate` — proposed but not yet accepted as stable.
+  - `draft` — work-in-progress record under review; **excluded from the identifier persistence policy** ([§11](#11-identifier-policy)). May be corrected or retracted without a tombstone.
+  - `candidate` — proposed but not yet accepted as stable. Promotion from `draft` attaches the persistence promise.
   - `active` — accepted and recommended for use.
   - `deprecated` — retained but no longer recommended.
   - `withdrawn` — removed from active use because it was erroneous or has been superseded. If a successor exists, it is linked by an `exactMatch` `MappingAssertion`; see [Versioning](/standard/versioning/) for tombstones.

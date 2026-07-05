@@ -96,7 +96,8 @@ A technical review is usually sufficient for:
 - minor metadata corrections;
 - updates to `last_checked` fields;
 - adding uncontested aliases;
-- documentation corrections without expert implications.
+- documentation corrections without expert implications;
+- entry of new records as `draft` (merging validated data into the registry).
 
 Prerequisites:
 
@@ -118,6 +119,7 @@ An expert review is required for:
 - contested mapping statements;
 - conflicting external identifiers;
 - changes with significant expert or reputational impact;
+- promotion of records from `draft` to `candidate` (the point at which the persistence guarantee attaches);
 - status changes to `active`, `deprecated`, `withdrawn`, or `blocked`, where these are subject-matter decisions.
 
 Prerequisites:
@@ -143,6 +145,7 @@ The Board decides or confirms:
 
 ### 5.1 General record status
 
+- **draft:** work-in-progress record; correctable or retractable without a tombstone; excluded from the persistence guarantee;
 - **candidate:** proposed record, not yet fully reviewed;
 - **active:** valid and recommended;
 - **deprecated:** no longer recommended, but retained for historical reasons;
@@ -151,6 +154,7 @@ The Board decides or confirms:
 
 ### 5.2 Mapping status
 
+- **draft:** work-in-progress mapping; correctable or retractable without a tombstone;
 - **candidate:** proposed mapping;
 - **active:** reviewed and recommended mapping;
 - **deprecated:** mapping no longer recommended;
@@ -161,7 +165,7 @@ Contested mappings remain in the appropriate schema status and carry the documen
 
 ### 5.3 Tombstone principle
 
-Published IDs are, as a matter of principle, not hard-deleted.
+Promoted IDs (status `candidate` or higher) are, as a matter of principle, not hard-deleted. Records in `draft` status may be retracted without a landing page.
 
 In the event of withdrawal, blocking, or deprecation, a landing page is retained with:
 
@@ -176,8 +180,8 @@ In the event of withdrawal, blocking, or deprecation, a landing page is retained
 
 1. Primary TextRefs IDs are independent HTTP URIs.
 2. External identifiers such as CTS URNs, Wikidata IDs, DOIs, ARKs, Perseus URLs, or Scaife URLs are not primary TextRefs IDs.
-3. Stable and established references may receive deterministic IDs.
-4. Provisional or uncertain objects receive generated IDs.
+3. All registry records carry deterministic IDs computable from their identity fields.
+4. Provisional records are expressed through the `draft` status, which is excluded from the persistence guarantee; their IDs may disappear or change until promotion.
 5. Once published, IDs are not changed merely because labels, titles, aliases, or external mappings are improved.
 6. Human-readable citation URLs are aliases and may be redirected, changed, or deprecated; primary IDs remain authoritative.
 

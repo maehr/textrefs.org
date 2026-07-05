@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const Status = z.enum([
+	'draft',
 	'candidate',
 	'active',
 	'deprecated',
