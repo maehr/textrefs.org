@@ -98,7 +98,7 @@ The best TextRefs candidates are works with established, edition-independent cit
 | Philosophy | Plato, _Republic_ `514a`                 | Stephanus pagination | Present as `plato.republic` with `stephanus`.                 |
 | Philosophy | Aristotle, _Nicomachean Ethics_ `1094a1` | Bekker numbering     | Present as `aristotle.nicomachean-ethics` with `bekker`.      |
 | Buddhist   | _Dhammapada_ `1.1`                       | chapter and verse    | Present as `dhammapada` with `dhammapada-chapter-verse`.      |
-| Tanakh     | Genesis `Genesis.1.1`                    | book, chapter, verse | Present as `tanakh` with `bible-book-chapter-verse`.          |
+| Tanakh     | Genesis `Gen.1.1`                        | book, chapter, verse | Present as `tanakh` with `bible-book-chapter-verse`.          |
 | Bible      | John `John.3.16`                         | book, chapter, verse | Present as `new-testament` with `bible-book-chapter-verse`.   |
 | Chinese    | _Analects_ `2.1`                         | book and chapter     | Present as `confucius.analects` with `analects-book-chapter`. |
 | Chinese    | _Daodejing_ `1`                          | chapter              | Present as `laozi.daodejing` with `daodejing-chapter`.        |
