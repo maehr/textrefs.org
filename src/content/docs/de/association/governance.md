@@ -96,7 +96,8 @@ Ein technischer Review genügt in der Regel für:
 - kleinere Metadatenkorrekturen;
 - Aktualisierung von `last_checked`-Feldern;
 - Ergänzung unstrittiger Aliase;
-- Dokumentationskorrekturen ohne fachliche Tragweite.
+- Dokumentationskorrekturen ohne fachliche Tragweite;
+- Aufnahme neuer Datensätze als `draft` (Merge validierter Daten in das Register).
 
 Voraussetzungen:
 
@@ -118,6 +119,7 @@ Ein fachlicher Review ist erforderlich für:
 - strittige Mapping-Aussagen;
 - widersprüchliche externe Identifikatoren;
 - Änderungen mit erheblicher fachlicher oder reputationsbezogener Wirkung;
+- Promotion von Datensätzen von `draft` zu `candidate` (der Zeitpunkt, an dem die Persistenzzusage beginnt);
 - Statusänderungen zu `active`, `deprecated`, `withdrawn` oder `blocked`, soweit fachlich begründet.
 
 Voraussetzungen:
@@ -143,6 +145,7 @@ Der Vorstand entscheidet oder bestätigt:
 
 ### 5.1 Allgemeine Datensatzstatus
 
+- **draft:** Datensatz in Arbeit; ohne Tombstone korrigierbar oder zurückziehbar; von der Persistenzzusage ausgenommen;
 - **candidate:** vorgeschlagener Datensatz, noch nicht vollständig geprüft;
 - **active:** gültig und empfohlen;
 - **deprecated:** nicht mehr empfohlen, aber aus historischen Gründen erhalten;
@@ -151,6 +154,7 @@ Der Vorstand entscheidet oder bestätigt:
 
 ### 5.2 Mapping-Status
 
+- **draft:** Zuordnung in Arbeit; ohne Tombstone korrigierbar oder zurückziehbar;
 - **candidate:** vorgeschlagene Zuordnung;
 - **active:** geprüfte und empfohlene Zuordnung;
 - **deprecated:** nicht mehr empfohlene Zuordnung;
@@ -161,7 +165,7 @@ Strittige Mappings behalten den passenden Schema-Status und führen Begründung,
 
 ### 5.3 Tombstone-Prinzip
 
-Publizierte IDs werden grundsätzlich nicht hart gelöscht.
+Promovierte IDs (Status `candidate` oder höher) werden grundsätzlich nicht hart gelöscht. Datensätze im Status `draft` können ohne Landing Page zurückgezogen werden.
 
 Bei Rückzug, Sperrung oder Deprecation bleibt eine Landing Page erhalten mit:
 
@@ -176,8 +180,8 @@ Bei Rückzug, Sperrung oder Deprecation bleibt eine Landing Page erhalten mit:
 
 1. Primäre TextRefs-IDs sind unabhängige HTTP-URIs.
 2. Externe Identifikatoren wie CTS URNs, Wikidata-IDs, DOIs, ARKs, Perseus-URLs oder Scaife-URLs sind keine primären TextRefs-IDs.
-3. Stabile und etablierte Referenzen können deterministische IDs erhalten.
-4. Provisorische oder unsichere Objekte erhalten generierte IDs.
+3. Alle Registereinträge tragen deterministische IDs, die aus ihren Identitätsfeldern berechenbar sind.
+4. Provisorische Einträge werden über den Status `draft` ausgedrückt, der von der Persistenzzusage ausgenommen ist; ihre IDs können bis zur Promotion verschwinden oder sich ändern.
 5. Einmal publizierte IDs werden nicht geändert, nur weil Labels, Titel, Aliase oder externe Mappings verbessert werden.
 6. Lesbare Citation-URLs sind Aliase und können umgeleitet, geändert oder deprecated werden; primäre IDs bleiben massgeblich.
 

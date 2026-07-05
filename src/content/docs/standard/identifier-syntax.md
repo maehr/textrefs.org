@@ -125,6 +125,8 @@ The canonical URI is `https://textrefs.org/id/mapping/{uuid}`.
 
 ## Immutability
 
-Once a deterministic identifier is published, it is permanent. If a record is found to be wrong, it MUST be marked `deprecated`, `withdrawn`, or `blocked`; the original URI MUST remain dereferenceable as a tombstone.
+Once a deterministic identifier is published at status `candidate` or higher, it is permanent. If a promoted record is found to be wrong, it MUST be marked `deprecated`, `withdrawn`, or `blocked`; the original URI MUST remain dereferenceable as a tombstone.
+
+Records at status `draft` are exempt: they MAY be corrected or retracted without a tombstone, and a retracted draft IRI simply ceases to resolve (see [Specification §11](/standard/specification/#11-identifier-policy) and [Versioning](/standard/versioning/#draft-records-and-retraction)). Because identity is deterministic, a retracted tuple that is later re-proposed regains the same UUID by construction.
 
 See [Specification §11](/standard/specification/#11-identifier-policy) for the normative identifier policy.
