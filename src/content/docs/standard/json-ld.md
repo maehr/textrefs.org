@@ -31,6 +31,8 @@ The MVP mapping relations map directly onto SKOS:
 - `exactMatch` → `skos:exactMatch`
 - `closeMatch` → `skos:closeMatch`
 
+Published `Work` records additionally carry direct `exactMatch` / `closeMatch` arrays derived from their accepted mapping assertions, so SKOS-aware consumers get real `skos:exactMatch` / `skos:closeMatch` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records.
+
 Use `exactMatch` only when the mapped object identifies the same reference with sufficient precision. If there is uncertainty about segmentation, edition, translation, coverage, or locator alignment, use `closeMatch`. See [Specification §10](/standard/specification/#10-mappingassertion).
 
 ## The context document
@@ -78,12 +80,13 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "language": "dcterms:language",
     "edition": "schema:bookEdition",
     "access": "tr:access",
-    "license": "dcterms:license",
+    "license": { "@id": "dcterms:license", "@type": "@id" },
     "license_url": { "@id": "dcterms:license", "@type": "@id" },
+    "superseded_by": { "@id": "dcterms:isReplacedBy", "@type": "@id" },
     "last_checked": { "@id": "tr:lastChecked", "@type": "xsd:date" },
     "locator_regex": "tr:locatorRegex"
   }
 }
 ```
 
-`key`, `work_key`, and `citation_system_key` are plain strings in the core JSON format. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries an SPDX identifier string; `license_url` (optional fallback) carries an IRI. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.
+`key`, `work_key`, and `citation_system_key` are plain strings in the core JSON format. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries the canonical SPDX licence IRI (`https://spdx.org/licenses/{id}`, derived from the authored SPDX identifier at compile time); `license_url` (optional fallback for non-SPDX terms) carries an IRI. Both map to an IRI-typed `dcterms:license`. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.

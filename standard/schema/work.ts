@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AdminMetadata, FlatKey } from './common.js';
+import { AdminMetadata, FlatKey, Iri } from './common.js';
 
 export const Creator = z.discriminatedUnion('kind', [
 	z.object({
@@ -21,6 +21,10 @@ export const WorkBase = AdminMetadata.extend({
 	type: z.literal('Work'),
 	preferred_label: z.string().min(1),
 	creators: z.array(Creator).optional(),
+	// Direct SKOS mapping edges derived from accepted MappingAssertions
+	// (skos:exactMatch / skos:closeMatch in the published context).
+	exactMatch: z.array(Iri).optional(),
+	closeMatch: z.array(Iri).optional(),
 });
 
 export const Work = WorkBase.superRefine((w, ctx) => {

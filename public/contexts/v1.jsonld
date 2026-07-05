@@ -67,9 +67,16 @@
     "language": "dcterms:language",
     "edition": "schema:bookEdition",
     "access": "tr:access",
-    "license": "dcterms:license",
+    "license": {
+      "@id": "dcterms:license",
+      "@type": "@id"
+    },
     "license_url": {
       "@id": "dcterms:license",
+      "@type": "@id"
+    },
+    "superseded_by": {
+      "@id": "dcterms:isReplacedBy",
       "@type": "@id"
     },
     "last_checked": {
