@@ -1,0 +1,139 @@
+/* Shared stylesheet for minimal /id/ record pages. Served unbundled from
+   /assets/record.css so 39k+ pages reference one cached file instead of
+   inlining styles per page. */
+:root {
+	--fg: #1c1e21;
+	--fg-muted: #59636e;
+	--bg: #ffffff;
+	--bg-code: #f0f1f2;
+	--hairline: #d9dde1;
+	--accent: #3b5bdb;
+	--warn: #d97706;
+	--info: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--fg: #e6e8ea;
+		--fg-muted: #9aa4af;
+		--bg: #17181c;
+		--bg-code: #24262c;
+		--hairline: #3a3d45;
+		--accent: #8da2fb;
+	}
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	color: var(--fg);
+	background: var(--bg);
+	font:
+		1rem/1.6 system-ui,
+		sans-serif;
+}
+main {
+	max-width: 46rem;
+	margin: 0 auto;
+	padding: 1rem 1.25rem 3rem;
+}
+a {
+	color: var(--accent);
+}
+h1 {
+	font-size: 1.6rem;
+	line-height: 1.25;
+}
+h2 {
+	font-size: 1.15rem;
+	margin-top: 2rem;
+}
+code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	background: var(--bg-code);
+	padding: 0.05rem 0.3rem;
+	border-radius: 3px;
+	font-size: 0.9em;
+}
+.site-header {
+	border-bottom: 1px solid var(--hairline);
+	padding: 0.6rem 1.25rem;
+	display: flex;
+	align-items: baseline;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+.site-header a {
+	font-weight: 700;
+	text-decoration: none;
+	color: var(--fg);
+}
+.site-header .note {
+	font-size: 0.8rem;
+	color: var(--fg-muted);
+}
+.reg-sub {
+	color: var(--fg-muted);
+	font-size: 0.95rem;
+	margin-bottom: 1.5rem;
+}
+.reg-iri {
+	display: inline-block;
+	word-break: break-all;
+}
+.reg-tag {
+	display: inline-block;
+	font-size: 0.72rem;
+	background: var(--bg-code);
+	color: var(--fg-muted);
+	padding: 0.05rem 0.4rem;
+	border-radius: 0.25rem;
+	margin-right: 0.4rem;
+	vertical-align: middle;
+}
+ul.reg-list {
+	list-style: none;
+	padding: 0;
+}
+ul.reg-list > li {
+	padding: 0.45rem 0;
+	border-bottom: 1px solid var(--hairline);
+}
+ul.reg-list > li:last-child {
+	border-bottom: 0;
+}
+.reg-lang-group + .reg-lang-group {
+	margin-top: 1rem;
+}
+.reg-lang-label {
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: var(--fg-muted);
+	margin-bottom: 0.25rem;
+}
+.reg-empty {
+	color: var(--fg-muted);
+	font-style: italic;
+}
+.banner {
+	border-left: 4px solid;
+	background: var(--bg-code);
+	padding: 0.75rem 1rem;
+	margin: 1rem 0;
+	border-radius: 0.25rem;
+}
+.banner p {
+	margin: 0.25rem 0;
+}
+.banner-draft {
+	border-color: var(--info);
+}
+.banner-tombstone {
+	border-color: var(--warn);
+}
+.cite-text {
+	margin: 0.5rem 0 0;
+	padding: 0.6rem 1rem;
+	border-left: 3px solid var(--accent);
+	background: var(--bg-code);
+}
