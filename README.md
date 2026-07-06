@@ -111,7 +111,7 @@ Both deposits live in the [TextRefs Zenodo community](https://zenodo.org/communi
 | 🎁 Feature requests               | [GitHub Issues](https://github.com/textrefs/textrefs.org/issues)                 |
 | 📊 Bad data / mapping corrections | [GitHub Issues](https://github.com/textrefs/textrefs.org/issues) (label: `data`) |
 | 📚 Docs issues                    | [GitHub Issues](https://github.com/textrefs/textrefs.org/issues)                 |
-| 🛡 Security vulnerabilities       | See [`SECURITY.md`](./SECURITY.md) — private GitHub advisory                     |
+| 🛡 Security vulnerabilities        | See [`SECURITY.md`](./SECURITY.md) — private GitHub advisory                     |
 | 🤝 Code-of-Conduct concerns       | <community@textrefs.org>                                                         |
 | 💬 General questions              | [GitHub Discussions](https://github.com/textrefs/textrefs.org/discussions)       |
 

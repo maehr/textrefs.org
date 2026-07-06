@@ -42,8 +42,7 @@ type ResolverEntry = {
 };
 
 type ReferenceSource =
-	| string
-	| { locator: string; extra_resolvers?: ResolverEntry[] };
+	string | { locator: string; extra_resolvers?: ResolverEntry[] };
 
 type ReferenceRange =
 	| { kind: 'integer'; from: number; to: number }
