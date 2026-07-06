@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-07-05
+## [0.1.0] - 2026-07-06
 
 ### Added
 
@@ -11,6 +11,8 @@ All notable changes to this project are documented in this file. The format is b
 - Draft lifecycle with retractable pre-promotion identity (ADR-0003) (#23)
 - Require explicit canonical ASCII digit and case forms in profiles (#24)
 - Flag draft records and exclude them from search indexing (#26)
+- Upgrade to Astro 7 / Starlight 0.41, all dependencies to latest (#29)
+- Minimal static templates for reference pages (#30)
 
 ### Documentation
 
