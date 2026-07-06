@@ -1,8 +1,5 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import AliasList from '../../../../components/AliasList.astro';
-import CitationBox from '../../../../components/CitationBox.astro';
-import Tombstone from '../../../../components/Tombstone.astro';
+import RecordPage from '../../../../layouts/RecordPage.astro';
 import {
 	loadAliases,
 	loadReferences,
@@ -10,7 +7,7 @@ import {
 	loadSystems,
 	uuidOf,
 } from '../../../../lib/registry.ts';
-import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
+import { toCSL, formatChicago, toCOinS } from '../../../../lib/citation.ts';
 
 export async function getStaticPaths() {
 	const refs = loadReferences();
@@ -48,45 +45,72 @@ export async function getStaticPaths() {
 const { ref, work, system, aliases, byLang } = Astro.props;
 const pageTitle = `${work?.preferred_label ?? ref.work_key} ${ref.locator}`;
 const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
+const site = Astro.site ?? new URL('https://textrefs.org');
+const aliasUrls = aliases.map((alias) =>
+	new URL(`/cite/${alias}/`, site).toString(),
+);
+
+const csl = toCSL(work, ref, system);
+const chicago = formatChicago(csl);
+const coins = toCOinS(csl);
+const escapeHtml = (s: string) =>
+	s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+const chicagoHtml = escapeHtml(chicago).replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+const isDraft = ref.status === 'draft';
+const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 ---
 
-<StarlightPage
-	frontmatter={{
-		title: pageTitle,
-		description: `Canonical reference ${ref.locator} in ${work?.preferred_label ?? ref.work_key}.`,
-		template: 'doc',
-		tableOfContents: false,
-		pagefind: false,
-		banner: UNSTABLE_BANNER,
-		head: [
-			{
-				tag: 'link',
-				attrs: {
-					rel: 'alternate',
-					type: 'application/ld+json',
-					href: jsonHref,
-				},
-			},
-			// Draft records are excluded from search indexing (ADR-0003).
-			...(ref.status === 'draft'
-				? [
-						{
-							tag: 'meta' as const,
-							attrs: { name: 'robots', content: 'noindex' },
-						},
-					]
-				: []),
-		],
-	}}
+<RecordPage
+	title={pageTitle}
+	description={`Canonical reference ${ref.locator} in ${work?.preferred_label ?? ref.work_key}.`}
+	jsonHref={jsonHref}
+	noindex={isDraft}
 >
+	<h1>{pageTitle}</h1>
 	<p class="reg-sub">
 		<span class="reg-tag">CanonicalReference</span>
 		<span class="reg-tag">{ref.status}</span>
 		<code class="reg-iri">{ref.id}</code>
-		<a href={jsonHref} class="reg-json">JSON</a>
+		<a href={jsonHref}>JSON</a>
 	</p>
 
-	<Tombstone status={ref.status} supersededBy={ref.superseded_by} />
+	{
+		isDraft && (
+			<aside class="banner banner-draft" role="note">
+				<p>
+					<strong>Draft record.</strong> This record has not been promoted by
+					expert review. Its identifier carries no persistence promise yet: the
+					record may be corrected (which mints a different identifier) or
+					retracted without a tombstone. Do not cite it as stable.
+				</p>
+			</aside>
+		)
+	}
+	{
+		isTombstone && (
+			<aside class="banner banner-tombstone" role="note">
+				<p>
+					<strong>
+						{ref.status === 'blocked'
+							? 'This record is blocked by a rights, trust, or policy dispute.'
+							: 'This record has been withdrawn.'}
+					</strong>
+				</p>
+				{ref.superseded_by ? (
+					<p>
+						Superseded by <a href={ref.superseded_by}>{ref.superseded_by}</a>.
+					</p>
+				) : (
+					<p>No successor record exists.</p>
+				)}
+			</aside>
+		)
+	}
 
 	<h2>In context</h2>
 	<ul class="reg-list">
@@ -115,13 +139,26 @@ const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
 		</li>
 	</ul>
 
-	<CitationBox work={work} ref={ref} system={system} />
+	<h2>Cite this reference</h2>
+	<blockquote class="cite-text" set:html={chicagoHtml} />
+	<span class="Z3988" hidden title={coins}></span>
 
-	<h2>Aliases ({aliases.length})</h2>
-	<AliasList
-		aliases={aliases}
-		empty="No aliases registered for this reference."
-	/>
+	<h2>Aliases ({aliasUrls.length})</h2>
+	{
+		aliasUrls.length === 0 ? (
+			<p class="reg-empty">No aliases registered for this reference.</p>
+		) : (
+			<ul class="reg-list">
+				{aliasUrls.map((aliasUrl) => (
+					<li>
+						<a href={aliasUrl}>
+							<code class="reg-iri">{aliasUrl}</code>
+						</a>
+					</li>
+				))}
+			</ul>
+		)
+	}
 
 	<h2>Resolver targets ({ref.resolver_targets.length})</h2>
 	{
@@ -155,4 +192,4 @@ const jsonHref = `/id/ref/${uuidOf(ref.id)}.json`;
 			</div>
 		)
 	}
-</StarlightPage>
+</RecordPage>
