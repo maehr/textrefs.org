@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.0] - 2026-07-06
+## [0.1.0] - 2026-07-26
 
 ### Added
 
@@ -37,3 +37,5 @@ All notable changes to this project are documented in this file. The format is b
 - Bump submodule to registry main (36cae56)
 - Bump submodule to registry main (40af385)
 - Astro 6.4.8, dompurify 3.4.11, actions/checkout v7
+- Bump submodule to registry main (c0a3275, ORCID docs)
+- Upgrade to Astro 7.1, refresh dependencies (#39)
