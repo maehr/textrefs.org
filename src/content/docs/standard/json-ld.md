@@ -31,7 +31,7 @@ The MVP mapping relations map directly onto SKOS:
 - `exactMatch` → `skos:exactMatch`
 - `closeMatch` → `skos:closeMatch`
 
-Published `Work` records additionally carry direct `exactMatch` / `closeMatch` arrays derived from their accepted mapping assertions, so SKOS-aware consumers get real `skos:exactMatch` / `skos:closeMatch` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records.
+Published `Work` records additionally carry direct `exactMatch` / `closeMatch` arrays derived from their non-tombstoned mapping assertions, so SKOS-aware consumers get real `skos:exactMatch` / `skos:closeMatch` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records. The arrays are a read-only projection; the assertion stays authoritative ([Specification §6](/standard/specification/#6-work)).
 
 Use `exactMatch` only when the mapped object identifies the same reference with sufficient precision. If there is uncertainty about segmentation, edition, translation, coverage, or locator alignment, use `closeMatch`. See [Specification §10](/standard/specification/#10-mappingassertion).
 

@@ -190,6 +190,12 @@ components:
         status: { $ref: '#/components/schemas/Status' }
         created: { $ref: '#/components/schemas/IsoDate' }
         modified: { $ref: '#/components/schemas/IsoDate' }
+        superseded_by:
+          allOf:
+            - $ref: '#/components/schemas/Iri'
+          description:
+            Successor IRI. Only present when status is deprecated, withdrawn,
+            or blocked.
     Work:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
@@ -202,6 +208,18 @@ components:
             key: { $ref: '#/components/schemas/FlatKey' }
             type: { type: string, enum: [Work] }
             preferred_label: { type: string, minLength: 1 }
+            exactMatch:
+              type: array
+              items: { $ref: '#/components/schemas/Iri' }
+              description:
+                Compiler-derived from the work's non-tombstoned exactMatch
+                MappingAssertions. Read-only, never authored.
+            closeMatch:
+              type: array
+              items: { $ref: '#/components/schemas/Iri' }
+              description:
+                Compiler-derived from the work's non-tombstoned closeMatch
+                MappingAssertions. Read-only, never authored.
     CitationSystem:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
@@ -272,8 +290,16 @@ components:
               type: object
               required: [identifier]
               properties:
-                target_kind: { type: string }
                 identifier: { $ref: '#/components/schemas/Iri' }
+                conforms_to:
+                  description:
+                    Informative. IRI (or array of IRIs) of the specification the
+                    target conforms to. Validators MUST NOT key behaviour off it.
+                  oneOf:
+                    - $ref: '#/components/schemas/Iri'
+                    - type: array
+                      items: { $ref: '#/components/schemas/Iri' }
+                      minItems: 1
             source: { type: string, minLength: 1 }
     RegistryObject:
       oneOf:

@@ -1,6 +1,6 @@
 # ADR-0002: Seed CanonicalReference UUIDs from the semantic identity tuple
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-05
 - **Deciders:** @maehr
 - **Tags:** spec
@@ -57,15 +57,15 @@ Two simplifications ride along, keeping the `CitationSystem` shape honest after 
 
 - Every compiled reference UUID changes. Acceptable now (nothing published, nothing stored); it would not be later.
 - Without a version discriminator, locator-affecting profile changes have no soft path — by design, but it makes profile authors' first regex more consequential.
-- The regexes shipped today are laxer than the canonical-form rules demand (Bekker leading zeros, Bible case variants); until #13 lands, curation of the enumerated data is the only guard in those gaps.
+- The regexes originally shipped were laxer than the canonical-form rules demand (Bekker leading zeros, Bible case variants); #13 closed that gap alongside this ADR, and profiles now declare leading-zero policy and canonical case explicitly. Curation remains the only guard for constraints no regex can express.
 
 ### Follow-up actions
 
-- [ ] Update spec (`specification.md` §§5, 7, 8, 11, 13, 14; `identifier-syntax.md`; `system-profiles.md`; `json-ld.md`) and get-started docs.
-- [ ] Update the v1 JSON-LD context (drop `normalization_version`, `examples`, `valid`, `invalid`; add `description`).
-- [ ] Update Zod schemas, compile/validate pipeline, in-tree fixture, and record pages.
-- [ ] Migrate `data/systems/*.yaml` in `textrefs/registry` and bump the `data/` submodule pointer.
-- [ ] Tighten per-profile `locator_regex` canonical digit/case forms under issue #13 (textrefs/registry#2, textrefs/registry#3).
+- [x] Update spec (`specification.md` §§5, 7, 8, 11, 13, 14; `identifier-syntax.md`; `system-profiles.md`; `json-ld.md`) and get-started docs.
+- [x] Update the v1 JSON-LD context (drop `normalization_version`, `examples`, `valid`, `invalid`; add `description`).
+- [x] Update Zod schemas, compile/validate pipeline, in-tree fixture, and record pages.
+- [x] Migrate `data/systems/*.yaml` in `textrefs/registry` and bump the `data/` submodule pointer.
+- [x] Tighten per-profile `locator_regex` canonical digit/case forms under issue #13 (textrefs/registry#2, textrefs/registry#3).
 
 ## Links
 
