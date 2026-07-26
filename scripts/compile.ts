@@ -418,12 +418,12 @@ export function compileRegistry(): CompiledRegistry {
 		}
 
 		// Direct SKOS mapping edges (skos:exactMatch / skos:closeMatch via the
-		// context) derived from the work's accepted mapping assertions, in
-		// addition to the reified MappingAssertion records below.
+		// context) projected from the work's mapping assertions, in addition to
+		// the reified MappingAssertion records below.
 		const exactMatches: string[] = [];
 		const closeMatches: string[] = [];
 		for (const m of src.mappings ?? []) {
-			if (m.status === 'withdrawn' || m.status === 'blocked') continue;
+			if (TOMBSTONE_STATUSES.has(m.status)) continue;
 			(m.relation === 'exactMatch' ? exactMatches : closeMatches).push(
 				m.identifier,
 			);
@@ -548,7 +548,7 @@ export function compileRegistry(): CompiledRegistry {
 	outReferences.sort((a, b) => a.id.localeCompare(b.id));
 	outMappings.sort((a, b) => a.id.localeCompare(b.id));
 
-	warnings += enforceTombstoneInvariants({
+	warnings += enforceRegistryInvariants({
 		works: outWorks,
 		systems: outSystems,
 		references: outReferences,
@@ -565,21 +565,22 @@ export function compileRegistry(): CompiledRegistry {
 	};
 }
 
-type TombstoneRecord = {
+type StatusRecord = {
 	id: string;
 	status: string;
 	superseded_by?: string;
 };
 
-const TOMBSTONE_STATUSES = new Set(['withdrawn']);
+const TOMBSTONE_STATUSES = new Set(['withdrawn', 'blocked']);
+const SUPERSEDABLE_STATUSES = new Set(['deprecated', 'withdrawn', 'blocked']);
 
-function enforceTombstoneInvariants(reg: {
+function enforceRegistryInvariants(reg: {
 	works: Work[];
 	systems: CitationSystem[];
 	references: CanonicalReference[];
 	mappings: MappingAssertion[];
 }): number {
-	const all: TombstoneRecord[] = [
+	const all: StatusRecord[] = [
 		...reg.works,
 		...reg.systems,
 		...reg.references,
@@ -587,22 +588,20 @@ function enforceTombstoneInvariants(reg: {
 	];
 
 	const tombstoneIris = new Set<string>();
+	const draftIris = new Set<string>();
 	for (const r of all) {
 		if (TOMBSTONE_STATUSES.has(r.status)) tombstoneIris.add(r.id);
+		if (r.status === 'draft') draftIris.add(r.id);
 	}
 
 	const errors: string[] = [];
 
-	// superseded_by is a tombstone-only field: it MUST NOT appear on records
-	// that are still part of the live registry surface.
+	// superseded_by carries the successor of a record that has left active use.
+	// A record still in use has none.
 	for (const r of all) {
-		if (
-			r.superseded_by !== undefined &&
-			r.status !== 'withdrawn' &&
-			r.status !== 'blocked'
-		) {
+		if (r.superseded_by !== undefined && !SUPERSEDABLE_STATUSES.has(r.status)) {
 			errors.push(
-				`${r.id}: superseded_by is only allowed on withdrawn/blocked records (status: ${r.status})`,
+				`${r.id}: superseded_by is only allowed on deprecated/withdrawn/blocked records (status: ${r.status})`,
 			);
 		}
 	}
@@ -611,7 +610,7 @@ function enforceTombstoneInvariants(reg: {
 	// those break resolution. Successor links are carried by the tombstoned
 	// record's own superseded_by field (dcterms:isReplacedBy), not by
 	// MappingAssertions, which are reserved for work-level equivalence.
-	const isActive = (r: TombstoneRecord) => !TOMBSTONE_STATUSES.has(r.status);
+	const isActive = (r: StatusRecord) => !TOMBSTONE_STATUSES.has(r.status);
 	for (const ref of reg.references) {
 		if (!isActive(ref)) continue;
 		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
@@ -626,10 +625,35 @@ function enforceTombstoneInvariants(reg: {
 			);
 	}
 
+	// Analogously (ADR-0003): a promoted record — anything at `candidate` or
+	// higher, so anything carrying the persistence promise — MUST NOT depend on
+	// a record that is still retractable.
+	const isPromoted = (r: StatusRecord) => r.status !== 'draft';
+	for (const ref of reg.references) {
+		if (!isPromoted(ref)) continue;
+		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
+		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
+		if (draftIris.has(workIri))
+			errors.push(
+				`${ref.id}: promoted reference (${ref.status}) points at draft work ${workIri}`,
+			);
+		if (draftIris.has(systemIri))
+			errors.push(
+				`${ref.id}: promoted reference (${ref.status}) points at draft system ${systemIri}`,
+			);
+	}
+	for (const mapping of reg.mappings) {
+		if (!isPromoted(mapping)) continue;
+		if (draftIris.has(mapping.subject))
+			errors.push(
+				`${mapping.id}: promoted mapping (${mapping.status}) points at draft work ${mapping.subject}`,
+			);
+	}
+
 	if (errors.length > 0) {
 		for (const e of errors) console.error(`✗ ${e}`);
 		throw new Error(
-			`${errors.length} tombstone invariant violation(s); fix the offending records`,
+			`${errors.length} registry invariant violation(s); fix the offending records`,
 		);
 	}
 	return 0;

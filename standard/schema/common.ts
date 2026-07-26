@@ -19,8 +19,9 @@ export const AdminMetadata = z.object({
 	status: Status,
 	created: IsoDate,
 	modified: IsoDate,
-	// Successor link on tombstoned records (dcterms:isReplacedBy). MUST only
-	// appear when status is withdrawn or blocked.
+	// Successor link (dcterms:isReplacedBy) on records that have left active
+	// use. The status constraint — deprecated, withdrawn, or blocked only —
+	// needs the whole registry, so the compiler enforces it, not this shape.
 	superseded_by: Iri.optional(),
 });
 

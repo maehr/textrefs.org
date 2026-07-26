@@ -86,7 +86,7 @@ Registry identity is permanent once promoted: the IRI of a `Work`, `CitationSyst
 
 ### Schema
 
-Tombstones use one status value plus one optional field. The old record stays in the data tree with `status: withdrawn`. If a successor exists, the tombstoned record carries its IRI in `superseded_by` (`dcterms:isReplacedBy` in the published context). Consumers follow `superseded_by` to find the successor. `MappingAssertion`s are reserved for genuine work-level equivalence claims and MUST NOT be used for succession links.
+Tombstones use a status value plus one optional field. The old record stays in the data tree with `status: withdrawn` (or `blocked`, for a rights or policy dispute). If a successor exists, the record carries its IRI in `superseded_by` (`dcterms:isReplacedBy` in the published context); a `deprecated` record may do the same. Consumers follow `superseded_by` to find the successor. `MappingAssertion`s are reserved for genuine work-level equivalence claims and MUST NOT be used for succession links.
 
 ### On-disk representation
 
@@ -102,9 +102,11 @@ Tombstones MUST appear in monthly exports inside the same `.jsonl` file as their
 
 ### Compiler invariants
 
-The compiler enforces: an active `CanonicalReference` MUST NOT reference a tombstoned `Work` or `CitationSystem` through `work_key` or `citation_system_key`. `superseded_by` MUST only appear on records whose `status` is `withdrawn` or `blocked`.
+The compiler enforces three invariants, and fails the build on any violation:
 
-Analogously, a promoted (`candidate` or higher) record MUST NOT reference a `draft` `Work` or `CitationSystem` through its keys: systems and works are promoted before or together with the records that depend on them.
+1. `superseded_by` MUST only appear on records whose `status` is `deprecated`, `withdrawn`, or `blocked`. A record still in active use has no successor.
+2. An active `CanonicalReference` MUST NOT reference a tombstoned (`withdrawn` or `blocked`) `Work` or `CitationSystem` through `work_key` or `citation_system_key` — those break resolution.
+3. A promoted (`candidate` or higher) record MUST NOT depend on a `draft` one: no promoted `CanonicalReference` may reference a `draft` `Work` or `CitationSystem` through its keys, and no promoted `MappingAssertion` may take a `draft` `Work` as its `subject`. Works and systems are promoted before or together with whatever depends on them.
 
 ### Aliases vs. tombstones
 

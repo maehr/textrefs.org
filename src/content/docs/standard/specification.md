@@ -127,11 +127,13 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
 }
 ```
 
-Required: `id`, `key`, `type` (`Work`), `preferred_label`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
+Required: `id`, `key`, `type` (`Work`), `preferred_label`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `exactMatch`, `closeMatch`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
 
 `creators`, when present, is an array of entries discriminated by `kind`. A `person` entry has `family` (required) and `given` (optional); mononyms such as Plato or Homer use `family` alone, following CSL convention. A `literal` entry has `name` and is the escape hatch for pseudonymous, collective, or institutional authorship (e.g. `[Pseudo-]Aristotle`, an editorial committee). Anonymous works and canonical corpora such as the Bible simply omit `creators`. For attributed-but-disputed works, record the traditional attribution in `creators` and express uncertainty through mappings or editorial review notes, not in the name string. Implementations MUST treat the field as optional and MUST NOT infer authorship from `preferred_label` or `key`.
 
-External identifiers for a `Work` (e.g. Wikidata Q-ID, DOI, VIAF) are recorded as `MappingAssertion`s whose `subject` is the `Work`. They are not fields on the `Work` itself.
+External identifiers for a `Work` (e.g. Wikidata Q-ID, DOI, VIAF) are asserted as `MappingAssertion`s whose `subject` is the `Work` ([§10](#10-mappingassertion)). They MUST NOT be authored directly on the `Work`.
+
+`exactMatch` and `closeMatch` are the compiler's read-only projection of those assertions — every one whose `status` is not `withdrawn` or `blocked`, grouped by `relation` — so SKOS-aware consumers get `skos:exactMatch` / `skos:closeMatch` edges straight from the work IRI ([JSON-LD](/standard/json-ld/#mapping-relations)). They carry no status or provenance; the `MappingAssertion` stays authoritative.
 
 ## 7. CitationSystem
 
@@ -269,7 +271,7 @@ A `MappingAssertion` identifier MUST be generated deterministically from `subjec
 
 The persistence promise attaches at **promotion**: the first time a record is published at status `candidate` or higher ([§12](#12-administrative-metadata)). Promotion changes `status` only and MUST NOT change identity-defining fields, so the identifier survives promotion unchanged. Records at status `draft` are excluded from the persistence policy: they MAY be corrected (changing an identity field mints a different identifier; the previous one ceases to resolve) or retracted (the record is deleted) without a tombstone.
 
-An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated` or `withdrawn`, [§12](#12-administrative-metadata)) and SHOULD be linked to its replacement through an `exactMatch` `MappingAssertion` ([§10](#10-mappingassertion)).
+An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated`, `withdrawn`, or `blocked`, [§12](#12-administrative-metadata)) and SHOULD carry the successor IRI in `superseded_by`. `MappingAssertion`s MUST NOT be used for succession; they are reserved for work-level equivalence ([§10](#10-mappingassertion)).
 
 A conforming registry SHOULD publish each `/id/{type}/{key}` IRI at two static URLs: the canonical URL itself (HTML for browsers) and a sibling with a `.json` extension carrying the JSON-LD payload. The HTML representation SHOULD advertise the JSON-LD sibling via `<link rel="alternate" type="application/ld+json" href="…json">` in the document head. `Accept`-header content negotiation is not required.
 
@@ -291,10 +293,12 @@ Every registry object MUST include:
   - `candidate` — proposed but not yet accepted as stable. Promotion from `draft` attaches the persistence promise.
   - `active` — accepted and recommended for use.
   - `deprecated` — retained but no longer recommended.
-  - `withdrawn` — removed from active use because it was erroneous or has been superseded. If a successor exists, the record's `superseded_by` field carries the successor IRI; see [Versioning](/standard/versioning/) for tombstones.
+  - `withdrawn` — removed from active use because it was erroneous or has been superseded.
   - `blocked` — retained as a visible tombstone because of a rights, trust, or policy dispute.
 
 Deprecated, withdrawn, and blocked records SHOULD remain visible unless removal is required for legal, privacy, or safety reasons.
+
+`superseded_by` is OPTIONAL: the IRI of the record that replaces this one, published as `dcterms:isReplacedBy`. It MUST NOT appear unless `status` is `deprecated`, `withdrawn`, or `blocked` — a record still in use has no successor. Consumers follow it to reach the successor ([Versioning](/standard/versioning/#tombstones-and-re-minted-records)).
 
 ## 13. Worked example: a multi-translation work
 

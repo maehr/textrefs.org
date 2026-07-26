@@ -1,6 +1,6 @@
 # ADR-0001: Replace `target_kind` with `dcterms:conformsTo`
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-09
 - **Deciders:** @maehr
 - **Tags:** spec

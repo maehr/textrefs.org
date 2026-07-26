@@ -96,7 +96,7 @@ The changelog is generated from this history via `npm run changelog` (git-cliff)
 
 The production site (`textrefs.org`) is built and deployed from `main`. To keep `main`'s history low-noise while still allowing many small content edits, day-to-day docs/blog/copy work batches on a long-lived `staging` branch and is squash-merged into `main` to publish.
 
-- `main` — production source. Pushes here auto-deploy via `.github/workflows/pages.yml`. Release tags (`vX.Y.Z`, `vYYYY.MM.N`) are cut from `main`.
+- `main` — production source. Pushes here auto-deploy via `.github/workflows/pages.yml`. Release tags (`vX.Y.Z`) are cut from `main`; the registry's `vYYYY.MM.N` tags are cut in [`textrefs/registry`](https://github.com/textrefs/registry).
 - `staging` — long-lived batching branch for docs, blog posts, copy, registry-pointer bumps, and other content edits. Does **not** auto-deploy. Edits accumulate here as many small commits.
 - To publish: open a PR `staging → main` and squash-merge. The squash-commit lands on `main` as one conventional commit (so `git-cliff` stays clean) and triggers the production deploy.
 - Manual preview / ad-hoc deploy: from the GitHub Actions UI, run the **Pages** workflow via `workflow_dispatch` and pick `staging` (or any branch) as the ref. This deploys that ref to production until the next push to `main`. There is no separate preview URL — GitHub Pages serves a single site per repo, so manual staging deploys temporarily replace production. Use sparingly.

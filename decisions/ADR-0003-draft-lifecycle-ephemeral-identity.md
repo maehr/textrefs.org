@@ -1,6 +1,6 @@
 # ADR-0003: Review lifecycle with an ephemeral `draft` state
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-05
 - **Deciders:** @maehr
 - **Tags:** spec, governance
@@ -32,7 +32,7 @@ Since ADR-0002, identity is pure math: the reference UUID is offline-computable 
 
 We choose **Option 4**. The status ladder becomes `draft` → `candidate` → `active` → `deprecated` / `withdrawn` / `blocked`, and the identifier-persistence promise attaches at the **promotion** event (`draft → candidate`), not at publication.
 
-**Entry.** New data enters the registry as `status: draft` after technical review (governance §4.1: schema validation, `locator_regex`, no full text). Draft records are rendered with a prominent "draft — not a persistent identifier" treatment (noindex, excluded from sitemap and search) and appear in exports with `status` as the signal — the same convention tombstones use.
+**Entry.** New data enters the registry as `status: draft` after technical review (governance §4.1: schema validation, `locator_regex`, no full text). Draft records are rendered with a prominent "draft — not a persistent identifier" treatment (`noindex`, excluded from site search) and appear in exports with `status` as the signal — the same convention tombstones use.
 
 **Ephemerality.** Draft records are excluded from the persistence policy. They MAY be corrected — changing an identity field mints a different id; the old UUID simply disappears — or retracted: the record is deleted, its IRI ceases to resolve, and **no tombstone** is created. Because identity is deterministic, a retracted tuple that is later re-proposed regains the same UUID by construction; there is no identity split and no way to "lose" an identity by retraction.
 
@@ -60,9 +60,10 @@ We choose **Option 4**. The status ladder becomes `draft` → `candidate` → `a
 
 ### Follow-up actions
 
-- [ ] Compiler invariant: a promoted (`candidate`+) record MUST NOT reference a draft `Work`/`CitationSystem` (extend the tombstone invariant in `scripts/compile.ts`).
-- [ ] Draft rendering: banner, `noindex`, sitemap/search exclusion on record pages (extend the `Tombstone.astro` pattern).
-- [ ] Downgrade the current unreviewed seed data to `draft` in `textrefs/registry`.
+- [x] Compiler invariant: a promoted (`candidate`+) record MUST NOT reference a draft `Work`/`CitationSystem` (extend the tombstone invariant in `scripts/compile.ts`).
+- [x] Draft rendering: banner, `noindex`, and search (Pagefind) exclusion on record pages (extend the `Tombstone.astro` pattern).
+- [ ] Sitemap exclusion for draft record pages — Starlight's `@astrojs/sitemap` is unfiltered, so drafts are still listed. `noindex` covers the crawler contract for now.
+- [x] Downgrade the current unreviewed seed data to `draft` in `textrefs/registry`.
 - [ ] Optional CI persistence check: promoted ids diffed against the previous release dump.
 
 ## Links
