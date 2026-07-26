@@ -28,6 +28,7 @@ All notable changes to this project are documented in this file. The format is b
 - Mark docs/404.mdx as draft to drop catch-all route conflict
 - Repair link-check workflow + bump deps to zod 4 (#5)
 - Erratum batch and spec-consistency fixes (#10, #11, #12, #14) (#25)
+- Resolve normative contradictions before the v0.1.0 tag
 
 ### Misc
 
@@ -38,4 +39,4 @@ All notable changes to this project are documented in this file. The format is b
 - Bump submodule to registry main (40af385)
 - Astro 6.4.8, dompurify 3.4.11, actions/checkout v7
 - Bump submodule to registry main (c0a3275, ORCID docs)
-- Upgrade to Astro 7.1, refresh dependencies (#39)
+- Astro 7.1 + dependency refresh (#39) (#43)
