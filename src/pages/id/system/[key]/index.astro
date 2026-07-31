@@ -4,13 +4,11 @@ import Tombstone from '../../../../components/Tombstone.astro';
 import {
 	loadSystems,
 	loadReferences,
-	uuidOf,
+	loadWorks,
 } from '../../../../lib/registry.ts';
 import { UNSTABLE_BANNER } from '../../../../lib/banner.ts';
 
 export async function getStaticPaths() {
-	const PAGE_SIZE = 200;
-	const PREVIEW = 20;
 	const systems = loadSystems();
 	const refs = loadReferences();
 	const refsBySystem = new Map<string, typeof refs>();
@@ -19,27 +17,36 @@ export async function getStaticPaths() {
 		if (arr) arr.push(r);
 		else refsBySystem.set(r.citation_system_key, [r]);
 	}
+	const worksByKey = new Map(loadWorks().map((w) => [w.key, w]));
+
 	return systems.map((system) => {
-		const systemRefs = (refsBySystem.get(system.key) ?? [])
-			.slice()
-			.sort((a, b) =>
-				a.locator.localeCompare(b.locator, undefined, { numeric: true }),
+		const refCountByWorkKey = new Map<string, number>();
+		for (const r of refsBySystem.get(system.key) ?? []) {
+			refCountByWorkKey.set(
+				r.work_key,
+				(refCountByWorkKey.get(r.work_key) ?? 0) + 1,
 			);
-		const pageCount = Math.max(1, Math.ceil(systemRefs.length / PAGE_SIZE));
+		}
+		const works = Array.from(refCountByWorkKey.entries())
+			.map(([key, refCount]) => ({ work: worksByKey.get(key), refCount }))
+			.filter(
+				(e): e is { work: NonNullable<typeof e.work>; refCount: number } =>
+					Boolean(e.work),
+			)
+			.sort((a, b) =>
+				a.work.preferred_label.localeCompare(b.work.preferred_label),
+			);
 		return {
 			params: { key: system.key },
 			props: {
 				system,
-				preview: systemRefs.slice(0, PREVIEW),
-				refCount: systemRefs.length,
-				pageCount,
-				pageSize: PAGE_SIZE,
+				works,
 			},
 		};
 	});
 }
 
-const { system, preview, refCount, pageCount, pageSize } = Astro.props;
+const { system, works } = Astro.props;
 const jsonHref = `/id/system/${system.key}.json`;
 ---
 
@@ -84,30 +91,20 @@ const jsonHref = `/id/system/${system.key}.json`;
 	<p>{system.description}</p>
 	<p>Regex: <code>{system.locator_regex}</code></p>
 
-	<section data-pagefind-ignore>
-		<h2>References using this system ({refCount})</h2>
-		{
-			refCount === 0 ? (
-				<p class="reg-empty">No references registered yet.</p>
-			) : (
-				<>
-					<ul class="reg-list">
-						{preview.map((r) => (
-							<li>
-								<a href={`/id/ref/${uuidOf(r.id)}/`}>
-									<code>{r.work_key}</code> · <code>{r.locator}</code>
-								</a>
-							</li>
-						))}
-					</ul>
-					<p>
-						<a href={`/reg/system/${system.key}/refs/1/`}>
-							Browse all {refCount} reference(s){' '}
-							{pageCount > 1 ? `(${pageCount} pages of ${pageSize})` : ''} →
-						</a>
-					</p>
-				</>
-			)
-		}
-	</section>
+	<h2>Works using this system ({works.length})</h2>
+	{
+		works.length === 0 ? (
+			<p class="reg-empty">No works registered for this system yet.</p>
+		) : (
+			<ul class="reg-list">
+				{works.map(({ work, refCount }) => (
+					<li>
+						<a href={`/id/work/${work.key}/`}>{work.preferred_label}</a>{' '}
+						<code class="reg-iri">{work.key}</code>{' '}
+						<span class="reg-tag">{refCount} reference(s)</span>
+					</li>
+				))}
+			</ul>
+		)
+	}
 </StarlightPage>
