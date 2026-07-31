@@ -73,9 +73,9 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 >
 	<h1>{pageTitle}</h1>
 	<p class="reg-sub">
-		<span class="reg-tag">CanonicalReference</span>
-		<span class="reg-tag">{ref.status}</span>
-		<code class="reg-iri">{ref.id}</code>
+		<span class="reg-tag">CanonicalReference</span>{' '}
+		<span class="reg-tag">{ref.status}</span>{' '}
+		<code class="reg-iri">{ref.id}</code>{' '}
 		<a href={jsonHref}>JSON</a>
 	</p>
 
@@ -115,7 +115,7 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 	<h2>In context</h2>
 	<ul class="reg-list">
 		<li>
-			Work:
+			Work:{' '}
 			{
 				work ? (
 					<a href={`/id/work/${work.key}/`}>{work.preferred_label}</a>
@@ -125,7 +125,7 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 			}
 		</li>
 		<li>
-			Citation system:
+			Citation system:{' '}
 			{
 				system ? (
 					<a href={`/id/system/${system.key}/`}>{system.preferred_label}</a>
@@ -178,9 +178,9 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 								<li>
 									<a href={t.url} target="_blank" rel="noopener noreferrer">
 										{t.provider ?? t.url}
-									</a>
-									{t.edition && <span class="reg-tag">{t.edition}</span>}
-									<span class="reg-tag">{t.access}</span>
+									</a>{' '}
+									{t.edition && <span class="reg-tag">{t.edition}</span>}{' '}
+									<span class="reg-tag">{t.access}</span>{' '}
 									{t.license && <span class="reg-tag">{t.license}</span>}
 									<br />
 									<code class="reg-iri">{t.url}</code>

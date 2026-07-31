@@ -112,9 +112,9 @@ const jsonHref = `/id/work/${work.key}.json`;
 	}}
 >
 	<p class="reg-sub">
-		<span class="reg-tag">Work</span>
-		<span class="reg-tag">{work.status}</span>
-		<code class="reg-iri">{work.id}</code>
+		<span class="reg-tag">Work</span>{' '}
+		<span class="reg-tag">{work.status}</span>{' '}
+		<code class="reg-iri">{work.id}</code>{' '}
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
 
@@ -149,7 +149,7 @@ const jsonHref = `/id/work/${work.key}.json`;
 					<li>
 						<a href={`/id/mapping/${uuidOf(m.id)}/`}>
 							<span class="reg-tag">{m.relation}</span>
-						</a>
+						</a>{' '}
 						<a href={m.target.identifier}>{m.target.identifier}</a>
 					</li>
 				))}
