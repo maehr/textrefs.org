@@ -1,6 +1,6 @@
 # ADR-0004: Lean record lifecycle — `draft` → `active`
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-04
 - **Deciders:** @maehr
 - **Tags:** spec, governance
@@ -9,18 +9,18 @@
 
 ADR-0003 established the ladder `draft` → `candidate` → `active` → `deprecated` / `withdrawn` / `blocked`, and attached the identifier-persistence promise at the `draft → candidate` promotion (specification §11: "The persistence promise attaches at **promotion**: the first time a record is published at status `candidate` or higher"). That leaves `candidate` as a state that is permanent but not recommended. Nothing in the model distinguishes it operationally from `active` except that `active` also carries a recommendation (specification §12: `active` — "accepted and recommended for use"; `candidate` — "proposed but not yet accepted as stable"). A promoted-but-unrecommended tier is not a distinction TextRefs' review process or its consumers act on anywhere.
 
-The status enum is defined once, in `standard/schema/common.ts:3-10` (`Status = z.enum(['draft', 'candidate', 'active', 'deprecated', 'withdrawn', 'blocked'])`), and duplicated once, in `api/openapi.yaml:183-185`. No record anywhere in the registry is on `candidate`: every record in the `data/` submodule is `draft` (ADR-0003's own follow-up downgraded the seed data to `draft`, and nothing has since been promoted). Removing the state therefore needs zero data migration.
+The status enum is defined once, in `standard/schema/common.ts` (before this change: `Status = z.enum(['draft', 'candidate', 'active', 'deprecated', 'withdrawn', 'blocked'])`), and duplicated once, in `api/openapi.yaml:183-185`. No record anywhere in the registry is on `candidate`: every record in the `data/` submodule is `draft` (ADR-0003's own follow-up downgraded the seed data to `draft`, and nothing has since been promoted). Removing the state therefore needs zero data migration.
 
 `scripts/compile.ts:631` already keys its dependency invariant off `status !== 'draft'` rather than off `candidate` by name:
 
 ```ts
-// Analogously (ADR-0003): a promoted record — anything at `candidate` or
-// higher, so anything carrying the persistence promise — MUST NOT depend on
-// a record that is still retractable.
+// Analogously (ADR-0004): a promoted record — anything past `draft`, so
+// anything that carries or once carried the persistence promise — MUST NOT
+// depend on a record that is still retractable.
 const isPromoted = (r: StatusRecord) => r.status !== 'draft';
 ```
 
-The logic survives a two-state ladder unchanged; only the comment names `candidate`. The real cost of keeping the state is prose: specification §11–§12, the versioning maturity-ladder prose, identifier-syntax, get-started examples, CONTRIBUTING, and — because it is the legally binding text — the German governance regulation, which ADR-0003 itself records as amended in lockstep with the English original (`association/governance.md` §4.2, §5.1, §5.2, §5.3, §6, and its `de/` counterpart).
+The logic survives a two-state ladder unchanged. The real cost of keeping the state is prose: specification §11–§12, the versioning maturity-ladder prose, identifier-syntax, get-started examples, CONTRIBUTING, and — because it is the legally binding text — the German governance regulation, which ADR-0003 itself records as amended in lockstep with the English original (`association/governance.md` §4.2, §5.1, §5.2, §5.3, §6, and its `de/` counterpart).
 
 ## Decision drivers
 
