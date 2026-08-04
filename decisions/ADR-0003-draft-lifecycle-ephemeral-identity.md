@@ -1,6 +1,6 @@
 # ADR-0003: Review lifecycle with an ephemeral `draft` state
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0004
 - **Date:** 2026-07-05
 - **Deciders:** @maehr
 - **Tags:** spec, governance
@@ -68,6 +68,6 @@ We choose **Option 4**. The status ladder becomes `draft` → `candidate` → `a
 
 ## Links
 
-- Related ADRs: ADR-0002 (deterministic identity from the semantic tuple — the identity/registration separation this builds on)
+- Related ADRs: ADR-0002 (deterministic identity from the semantic tuple — the identity/registration separation this builds on), ADR-0004 (supersedes this ADR: collapses the ladder to `draft` → `active`, removing `candidate`)
 - Related issues / PRs: textrefs/textrefs.org#22, textrefs/textrefs.org#15
 - External references: governance regulation §4–§6 (`/association/governance/`)

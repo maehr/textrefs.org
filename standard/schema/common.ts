@@ -1,8 +1,10 @@
 import { z } from 'zod';
 
+// Lifecycle (ADR-0004): `draft` is mutable and carries no persistence promise;
+// promotion to `active` grants both recommendation and identifier permanence.
+// The remaining three are tombstone states for records that have left active use.
 export const Status = z.enum([
 	'draft',
-	'candidate',
 	'active',
 	'deprecated',
 	'withdrawn',

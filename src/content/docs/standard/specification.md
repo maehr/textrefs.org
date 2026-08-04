@@ -121,7 +121,7 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
   "type": "Work",
   "preferred_label": "Republic",
   "creators": [{ "kind": "person", "family": "Plato" }],
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
@@ -149,7 +149,7 @@ A `CitationSystem.key` is a single flat registry key for a locator notation and 
   "preferred_label": "Bible book-chapter-verse (OSIS)",
   "description": "OSIS locator: `Book.Chapter.Verse`. The canonical book vocabulary is the OSIS book abbreviation list (CrossWire), case-sensitive as published there — e.g. `Gen`, `Exod`, `Matt`, `John`, `1Cor`. Chapter and verse are positive integers without leading zeros. Both the Hebrew Bible and the New Testament cite with this grammar.",
   "locator_regex": "^(?<book>[1-4]?[A-Za-z][A-Za-z0-9]*)\\.(?<chapter>[1-9][0-9]*)\\.(?<verse>[1-9][0-9]*)$",
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
@@ -187,7 +187,7 @@ A `CanonicalReference` represents one atomized, **language-independent** referen
       "license": "https://spdx.org/licenses/CC-BY-4.0"
     }
   ],
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
@@ -245,7 +245,7 @@ A `MappingAssertion` records a curated equivalence claim between a TextRefs `Wor
     "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
@@ -269,7 +269,7 @@ A `CanonicalReference` identifier MUST be generated deterministically. The ident
 
 A `MappingAssertion` identifier MUST be generated deterministically from `subject`, `relation`, and `target.identifier`, in that order, using the `mapping` namespace (see [Identifier syntax](/standard/identifier-syntax/#mappingassertion-seed)). It MUST remain UUID-based and MUST NOT be derived from provider URLs, corpus paths, or resolver structures. Resolver-target entries do not have their own identifiers.
 
-The persistence promise attaches at **promotion**: the first time a record is published at status `candidate` or higher ([§12](#12-administrative-metadata)). Promotion changes `status` only and MUST NOT change identity-defining fields, so the identifier survives promotion unchanged. Records at status `draft` are excluded from the persistence policy: they MAY be corrected (changing an identity field mints a different identifier; the previous one ceases to resolve) or retracted (the record is deleted) without a tombstone.
+The persistence promise attaches at **promotion**: the first time a record is published at status `active` ([§12](#12-administrative-metadata)). Promotion changes `status` only and MUST NOT change identity-defining fields, so the identifier survives promotion unchanged. Records at status `draft` are excluded from the persistence policy: they MAY be corrected (changing an identity field mints a different identifier; the previous one ceases to resolve) or retracted (the record is deleted) without a tombstone.
 
 An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated`, `withdrawn`, or `blocked`, [§12](#12-administrative-metadata)) and SHOULD carry the successor IRI in `superseded_by`. `MappingAssertion`s MUST NOT be used for succession; they are reserved for work-level equivalence ([§10](#10-mappingassertion)).
 
@@ -290,11 +290,12 @@ Every registry object MUST include:
 - `created` and `modified` MUST be [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html) calendar dates in `YYYY-MM-DD` form.
 - `status` MUST be one of:
   - `draft` — work-in-progress record under review; **excluded from the identifier persistence policy** ([§11](#11-identifier-policy)). May be corrected or retracted without a tombstone.
-  - `candidate` — proposed but not yet accepted as stable. Promotion from `draft` attaches the persistence promise.
-  - `active` — accepted and recommended for use.
+  - `active` — accepted, recommended for use, and permanently identified. Promotion from `draft` attaches the persistence promise.
   - `deprecated` — retained but no longer recommended.
   - `withdrawn` — removed from active use because it was erroneous or has been superseded.
   - `blocked` — retained as a visible tombstone because of a rights, trust, or policy dispute.
+
+An incorrect `active` record is never deleted and its identity-defining fields are never mutated: it MUST instead be moved to `deprecated`, `withdrawn`, or `blocked`, with `superseded_by` set to the successor's IRI when a successor exists. Because identity is deterministic, the corrected tuple mints a new UUID at a new IRI; the original IRI keeps resolving as a tombstone.
 
 Deprecated, withdrawn, and blocked records SHOULD remain visible unless removal is required for legal, privacy, or safety reasons.
 
@@ -381,7 +382,8 @@ A conforming validator MUST check:
 9. UUID-based identifier shape for `CanonicalReference` and `MappingAssertion` records;
 10. `resolver_targets` entries: `access` values, BCP 47 syntax of `language` and its presence for language-specific entries, and SPDX syntax of `license` when present;
 11. mapping `relation` values and the Work-IRI shape of `MappingAssertion.subject`;
-12. absence of forbidden full-text/apparatus/commentary content.
+12. absence of forbidden full-text/apparatus/commentary content;
+13. that no `active` record depends on a `draft` one: an `active` `CanonicalReference` references an `active` `Work` and an `active` `CitationSystem`, and an `active` `MappingAssertion` takes an `active` `Work` as its `subject`.
 
 A validator SHOULD report errors in a machine-readable format, and SHOULD distinguish syntactically valid, registered, mapped, and resolvable references. An input locator that matches `locator_regex` but has no corresponding registered `CanonicalReference` is syntactically valid but not a valid TextRefs reference.
 

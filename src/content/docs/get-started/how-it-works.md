@@ -56,7 +56,7 @@ The identity is the Stephanus reference, not any one Greek text, translation, or
       "last_checked": "2026-06-03"
     }
   ],
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-06-03"
 }
@@ -82,7 +82,7 @@ When reading locations exist, they are embedded on the reference itself, one ent
       "license_url": "https://sblgnt.com/license/"
     }
   ],
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-05-31"
 }
@@ -100,7 +100,7 @@ Work-level equivalences live in a `MappingAssertion`:
     "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
-  "status": "candidate",
+  "status": "active",
   "created": "2026-05-31",
   "modified": "2026-06-02"
 }
