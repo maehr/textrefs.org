@@ -62,6 +62,7 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
     "inScheme": { "@id": "skos:inScheme", "@type": "@id" },
     "work_key": "tr:workKey",
     "citation_system_key": "tr:citationSystemKey",
+    "preferred_citation_system_key": "tr:preferredCitationSystemKey",
     "locator": "tr:locator",
     "status": "tr:status",
     "source": "dcterms:source",
@@ -89,4 +90,4 @@ Use `exactMatch` only when the mapped object identifies the same reference with 
 }
 ```
 
-`key`, `work_key`, and `citation_system_key` are plain strings in the core JSON format. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries the canonical SPDX licence IRI (`https://spdx.org/licenses/{id}`, derived from the authored SPDX identifier at compile time); `license_url` (optional fallback for non-SPDX terms) carries an IRI. Both map to an IRI-typed `dcterms:license`. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.
+`key`, `work_key`, `citation_system_key`, and `preferred_citation_system_key` are plain strings in the core JSON format. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries the canonical SPDX licence IRI (`https://spdx.org/licenses/{id}`, derived from the authored SPDX identifier at compile time); `license_url` (optional fallback for non-SPDX terms) carries an IRI. Both map to an IRI-typed `dcterms:license`. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.

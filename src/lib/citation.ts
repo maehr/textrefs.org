@@ -55,13 +55,26 @@ function authorsChicago(authors: CSLName[]): string {
 	return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 }
 
-export function formatChicago(csl: CSLItem): string {
+/**
+ * `includeSection` names the citation system alongside the locator. Set it when
+ * the work is cited under more than one system, where a bare locator is
+ * ambiguous — the same string can denote a different passage per system
+ * (ADR-0005). Left off, the citation stays uncluttered for the common case.
+ */
+export function formatChicago(
+	csl: CSLItem,
+	opts: { includeSection?: boolean } = {},
+): string {
 	const parts: string[] = [];
 	const authors = csl.author ?? [];
 	if (authors.length) parts.push(authorsChicago(authors));
 	parts.push(`*${csl.title}*`);
 	const head = parts.join(', ');
-	return `${head} ${csl.locator}. ${csl.URL}`;
+	const locator =
+		opts.includeSection && csl.section
+			? `${csl.locator} (${csl.section})`
+			: csl.locator;
+	return `${head} ${locator}. ${csl.URL}`;
 }
 
 export function toCOinS(csl: CSLItem): string {

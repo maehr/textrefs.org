@@ -25,7 +25,7 @@ Husky installs on `npm install`: Prettier runs on staged files, `commitlint` enf
 - `src/content/docs/de/` — German mirror (see Localization)
 - `src/pages/id/{work,system,ref,mapping}/` — canonical record pages (`/id/.../` HTML and `.json` JSON-LD siblings)
 - `src/pages/reg/` — registry browser (index + paginated reference lists); does not host individual records
-- `src/pages/cite/` — short-alias redirects (`/cite/{work}/{locator}` → canonical `/id/` URL)
+- `src/pages/cite/` — short-alias redirects (`/cite/{work}/{system}/{locator}` always; bare `/cite/{work}/{locator}` for a work's preferred citation system, and retargetable if that preference changes) → canonical `/id/` URL
 - `src/styles/brand.css` — brand tokens
 - `public/{logo.svg,favicon.svg,fonts/}` — brand assets
 - `data/` — git submodule pointing at [`textrefs/registry`](https://github.com/textrefs/registry); hand-authored YAML lives there. See [`data/AGENTS.md`](./data/AGENTS.md) for authoring rules and [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the submodule workflow.

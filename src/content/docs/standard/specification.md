@@ -120,6 +120,7 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
   "key": "plato.republic",
   "type": "Work",
   "preferred_label": "Republic",
+  "preferred_citation_system_key": "stephanus",
   "creators": [{ "kind": "person", "family": "Plato" }],
   "status": "active",
   "created": "2026-05-31",
@@ -127,7 +128,10 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
 }
 ```
 
-Required: `id`, `key`, `type` (`Work`), `preferred_label`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `exactMatch`, `closeMatch`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
+Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_system_key`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `exactMatch`, `closeMatch`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
+
+- `preferred_citation_system_key` MUST reference a known `CitationSystem`. It governs the bare `/cite/{work_key}/{locator}/` alias and default presentation only; it is identity-neutral and MUST NOT affect the validation or resolution of a fully qualified reference ([§7](#7-citationsystem)).
+- A `Work` MAY be referenced under more than one `CitationSystem`, of which exactly one is preferred.
 
 `creators`, when present, is an array of entries discriminated by `kind`. A `person` entry has `family` (required) and `given` (optional); mononyms such as Plato or Homer use `family` alone, following CSL convention. A `literal` entry has `name` and is the escape hatch for pseudonymous, collective, or institutional authorship (e.g. `[Pseudo-]Aristotle`, an editorial committee). Anonymous works and canonical corpora such as the Bible simply omit `creators`. For attributed-but-disputed works, record the traditional attribution in `creators` and express uncertainty through mappings or editorial review notes, not in the name string. Implementations MUST treat the field as optional and MUST NOT infer authorship from `preferred_label` or `key`.
 
@@ -164,6 +168,7 @@ Required: `id`, `key`, `type` (`CitationSystem`), `preferred_label`, `descriptio
 - Regex success does not by itself prove that a reference point exists in a work.
 - Unicode handling for keys and locators MUST follow [Identifier syntax](/standard/identifier-syntax/#unicode-normalization).
 - A pull request that adds or changes a citation system MUST include the full profile record. See [Citation-system profiles](/standard/system-profiles/).
+- A `Work` MAY be cited under more than one `CitationSystem`, and the same locator string MAY denote different passages under different systems — which is why `citation_system_key` is part of `CanonicalReference` identity ([§11](#11-identifier-policy)).
 - A `CanonicalReference` links to its citation system through `citation_system_key`. JSON-LD serializations MAY additionally expose that relation with `skos:inScheme`.
 
 ## 8. CanonicalReference
@@ -383,7 +388,7 @@ A conforming validator MUST check:
 10. `resolver_targets` entries: `access` values, BCP 47 syntax of `language` and its presence for language-specific entries, and SPDX syntax of `license` when present;
 11. mapping `relation` values and the Work-IRI shape of `MappingAssertion.subject`;
 12. absence of forbidden full-text/apparatus/commentary content;
-13. that no `active` record depends on a `draft` one: an `active` `CanonicalReference` references an `active` `Work` and an `active` `CitationSystem`, and an `active` `MappingAssertion` takes an `active` `Work` as its `subject`.
+13. that no `active` record depends on a `draft` one: an `active` `CanonicalReference` references an `active` `Work` and an `active` `CitationSystem`, and an `active` `MappingAssertion` takes an `active` `Work` as its `subject`; `Work.preferred_citation_system_key` MUST reference a known `CitationSystem`, and an `active` `Work` requires an `active` preferred `CitationSystem`.
 
 A validator SHOULD report errors in a machine-readable format, and SHOULD distinguish syntactically valid, registered, mapped, and resolvable references. An input locator that matches `locator_regex` but has no corresponding registered `CanonicalReference` is syntactically valid but not a valid TextRefs reference.
 

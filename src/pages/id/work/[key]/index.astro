@@ -39,8 +39,10 @@ export async function getStaticPaths() {
 		const workIri = work.id;
 		const workRefs = (refsByWork.get(work.key) ?? [])
 			.slice()
-			.sort((a, b) =>
-				a.locator.localeCompare(b.locator, undefined, { numeric: true }),
+			.sort(
+				(a, b) =>
+					a.citation_system_key.localeCompare(b.citation_system_key) ||
+					a.locator.localeCompare(b.locator, undefined, { numeric: true }),
 			);
 		const workMappings = mappingsBySubject.get(workIri) ?? [];
 		const usedSystemKeys = Array.from(
@@ -59,6 +61,9 @@ export async function getStaticPaths() {
 			props: {
 				work,
 				preview: workRefs.slice(0, PREVIEW),
+				// The same locator can appear under several systems and mean a
+				// different passage each time (ADR-0005) — label them when it can.
+				multiSystem: usedSystemKeys.length > 1,
 				refCount: workRefs.length,
 				pageCount,
 				pageSize: PAGE_SIZE,
@@ -73,6 +78,7 @@ export async function getStaticPaths() {
 const {
 	work,
 	preview,
+	multiSystem,
 	refCount,
 	pageCount,
 	pageSize,
@@ -129,7 +135,10 @@ const jsonHref = `/id/work/${work.key}.json`;
 				{systems.map((s) => (
 					<li>
 						<a href={`/id/system/${s.key}/`}>{s.preferred_label}</a>{' '}
-						<code class="reg-iri">{s.key}</code>
+						<code class="reg-iri">{s.key}</code>{' '}
+						{s.key === work.preferred_citation_system_key && (
+							<span class="reg-tag">preferred</span>
+						)}
 					</li>
 				))}
 			</ul>
@@ -170,6 +179,11 @@ const jsonHref = `/id/work/${work.key}.json`;
 								<a href={`/id/ref/${uuidOf(r.id)}/`}>
 									<code>{r.locator}</code>
 								</a>{' '}
+								{multiSystem && (
+									<>
+										<span class="reg-tag">{r.citation_system_key}</span>{' '}
+									</>
+								)}
 								<span class="reg-tag">
 									{r.resolver_targets.length} target(s)
 								</span>

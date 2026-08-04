@@ -17,7 +17,7 @@ data/
 └── systems/{system_key}.yaml          # one file per CitationSystem
 ```
 
-A `Work` source file declares the work itself, references the citation system it uses, lists references, optionally lists resolver templates, and optionally lists work-level mappings. A `CitationSystem` source file declares the locator regex and examples.
+A `Work` source file declares the work itself, references the citation system it uses as its **preferred** citation system (optionally alongside fallback systems, see [Additional citation systems](#additional-citation-systems-and-reference_status)), lists references, optionally lists resolver templates, and optionally lists work-level mappings. A `CitationSystem` source file declares the locator regex and examples.
 
 ## A worked example
 
@@ -32,7 +32,7 @@ work:
   created: 2026-05-31
   modified: 2026-05-31
 
-citation_system: dhammapada-chapter-verse
+citation_system: dhammapada-chapter-verse # the work's PREFERRED citation system
 
 mappings:
   - relation: exactMatch
@@ -299,6 +299,33 @@ references_range:
 
 Multiple `references_range` entries on one work are concatenated. Combine with explicit `references:` entries for one-off locators that don't fit any range.
 
+## Additional citation systems and reference_status
+
+The top-level `citation_system:` block is the work's **preferred** system: its references also get the bare `/cite/{work_key}/{locator}/` alias, and it is what `Work.preferred_citation_system_key` points at in the compiled record. A work MAY additionally carry `additional_systems:` — a list of fallback blocks, each with its own `citation_system:`, `resolvers:`, `references:`, and `references_range:`, scoped exactly like the top-level block:
+
+```yaml
+work:
+  key: plato.republic
+  preferred_label: Republic
+  status: active
+  created: 2026-05-31
+  modified: 2026-05-31
+
+citation_system: stephanus # preferred system
+references:
+  - '514a'
+
+additional_systems:
+  - citation_system: book-chapter # fallback system
+    reference_status: draft # optional; explicit here for clarity
+    references:
+      - '7.1'
+```
+
+The status default is **asymmetric**: the top-level block's `reference_status` defaults to the work's own `status`, but an `additional_systems` block's `reference_status` defaults to `draft` — never to the work's status. Adding a fallback system to an already-active work never silently promotes its references to `active`; each fallback is reviewed on its own. Declaring the same `citation_system` twice for one work — as the preferred system and again under `additional_systems`, or twice within `additional_systems` — is rejected when the source file is parsed.
+
+Resolver URL templates stay scoped to their block, because their template variables come from that block's own citation system's `locator_regex` capture groups.
+
 ## Citation system files
 
 A citation system declares its locator format once and is reused by every work that cites it.
@@ -368,6 +395,7 @@ The compiler is deterministic: re-running `compile:data` against unchanged sourc
 - `/id/ref/{uuid}/` — a CanonicalReference page with every resolver URL grouped by language. Plus `/id/ref/{uuid}.json`.
 - `/id/mapping/{uuid}/` — a MappingAssertion page. Plus `/id/mapping/{uuid}.json`.
 - `/reg/` — the human registry browser (filter works and citation systems, then browse paginated reference lists from work/system pages).
-- `/cite/{work_key}/{locator}/` — short alias that redirects to the canonical reference page.
+- `/cite/{work_key}/{citation_system_key}/{locator}/` — qualified short alias, minted for every reference.
+- `/cite/{work_key}/{locator}/` — bare short alias, minted only for a work's preferred citation system; it MAY be retargeted if that preference changes.
 
-A reader who types `https://textrefs.org/cite/dhammapada/1.1` lands on the canonical reference page; the alias index is generated alongside the records by the compiler. See [URL layout](/get-started/url-layout/) for the full four-prefix model.
+A reader who types `https://textrefs.org/cite/plato.republic/stephanus/514a` (qualified) or `https://textrefs.org/cite/plato.republic/514a` (bare) lands on the same canonical reference page; the alias index is generated alongside the records by the compiler. See [URL layout](/get-started/url-layout/) for the full four-prefix model and alias-permanence rules.

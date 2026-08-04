@@ -3,6 +3,10 @@ import type { CompiledRegistry } from '../../scripts/compile.js';
 const fixtureWorkIri = 'https://textrefs.org/id/work/fixture.work';
 const fixtureRefIri =
 	'https://textrefs.org/id/ref/00000000-0000-5000-8000-000000000001';
+// Same locator (`1`) under a second, non-preferred citation system — the case
+// ADR-0005 exists for. Distinct identity, distinct IRI, no bare alias.
+const fixtureAltRefIri =
+	'https://textrefs.org/id/ref/00000000-0000-5000-8000-000000000003';
 
 export const fixtureRegistry: CompiledRegistry = {
 	works: [
@@ -11,6 +15,7 @@ export const fixtureRegistry: CompiledRegistry = {
 			key: 'fixture.work',
 			type: 'Work',
 			preferred_label: 'Fixture Work',
+			preferred_citation_system_key: 'fixture-section',
 			status: 'active',
 			created: '2026-01-01',
 			modified: '2026-01-01',
@@ -25,6 +30,18 @@ export const fixtureRegistry: CompiledRegistry = {
 			description: 'Single positive integer section number.',
 			locator_regex: '^(?<section>\\d+)$',
 			status: 'active',
+			created: '2026-01-01',
+			modified: '2026-01-01',
+		},
+		{
+			id: 'https://textrefs.org/id/system/fixture-alternate',
+			key: 'fixture-alternate',
+			type: 'CitationSystem',
+			preferred_label: 'Fixture alternate numbering',
+			description:
+				'A competing section numbering for the same work: the same locator string denotes a different passage.',
+			locator_regex: '^(?<section>\\d+)$',
+			status: 'draft',
 			created: '2026-01-01',
 			modified: '2026-01-01',
 		},
@@ -48,6 +65,25 @@ export const fixtureRegistry: CompiledRegistry = {
 			created: '2026-01-01',
 			modified: '2026-01-01',
 		},
+		{
+			id: fixtureAltRefIri,
+			type: 'CanonicalReference',
+			work_key: 'fixture.work',
+			citation_system_key: 'fixture-alternate',
+			locator: '1',
+			resolver_targets: [
+				{
+					url: 'https://example.org/fixture-work/alt/1',
+					language: 'en',
+					provider: 'Example',
+					access: 'open',
+				},
+			],
+			// A fallback system enters as draft and does not downgrade the work.
+			status: 'draft',
+			created: '2026-01-01',
+			modified: '2026-01-01',
+		},
 	],
 	mappings: [
 		{
@@ -65,7 +101,9 @@ export const fixtureRegistry: CompiledRegistry = {
 		},
 	],
 	aliases: {
-		'fixture/1': fixtureRefIri,
+		'fixture.work/fixture-section/1': fixtureRefIri,
+		'fixture.work/1': fixtureRefIri,
+		'fixture.work/fixture-alternate/1': fixtureAltRefIri,
 		'https://example.org/fixture-work': fixtureWorkIri,
 	},
 	warnings: 0,
