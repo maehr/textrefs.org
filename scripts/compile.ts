@@ -625,9 +625,9 @@ function enforceRegistryInvariants(reg: {
 			);
 	}
 
-	// Analogously (ADR-0003): a promoted record — anything at `candidate` or
-	// higher, so anything carrying the persistence promise — MUST NOT depend on
-	// a record that is still retractable.
+	// Analogously (ADR-0004): a promoted record — anything past `draft`, so
+	// anything that carries or once carried the persistence promise — MUST NOT
+	// depend on a record that is still retractable.
 	const isPromoted = (r: StatusRecord) => r.status !== 'draft';
 	for (const ref of reg.references) {
 		if (!isPromoted(ref)) continue;

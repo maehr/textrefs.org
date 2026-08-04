@@ -119,8 +119,8 @@ Ein fachlicher Review ist erforderlich für:
 - strittige Mapping-Aussagen;
 - widersprüchliche externe Identifikatoren;
 - Änderungen mit erheblicher fachlicher oder reputationsbezogener Wirkung;
-- Promotion von Datensätzen von `draft` zu `candidate` (der Zeitpunkt, an dem die Persistenzzusage beginnt);
-- Statusänderungen zu `active`, `deprecated`, `withdrawn` oder `blocked`, soweit fachlich begründet.
+- Promotion von Datensätzen von `draft` zu `active` (der Zeitpunkt, an dem die Persistenzzusage beginnt);
+- Statusänderungen zu `deprecated`, `withdrawn` oder `blocked`, soweit fachlich begründet.
 
 Voraussetzungen:
 
@@ -146,8 +146,7 @@ Der Vorstand entscheidet oder bestätigt:
 ### 5.1 Allgemeine Datensatzstatus
 
 - **draft:** Datensatz in Arbeit; ohne Tombstone korrigierbar oder zurückziehbar; von der Persistenzzusage ausgenommen;
-- **candidate:** vorgeschlagener Datensatz, noch nicht vollständig geprüft;
-- **active:** gültig und empfohlen;
+- **active:** gültig und empfohlen; ab diesem Zeitpunkt dauerhaft identifiziert;
 - **deprecated:** nicht mehr empfohlen, aber aus historischen Gründen erhalten;
 - **withdrawn:** zurückgezogen, Landing Page bleibt erhalten;
 - **blocked:** aus rechtlichen, policybezogenen oder schwerwiegenden Qualitätsgründen gesperrt.
@@ -155,8 +154,7 @@ Der Vorstand entscheidet oder bestätigt:
 ### 5.2 Mapping-Status
 
 - **draft:** Zuordnung in Arbeit; ohne Tombstone korrigierbar oder zurückziehbar;
-- **candidate:** vorgeschlagene Zuordnung;
-- **active:** geprüfte und empfohlene Zuordnung;
+- **active:** geprüfte und empfohlene Zuordnung; ab diesem Zeitpunkt dauerhaft identifiziert;
 - **deprecated:** nicht mehr empfohlene Zuordnung;
 - **withdrawn:** zurückgezogene Zuordnung;
 - **blocked:** gesperrte Zuordnung.
@@ -165,7 +163,7 @@ Strittige Mappings behalten den passenden Schema-Status und führen Begründung,
 
 ### 5.3 Tombstone-Prinzip
 
-Promovierte IDs (Status `candidate` oder höher) werden grundsätzlich nicht hart gelöscht. Datensätze im Status `draft` können ohne Landing Page zurückgezogen werden.
+Aktive IDs (Status `active` oder ein Tombstone-Status) werden grundsätzlich nicht hart gelöscht. Datensätze im Status `draft` können ohne Landing Page zurückgezogen werden.
 
 Bei Rückzug, Sperrung oder Deprecation bleibt eine Landing Page erhalten mit:
 
@@ -181,9 +179,9 @@ Bei Rückzug, Sperrung oder Deprecation bleibt eine Landing Page erhalten mit:
 1. Primäre TextRefs-IDs sind unabhängige HTTP-URIs.
 2. Externe Identifikatoren wie CTS URNs, Wikidata-IDs, DOIs, ARKs, Perseus-URLs oder Scaife-URLs sind keine primären TextRefs-IDs.
 3. Alle Registereinträge tragen deterministische IDs, die aus ihren Identitätsfeldern berechenbar sind.
-4. Provisorische Einträge werden über den Status `draft` ausgedrückt, der von der Persistenzzusage ausgenommen ist; ihre IDs können bis zur Promotion verschwinden oder sich ändern.
+4. Provisorische Einträge werden über den Status `draft` ausgedrückt, der von der Persistenzzusage ausgenommen ist; ihre IDs können bis zur Promotion zu `active` verschwinden oder sich ändern.
 5. Einmal publizierte IDs werden nicht geändert, nur weil Labels, Titel, Aliase oder externe Mappings verbessert werden.
-6. Lesbare Citation-URLs sind Aliase und können umgeleitet, geändert oder deprecated werden; primäre IDs bleiben massgeblich.
+6. Lesbare Citation-URLs sind Aliase und können umgeleitet, geändert, deprecated oder einem anderen Datensatz neu zugeordnet werden; nur die primären `/id/`-Identifikatoren sind dauerhaft.
 
 ## 7. Contribution-Prozess
 

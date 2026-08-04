@@ -29,7 +29,7 @@ A contribution does not create a claim to acceptance, prioritization, publicatio
 Changes are routed to one of three tracks:
 
 - **Technical review** — typos, formatting, broken links, minor metadata, `last_checked` updates, uncontested aliases, build / tooling fixes, and merging new registry data as `draft`. Needs automated validation and one technical reviewer.
-- **Expert review** — new works, new citation systems, new corpora, contested mappings, changes to deterministic ID inputs, status changes (promotion `draft` → `candidate`, and `active` / `deprecated` / `withdrawn` / `blocked`). Needs technical validation, a documented rationale with sources, and at least one expert reviewer.
+- **Expert review** — new works, new citation systems, new corpora, contested mappings, changes to deterministic ID inputs, status changes (promotion `draft` → `active`, and `deprecated` / `withdrawn` / `blocked`). Needs technical validation, a documented rationale with sources, and at least one expert reviewer.
 - **Board reservation** — takedowns, blocking, licence policy, and other legal or policy-sensitive matters. Decided by the Association Board.
 
 ```mermaid
@@ -48,7 +48,7 @@ flowchart TD
     BR -->|decision| R
 ```
 
-New registry records enter at `status: draft` after technical review; they stay retractable until an expert review promotes them to `candidate`, which permanently freezes their identifier (see the [versioning rules](https://textrefs.org/standard/versioning/) and governance §5).
+New registry records enter at `status: draft` after technical review; they stay retractable until an expert review promotes them to `active`, which permanently freezes their identifier (see the [versioning rules](https://textrefs.org/standard/versioning/) and governance §5).
 
 ## Local development
 

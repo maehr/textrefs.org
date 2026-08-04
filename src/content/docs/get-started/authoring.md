@@ -28,7 +28,7 @@ The Dhammapada has 423 verses across 26 chapters and is hosted on four different
 work:
   key: dhammapada
   preferred_label: Dhammapada
-  status: candidate
+  status: draft
   created: 2026-05-31
   modified: 2026-05-31
 
@@ -39,7 +39,7 @@ mappings:
     identifier: 'https://www.wikidata.org/entity/Q220114'
     conforms_to: 'https://www.wikidata.org/'
     source: manual-curation
-    status: candidate
+    status: draft
     created: 2026-05-31
     modified: 2026-05-31
 
@@ -343,7 +343,7 @@ chapter_sizes:
     23,
     41,
   ]
-status: candidate
+status: draft
 created: 2026-05-31
 modified: 2026-06-01
 ```

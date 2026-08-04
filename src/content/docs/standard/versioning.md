@@ -72,7 +72,7 @@ Each `datapackage.json` MUST include:
 
 ## Per-record versioning
 
-Records do **not** carry their own SemVer. The registry is append-only from promotion onward, with status transitions (`draft` → `candidate` → `active` → `deprecated` / `withdrawn` / `blocked`). The `draft` tier is pre-persistence: see [Draft records and retraction](#draft-records-and-retraction). Consumers pin to a registry tag (or its DOI) for reproducibility. Identifier-level changes to promoted records are expressed via tombstones, below.
+Records do **not** carry their own SemVer. The registry is append-only from promotion onward, with status transitions (`draft` → `active` → `deprecated` / `withdrawn` / `blocked`). The `draft` tier is pre-persistence: see [Draft records and retraction](#draft-records-and-retraction). Consumers pin to a registry tag (or its DOI) for reproducibility. Identifier-level changes to promoted records are expressed via tombstones, below.
 
 ## Draft records and retraction
 
@@ -82,7 +82,7 @@ Draft records appear in exports inside the same `.jsonl` files as their type, wi
 
 ## Tombstones and re-minted records
 
-Registry identity is permanent once promoted: the IRI of a `Work`, `CitationSystem`, `CanonicalReference`, or `MappingAssertion` MUST continue to resolve once the record has been published at status `candidate` or higher. Re-minting a promoted record (renaming a key, correcting a locator that changes the content-derived UUID, splitting/merging records) MUST be expressed by **tombstoning** the old record and minting a successor.
+Registry identity is permanent once promoted: the IRI of a `Work`, `CitationSystem`, `CanonicalReference`, or `MappingAssertion` MUST continue to resolve once the record has been published at status `active`. Re-minting a promoted record (renaming a key, correcting a locator that changes the content-derived UUID, splitting/merging records) MUST be expressed by **tombstoning** the old record and minting a successor.
 
 ### Schema
 
@@ -106,7 +106,7 @@ The compiler enforces three invariants, and fails the build on any violation:
 
 1. `superseded_by` MUST only appear on records whose `status` is `deprecated`, `withdrawn`, or `blocked`. A record still in active use has no successor.
 2. An active `CanonicalReference` MUST NOT reference a tombstoned (`withdrawn` or `blocked`) `Work` or `CitationSystem` through `work_key` or `citation_system_key` — those break resolution.
-3. A promoted (`candidate` or higher) record MUST NOT depend on a `draft` one: no promoted `CanonicalReference` may reference a `draft` `Work` or `CitationSystem` through its keys, and no promoted `MappingAssertion` may take a `draft` `Work` as its `subject`. Works and systems are promoted before or together with whatever depends on them.
+3. An `active` record MUST NOT depend on a `draft` one: no `active` `CanonicalReference` may reference a `draft` `Work` or `CitationSystem` through its keys, and no `active` `MappingAssertion` may take a `draft` `Work` as its `subject`. Works and systems are promoted to `active` before or together with whatever depends on them.
 
 ### Aliases vs. tombstones
 

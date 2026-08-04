@@ -83,10 +83,11 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 		isDraft && (
 			<aside class="banner banner-draft" role="note">
 				<p>
-					<strong>Draft record.</strong> This record has not been promoted by
-					expert review. Its identifier carries no persistence promise yet: the
-					record may be corrected (which mints a different identifier) or
-					retracted without a tombstone. Do not cite it as stable.
+					<strong>Draft record.</strong> This record has not been promoted to{' '}
+					<code>active</code> by expert review. Its identifier carries no
+					persistence promise yet: the record may be corrected (which mints a
+					different identifier) or retracted without a tombstone. Do not cite it
+					as stable.
 				</p>
 			</aside>
 		)

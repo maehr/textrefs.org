@@ -117,7 +117,7 @@ Both deposits live in the [TextRefs Zenodo community](https://zenodo.org/communi
 
 ## Roadmap
 
-TextRefs is **pre-1.0**: the association is being founded, the standard is being drafted, and the current registry examples are candidate data. Public milestones will appear on the [GitHub project board](https://github.com/textrefs/textrefs.org/projects) once it is set up. The statutes ([English](https://textrefs.org/association/statutes/), [Deutsch](https://textrefs.org/de/association/statutes/)) and governance regulation describe the long-term scope.
+TextRefs is **pre-1.0**: the association is being founded, the standard is being drafted, and the current registry examples are draft data. Public milestones will appear on the [GitHub project board](https://github.com/textrefs/textrefs.org/projects) once it is set up. The statutes ([English](https://textrefs.org/association/statutes/), [Deutsch](https://textrefs.org/de/association/statutes/)) and governance regulation describe the long-term scope.
 
 ## Contributing
 

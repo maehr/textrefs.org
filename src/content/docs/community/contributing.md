@@ -33,25 +33,27 @@ A contribution does not create a claim to acceptance, prioritization, publicatio
 
 Changes are routed to one of three tracks:
 
-- **Technical review** — typos, formatting, broken links, minor metadata, `last_checked` updates, uncontested aliases, build / tooling fixes. Needs automated validation and one technical reviewer.
-- **Expert review** — new works, new citation systems, new corpora, contested mappings, changes to deterministic ID inputs, status changes (`active` / `deprecated` / `withdrawn` / `blocked`). Needs technical validation, a documented rationale with sources, and at least one expert reviewer.
+- **Technical review** — typos, formatting, broken links, minor metadata, `last_checked` updates, uncontested aliases, build / tooling fixes, and merging new registry data as `draft`. Needs automated validation and one technical reviewer.
+- **Expert review** — new works, new citation systems, new corpora, contested mappings, changes to deterministic ID inputs, status changes (promotion `draft` → `active`, and `deprecated` / `withdrawn` / `blocked`). Needs technical validation, a documented rationale with sources, and at least one expert reviewer.
 - **Board reservation** — takedowns, blocking, licence policy, and other legal or policy-sensitive matters. Decided by the Association Board.
 
 ```mermaid
 flowchart TD
     S["Contribution<br/>(issue or PR)"] --> T{Triage}
     T -->|"typos, formatting, links, metadata, tooling"| TR[Technical review]
-    T -->|"new work / system / corpus, contested mapping, ID inputs, status change"| ER[Expert review]
+    T -->|"new work / system / corpus, contested mapping, ID inputs, status change / promotion"| ER[Expert review]
     T -->|"takedown, blocking, licence / policy"| BR[Board reservation]
     TR --> V{"Automated validation<br/>+ 1 technical reviewer"}
     ER --> V2{"Validation + rationale and sources<br/>+ 1 expert reviewer"}
-    V -->|pass| A([Accepted / merged])
+    V -->|pass| A(["Accepted / merged<br/>(new data lands as draft)"])
     V -->|fail| R([Rejected, with reason])
     V2 -->|pass| A
     V2 -->|fail| R
     BR -->|decision| A
     BR -->|decision| R
 ```
+
+New registry records enter at `status: draft` after technical review; they stay retractable until an expert review promotes them to `active`, which permanently freezes their identifier (see the [versioning rules](/standard/versioning/) and governance §5).
 
 ## Local development
 

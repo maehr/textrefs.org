@@ -4,7 +4,7 @@ This is the public roadmap. The same content is mirrored on the docs site at <ht
 
 ## Status
 
-- **Current spec version:** `v0.1.0-draft`, published with release `v0.1.0`. All registry data is `draft` (ADR-0003): identifiers carry no persistence promise until expert review promotes them.
+- **Current spec version:** `v0.1.0-draft`, published with release `v0.1.0`. All registry data is `draft` (ADR-0004, superseding ADR-0003): identifiers carry no persistence promise until expert review promotes them to `active`.
 - **Phase:** static registry MVP. The site, governance, standard workspace, schemas, compiler, and seed registry data are in place; public resolver/API behavior is the next milestone.
 
 Status legend: done · in progress · planned · blocked.
