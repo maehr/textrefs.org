@@ -28,10 +28,10 @@ export const WorkBase = AdminMetadata.extend({
 	preferred_citation_system_key: FlatKey,
 	creators: z.array(Creator).optional(),
 	// Compiler-derived projection of the work's non-tombstoned
-	// MappingAssertions (skos:exactMatch / skos:closeMatch in the published
-	// context). Never authored.
-	exactMatch: z.array(Iri).optional(),
-	closeMatch: z.array(Iri).optional(),
+	// MappingAssertions (prov:alternateOf / dcterms:isReferencedBy in the
+	// published context, ADR-0006). Never authored.
+	alternateOf: z.array(Iri).optional(),
+	isReferencedBy: z.array(Iri).optional(),
 });
 
 export const Work = WorkBase.superRefine((w, ctx) => {

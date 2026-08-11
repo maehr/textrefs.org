@@ -119,7 +119,7 @@ relation
 target.identifier
 ```
 
-`subject` MUST be the canonical Work IRI (`https://textrefs.org/id/work/{work_key}`). `relation` MUST be the literal string `exactMatch` or `closeMatch`. `target.identifier` MUST be used as supplied by the source record, after any IRI normalization the source profile already applies. `target.conforms_to` is informative and does NOT enter the seed.
+`subject` MUST be the canonical Work IRI (`https://textrefs.org/id/work/{work_key}`). `relation` MUST be the literal string `alternateOf` or `isReferencedBy`. `target.identifier` MUST be used as supplied by the source record, after any IRI normalization the source profile already applies. `target.conforms_to` is informative and does NOT enter the seed.
 
 The canonical URI is `https://textrefs.org/id/mapping/{uuid}`.
 

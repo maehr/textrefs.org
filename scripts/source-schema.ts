@@ -70,7 +70,10 @@ export const ReferenceRangeSource = z.discriminatedUnion('kind', [
 export type ReferenceRangeSource = z.infer<typeof ReferenceRangeSource>;
 
 export const MappingSource = z.strictObject({
-	relation: z.enum(['exactMatch', 'closeMatch']),
+	// ADR-0006: chosen by what the target *is*, never by confidence.
+	// alternateOf — another entity denoting the same work.
+	// isReferencedBy — a document or page about the work.
+	relation: z.enum(['alternateOf', 'isReferencedBy']),
 	identifier: z.string().min(1),
 	conforms_to: z
 		.union([z.string().min(1), z.array(z.string().min(1))])

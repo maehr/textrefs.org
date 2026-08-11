@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { v5 as uuidv5 } from 'uuid';
 import { compileRegistry, type CompiledRegistry } from './compile.js';
 
 type RegistryFiles = {
@@ -257,4 +258,113 @@ references:
 	for (const work of reg.works) {
 		assert.equal(work.preferred_citation_system_key, 'primary-section');
 	}
+});
+
+// --- Mapping relation vocabulary (ADR-0006) -------------------------------
+
+const mappings = `
+mappings:
+  - relation: alternateOf
+    identifier: 'https://www.wikidata.org/entity/Q1'
+    source: manual-curation
+    status: active
+    created: 2026-01-01
+    modified: 2026-01-01
+  - relation: isReferencedBy
+    identifier: 'https://en.wikipedia.org/wiki/Test'
+    source: manual-curation
+    status: active
+    created: 2026-01-01
+    modified: 2026-01-01
+`;
+
+const workWithMappings = (extra = '') => ({
+	systems: twoSystems,
+	works: {
+		'test.work': `${workHeader()}
+citation_system: primary-section
+references:
+  - '5'
+${mappings}${extra}`,
+	},
+});
+
+test('the work projection groups every relation onto its own array', () => {
+	const reg = compileFixture(workWithMappings());
+	const work = reg.works.find((w) => w.key === 'test.work');
+	assert.ok(work);
+	assert.deepEqual(work.alternateOf, ['https://www.wikidata.org/entity/Q1']);
+	assert.deepEqual(work.isReferencedBy, ['https://en.wikipedia.org/wiki/Test']);
+	assert.equal(reg.mappings.length, 2);
+});
+
+test('tombstoned mappings are excluded from the projection', () => {
+	const reg = compileFixture({
+		systems: twoSystems,
+		works: {
+			'test.work': `${workHeader()}
+citation_system: primary-section
+references:
+  - '5'
+
+mappings:
+  - relation: alternateOf
+    identifier: 'https://www.wikidata.org/entity/Q1'
+    source: manual-curation
+    status: withdrawn
+    created: 2026-01-01
+    modified: 2026-01-01
+  - relation: isReferencedBy
+    identifier: 'https://en.wikipedia.org/wiki/Test'
+    source: manual-curation
+    status: blocked
+    created: 2026-01-01
+    modified: 2026-01-01
+`,
+		},
+	});
+	const work = reg.works.find((w) => w.key === 'test.work');
+	assert.ok(work);
+	assert.equal(work.alternateOf, undefined);
+	assert.equal(work.isReferencedBy, undefined);
+	// The reified assertions survive as tombstones; only the projection drops them.
+	assert.equal(reg.mappings.length, 2);
+});
+
+test('mapping IRIs are deterministic from [subject, relation, target]', () => {
+	const reg = compileFixture(workWithMappings());
+	// Recomputed independently here, exactly as validate-data.ts and any
+	// third-party implementation would (identifier-syntax, MappingAssertion seed).
+	for (const m of reg.mappings) {
+		const seed = [m.subject, m.relation, m.target.identifier].join('\n');
+		assert.equal(
+			m.id,
+			`https://textrefs.org/id/mapping/${uuidv5(seed, 'f16bb214-4241-549d-ad41-7b011f02befb')}`,
+		);
+	}
+	// The relation is *in* the seed, so reclassifying a target re-mints its IRI.
+	const [alternate, referenced] = reg.mappings;
+	assert.notEqual(alternate.id, referenced.id);
+});
+
+test('a relation outside the enum is rejected at parse time', (t) => {
+	const message = expectCompileError(t, {
+		systems: twoSystems,
+		works: {
+			'test.work': `${workHeader()}
+citation_system: primary-section
+references:
+  - '5'
+
+mappings:
+  - relation: closeMatch
+    identifier: 'https://en.wikipedia.org/wiki/Test'
+    source: manual-curation
+    status: active
+    created: 2026-01-01
+    modified: 2026-01-01
+`,
+		},
+	});
+	assert.match(message, /test\.work/);
 });

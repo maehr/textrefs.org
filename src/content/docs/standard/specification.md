@@ -128,7 +128,7 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
 }
 ```
 
-Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_system_key`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `exactMatch`, `closeMatch`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
+Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_system_key`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `alternateOf`, `isReferencedBy`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
 
 - `preferred_citation_system_key` MUST reference a known `CitationSystem`. It governs the bare `/cite/{work_key}/{locator}/` alias and default presentation only; it is identity-neutral and MUST NOT affect the validation or resolution of a fully qualified reference ([§7](#7-citationsystem)).
 - A `Work` MAY be referenced under more than one `CitationSystem`, of which exactly one is preferred.
@@ -137,7 +137,7 @@ Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_s
 
 External identifiers for a `Work` (e.g. Wikidata Q-ID, DOI, VIAF) are asserted as `MappingAssertion`s whose `subject` is the `Work` ([§10](#10-mappingassertion)). They MUST NOT be authored directly on the `Work`.
 
-`exactMatch` and `closeMatch` are the compiler's read-only projection of those assertions — every one whose `status` is not `withdrawn` or `blocked`, grouped by `relation` — so SKOS-aware consumers get `skos:exactMatch` / `skos:closeMatch` edges straight from the work IRI ([JSON-LD](/standard/json-ld/#mapping-relations)). They carry no status or provenance; the `MappingAssertion` stays authoritative.
+`alternateOf` and `isReferencedBy` are the compiler's read-only projection of those assertions — every one whose `status` is not `withdrawn` or `blocked`, grouped by `relation` — published straight from the work IRI as `prov:alternateOf` / `dcterms:isReferencedBy` edges ([JSON-LD](/standard/json-ld/#mapping-relations)). They carry no status or provenance; the `MappingAssertion` stays authoritative.
 
 ## 7. CitationSystem
 
@@ -244,7 +244,7 @@ A `MappingAssertion` records a curated equivalence claim between a TextRefs `Wor
   "id": "https://textrefs.org/id/mapping/{uuid}",
   "type": "MappingAssertion",
   "subject": "https://textrefs.org/id/work/new-testament",
-  "relation": "exactMatch",
+  "relation": "alternateOf",
   "target": {
     "identifier": "https://www.wikidata.org/entity/Q18813",
     "conforms_to": "https://www.wikidata.org/"
@@ -261,7 +261,7 @@ Required: `id`, `type` (`MappingAssertion`), `subject`, `relation`, `target`, `s
 - `subject` MUST be a `Work` IRI of the form `https://textrefs.org/id/work/{work_key}`. Per-passage external identifiers (e.g. the CTS URN of a single verse) are derived from work-level mappings combined with the reference locator at resolve time; they MUST NOT be stored as separate `MappingAssertion` records.
 - `target.identifier` MUST be an IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)) that identifies a **textual resource**: a work, edition, manuscript, citation system, or another TextRefs `Work`.
 - `target.conforms_to` is OPTIONAL. When present, it MUST be a dereferenceable IRI — or an array of such IRIs — identifying the specification or identifier scheme to which `target.identifier` conforms (e.g. the home page of the CTS specification, the Wikidata project, or a DOI handbook section). It is informative: validators MUST NOT key behaviour off it; the IRI in `identifier` is authoritative. See [Appendix B](#appendix-b-well-known-external-identifier-schemes-informative) for non-normative examples.
-- `relation` MUST be one of the SKOS-compatible values `exactMatch` or `closeMatch`. Use `exactMatch` only when the mapped resource identifies the same work with sufficient precision; if there is any uncertainty about edition, coverage, or work boundaries, use `closeMatch`.
+- `relation` MUST be chosen by what `target.identifier` denotes, never by author confidence: use `alternateOf` when the target is another entity denoting the same work (e.g. a Wikidata item); use `isReferencedBy` when the target is a document or page about the work (e.g. a Wikipedia article).
 - `source` documents the basis for the assertion. A structured [W3C PROV-O](https://www.w3.org/TR/prov-o/) mapping is reserved for a future version.
 
 ## 11. Identifier policy
@@ -370,7 +370,7 @@ This is the case that motivates separating identity from location. The New Testa
 
 Adding another edition or translation appends one entry to `resolver_targets`. The reference identity — its UUID, its work, its citation system, its locator — does not change.
 
-**Divergent versification** is the one case that _does_ create separate references. Where traditions number verses differently (e.g. the Psalms in the Masoretic text versus the Vulgate/Septuagint), each tradition is a distinct `CitationSystem`, its references are distinct `CanonicalReference`s, and the equivalence between them is recorded as a `closeMatch` `MappingAssertion` — not by collapsing them into one identity.
+**Divergent versification** is the one case that _does_ create separate references. Where traditions number verses differently (e.g. the Psalms in the Masoretic text versus the Vulgate/Septuagint), each tradition is a distinct `CitationSystem`, its references are distinct `CanonicalReference`s — not collapsed into one identity. The equivalence between citation systems is not yet expressible in this version: `MappingAssertion.subject` MUST be a `Work` IRI ([§10](#10-mappingassertion)), so a system-to-system assertion cannot be authored. A future revision may widen `subject` to admit a `CitationSystem` IRI.
 
 ## 14. Validation requirements
 

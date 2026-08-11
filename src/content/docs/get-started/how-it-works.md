@@ -94,7 +94,7 @@ Work-level equivalences live in a `MappingAssertion`:
 {
   "type": "MappingAssertion",
   "subject": "https://textrefs.org/id/work/plato.republic",
-  "relation": "exactMatch",
+  "relation": "alternateOf",
   "target": {
     "identifier": "https://www.wikidata.org/entity/Q123397",
     "conforms_to": "https://www.wikidata.org/"
@@ -125,7 +125,7 @@ An English translation, a German translation, a Greek edition, and a library sca
 
 For complete worked examples, see the live [Dhammapada work page](/id/work/dhammapada/) (four providers, two languages, 423 references) or the [Plato _Republic_ work page](/id/work/plato.republic/) (Stephanus pagination). The contributor YAML behind them is documented in [Authoring registry data](/get-started/authoring/).
 
-Where traditions number passages differently, create separate references under separate citation systems and connect them with `closeMatch` mappings. Do not collapse divergent versification, pagination, or segmentation into one identity.
+Where traditions number passages differently, create separate references under separate citation systems. Do not collapse divergent versification, pagination, or segmentation into one identity. The equivalence between the citation systems themselves is not yet expressible in this version: `MappingAssertion.subject` MUST be a Work IRI, so a system-to-system assertion cannot be authored. A future revision may widen `subject` to admit a `CitationSystem` IRI.
 
 ## What TextRefs does not store
 

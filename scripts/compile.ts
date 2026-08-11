@@ -20,6 +20,7 @@ import {
 	parseSource,
 	SystemSource,
 	WorkSource,
+	type MappingSource,
 	type ReferenceRangeSource as ReferenceRange,
 	type ReferenceSource,
 	type ResolverEntrySource as ResolverEntry,
@@ -444,16 +445,17 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 		const workIri = `https://textrefs.org/id/work/${workKey}`;
 		const systemKey = src.citation_system;
 
-		// Direct SKOS mapping edges (skos:exactMatch / skos:closeMatch via the
-		// context) projected from the work's mapping assertions, in addition to
-		// the reified MappingAssertion records below.
-		const exactMatches: string[] = [];
-		const closeMatches: string[] = [];
+		// Direct mapping edges (prov:alternateOf / dcterms:isReferencedBy via
+		// the context, ADR-0006) projected from the work's mapping assertions,
+		// in addition to the reified MappingAssertion records below. Keyed off
+		// the relation enum so adding a relation needs no branch here.
+		const mappingEdges: Record<MappingSource['relation'], string[]> = {
+			alternateOf: [],
+			isReferencedBy: [],
+		};
 		for (const m of src.mappings ?? []) {
 			if (TOMBSTONE_STATUSES.has(m.status)) continue;
-			(m.relation === 'exactMatch' ? exactMatches : closeMatches).push(
-				m.identifier,
-			);
+			mappingEdges[m.relation].push(m.identifier);
 		}
 
 		const workRecord = {
@@ -471,8 +473,9 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 				? { superseded_by: src.work.superseded_by }
 				: {}),
 			...(src.work.creators ? { creators: src.work.creators } : {}),
-			...(exactMatches.length ? { exactMatch: exactMatches } : {}),
-			...(closeMatches.length ? { closeMatch: closeMatches } : {}),
+			...Object.fromEntries(
+				Object.entries(mappingEdges).filter(([, targets]) => targets.length),
+			),
 		};
 		const workParsed = Work.safeParse(workRecord);
 		if (!workParsed.success) {
@@ -515,6 +518,9 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 				throw new Error(`invalid mapping: ${uuid}`);
 			}
 			outMappings.push(parsed.data);
+			// Deliberate under ADR-0006: an `isReferencedBy` target (a page
+			// *about* the work) stays a lookup alias for it. The alias table is
+			// a lookup convenience, not an identity claim.
 			setAlias(aliases, mapping.identifier, workIri);
 		}
 
