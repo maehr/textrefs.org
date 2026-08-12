@@ -25,6 +25,7 @@
     },
     "work_key": "tr:workKey",
     "citation_system_key": "tr:citationSystemKey",
+    "preferred_citation_system_key": "tr:preferredCitationSystemKey",
     "locator": "tr:locator",
     "status": "tr:status",
     "source": "dcterms:source",

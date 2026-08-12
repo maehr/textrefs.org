@@ -20,6 +20,12 @@ export const WorkBase = AdminMetadata.extend({
 	key: FlatKey,
 	type: z.literal('Work'),
 	preferred_label: z.string().min(1),
+	// The citation system this work is cited under by default (ADR-0005). It
+	// governs the bare `/cite/{work}/{locator}` alias and default presentation
+	// only — it is identity-neutral and never affects how a fully qualified
+	// reference validates or resolves. The compiler checks that it names a
+	// known CitationSystem.
+	preferred_citation_system_key: FlatKey,
 	creators: z.array(Creator).optional(),
 	// Compiler-derived projection of the work's non-tombstoned
 	// MappingAssertions (skos:exactMatch / skos:closeMatch in the published

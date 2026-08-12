@@ -102,15 +102,26 @@ Tombstones MUST appear in monthly exports inside the same `.jsonl` file as their
 
 ### Compiler invariants
 
-The compiler enforces three invariants, and fails the build on any violation:
+The compiler enforces these invariants, and fails the build on any violation:
 
 1. `superseded_by` MUST only appear on records whose `status` is `deprecated`, `withdrawn`, or `blocked`. A record still in active use has no successor.
-2. An active `CanonicalReference` MUST NOT reference a tombstoned (`withdrawn` or `blocked`) `Work` or `CitationSystem` through `work_key` or `citation_system_key` — those break resolution.
-3. An `active` record MUST NOT depend on a `draft` one: no `active` `CanonicalReference` may reference a `draft` `Work` or `CitationSystem` through its keys, and no `active` `MappingAssertion` may take a `draft` `Work` as its `subject`. Works and systems are promoted to `active` before or together with whatever depends on them.
+2. A `CanonicalReference` that is not itself a tombstone MUST NOT reference a tombstoned (`withdrawn` or `blocked`) `Work` or `CitationSystem` through `work_key` or `citation_system_key` — those break resolution.
+3. `Work.preferred_citation_system_key` MUST name a known `CitationSystem`.
+4. An `active` `Work` MUST have an `active` preferred `CitationSystem`. Its other citation systems MAY be `draft`; a fallback system's status never downgrades the work.
+5. An `active` `CanonicalReference` MUST have an `active` `Work` and an `active` `CitationSystem` for its own `citation_system_key`. Works and systems are promoted to `active` before or together with whatever depends on them.
+6. An `active` `MappingAssertion` MUST take an `active` `Work` as its `subject`.
+
+Two further checks run when a source file is parsed, before any record is built: a work MUST NOT declare the same citation system twice, and a `locator` MUST NOT contain `/` — the alias grammar below distinguishes its two forms by segment count alone.
 
 ### Aliases vs. tombstones
 
-The compiler maintains a presentational alias map (multiple lookup paths — external identifiers, `{work_key}/{locator}` pairs — pointing at the same canonical record). Tombstones handle **identity** changes (the record itself is no longer canonical). These are distinct mechanisms and MUST NOT be conflated.
+The compiler maintains a presentational alias map: multiple lookup paths pointing at the same canonical record.
+
+- External identifiers.
+- `{work_key}/{citation_system_key}/{locator}` — a qualified alias, minted for every reference.
+- `{work_key}/{locator}` — a bare alias, minted only for a work's preferred citation system ([Specification §6](/standard/specification/#6-work)).
+
+Tombstones handle **identity** changes; aliases handle **presentation**, and the two MUST NOT be conflated. Bare aliases MAY be added, removed, or **retargeted**: changing a work's preferred citation system changes what its bare alias resolves to, including for active works. Qualified aliases and `/id/ref/{uuid}` identifiers are never retargeted.
 
 ## Rights and content guardrails
 

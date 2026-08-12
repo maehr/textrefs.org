@@ -16,6 +16,15 @@ import {
 	CanonicalReference,
 	MappingAssertion,
 } from '../standard/schema/index.js';
+import {
+	parseSource,
+	SystemSource,
+	WorkSource,
+	type ReferenceRangeSource as ReferenceRange,
+	type ReferenceSource,
+	type ResolverEntrySource as ResolverEntry,
+	type SystemBlockSource,
+} from './source-schema.js';
 
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
@@ -28,38 +37,6 @@ const SPDX_IDS = new Set<string>([...spdxLicenseIds, ...spdxDeprecatedIds]);
 const projectRoot = resolve(process.cwd());
 const dataRoot = join(projectRoot, 'data');
 const distRoot = join(projectRoot, 'dist');
-
-type ResolverEntry = {
-	url?: string;
-	url_by?: Record<string, Record<string, string>>;
-	provider?: string;
-	edition?: string;
-	language?: string;
-	access?: 'open' | 'paywalled' | 'restricted' | 'unknown';
-	license?: string;
-	license_url?: string;
-	last_checked?: string;
-};
-
-type ReferenceSource =
-	string | { locator: string; extra_resolvers?: ResolverEntry[] };
-
-type ReferenceRange =
-	| { kind: 'integer'; from: number; to: number }
-	| { kind: 'book_line'; counts: number[] }
-	| { kind: 'book_chapter'; counts: number[] }
-	| { kind: 'book_chapter_verse'; book: string; counts: number[] }
-	| { kind: 'chapter_verse'; counts: number[] }
-	| {
-			kind: 'bekker';
-			page_ranges: Array<[number, number]>;
-			lines_per_column: number;
-	  }
-	| {
-			kind: 'stephanus';
-			page_range: [number, number];
-			sections?: string[];
-	  };
 
 function expandRange(range: ReferenceRange): string[] {
 	switch (range.kind) {
@@ -128,52 +105,6 @@ function expandRange(range: ReferenceRange): string[] {
 		}
 	}
 }
-
-type MappingSource = {
-	relation: 'exactMatch' | 'closeMatch';
-	identifier: string;
-	conforms_to?: string | string[];
-	source: string;
-	status: string;
-	created: string;
-	modified: string;
-};
-
-type CreatorSource =
-	| { kind: 'person'; family: string; given?: string }
-	| { kind: 'literal'; name: string };
-
-type WorkSource = {
-	work: {
-		key: string;
-		preferred_label: string;
-		status: string;
-		created: string;
-		modified: string;
-		superseded_by?: string;
-		creators?: CreatorSource[];
-	};
-	citation_system: string;
-	mappings?: MappingSource[];
-	resolvers?: ResolverEntry[];
-	references?: ReferenceSource[];
-	references_range?: ReferenceRange[];
-};
-
-type SystemSource = {
-	key: string;
-	preferred_label: string;
-	description: string;
-	locator_regex: string;
-	status: string;
-	created: string;
-	modified: string;
-	superseded_by?: string;
-	// Per-chapter verse counts for chapter/verse systems. When present, the
-	// compiler exposes a `verseGlobal` template variable (cumulative 1..N
-	// across chapters) for resolvers whose anchors use a single running counter.
-	chapter_sizes?: number[];
-};
 
 const ROMAN_NUMERALS: Array<[number, string]> = [
 	[1000, 'M'],
@@ -259,6 +190,15 @@ function assertValidLocator(locator: string, system: SystemSource): void {
 	if (!new RegExp(system.locator_regex).test(locator)) {
 		throw new Error(
 			`${system.key}: locator "${locator}" does not match locator_regex`,
+		);
+	}
+	// The `/cite/` alias grammar distinguishes `{work}/{locator}` from
+	// `{work}/{system}/{locator}` by segment count alone (ADR-0005). Flat keys
+	// already exclude `/`; locators must too, or the two forms become
+	// ambiguous. Checked before any alias is minted.
+	if (locator.includes('/')) {
+		throw new Error(
+			`${system.key}: locator "${locator}" contains "/", which the /cite/ alias grammar cannot represent`,
 		);
 	}
 }
@@ -352,6 +292,90 @@ function setAlias(
 	aliases[alias] = target;
 }
 
+/**
+ * Emit every `CanonicalReference` for one work under one citation system, and
+ * mint its aliases (ADR-0005): a qualified `{work}/{system}/{locator}` for
+ * every reference, plus the bare `{work}/{locator}` when this block is the
+ * work's preferred citation system. Returns the number of skipped resolver
+ * entries.
+ */
+function emitBlockReferences(opts: {
+	workKey: string;
+	block: SystemBlockSource;
+	system: SystemSource;
+	status: string;
+	created: string;
+	modified: string;
+	isPreferred: boolean;
+	outReferences: CanonicalReference[];
+	aliases: Record<string, string>;
+}): number {
+	const { workKey, block, system, isPreferred, outReferences, aliases } = opts;
+	const systemKey = system.key;
+	let warnings = 0;
+
+	const expandedRefs: ReferenceSource[] = (
+		block.references_range ?? []
+	).flatMap(expandRange);
+	const seenLocators = new Set<string>();
+	const allRefs: ReferenceSource[] = [];
+	for (const r of [...expandedRefs, ...(block.references ?? [])]) {
+		const loc = typeof r === 'string' ? r : r.locator;
+		if (seenLocators.has(loc)) continue;
+		seenLocators.add(loc);
+		allRefs.push(r);
+	}
+
+	for (const refSrc of allRefs) {
+		const locator = typeof refSrc === 'string' ? refSrc : refSrc.locator;
+		assertValidLocator(locator, system);
+		const extraResolvers =
+			typeof refSrc === 'string' ? [] : (refSrc.extra_resolvers ?? []);
+		const vars = deriveLocatorVars(locator, system);
+		const targets: Record<string, unknown>[] = [];
+		for (const resolver of block.resolvers ?? []) {
+			const entry = buildResolverEntry(resolver, vars);
+			if (entry) targets.push(entry);
+			else warnings++;
+		}
+		for (const resolver of extraResolvers) {
+			const entry = buildResolverEntry(resolver, vars);
+			if (entry) targets.push(entry);
+		}
+		const uuid = referenceUuid(workKey, systemKey, locator);
+		const record = {
+			id: `https://textrefs.org/id/ref/${uuid}`,
+			type: 'CanonicalReference' as const,
+			work_key: workKey,
+			citation_system_key: systemKey,
+			locator,
+			resolver_targets: targets,
+			status: opts.status,
+			created: opts.created,
+			modified: opts.modified,
+		};
+		const parsed = CanonicalReference.safeParse(record);
+		if (!parsed.success) {
+			console.error(`✗ ref/${workKey}/${systemKey}/${locator}: invalid`);
+			for (const issue of parsed.error.issues) {
+				console.error(
+					`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
+				);
+			}
+			throw new Error(`invalid reference: ${workKey}/${systemKey}/${locator}`);
+		}
+		outReferences.push(parsed.data);
+		// Qualified alias: always. Keyed by the same tuple that seeds the UUID,
+		// so it can never collide.
+		setAlias(aliases, `${workKey}/${systemKey}/${locator}`, record.id);
+		// Bare alias: only for the preferred system. At most one block per work
+		// is preferred, so this cannot collide either.
+		if (isPreferred) setAlias(aliases, `${workKey}/${locator}`, record.id);
+	}
+
+	return warnings;
+}
+
 export interface CompiledRegistry {
 	works: Work[];
 	systems: CitationSystem[];
@@ -361,14 +385,19 @@ export interface CompiledRegistry {
 	warnings: number;
 }
 
-export function compileRegistry(): CompiledRegistry {
+export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
+	const root = dataRootOverride ?? dataRoot;
 	const systems = new Map<string, SystemSource>();
-	for (const f of listYaml(join(dataRoot, 'systems'))) {
-		const src = parseYaml(readFileSync(f, 'utf8')) as SystemSource;
+	for (const f of listYaml(join(root, 'systems'))) {
+		const src = parseSource(
+			SystemSource,
+			parseYaml(readFileSync(f, 'utf8')),
+			basename(f),
+		);
 		systems.set(src.key, src);
 	}
 
-	const workFiles = listYaml(join(dataRoot, 'works'));
+	const workFiles = listYaml(join(root, 'works'));
 
 	const outWorks: Work[] = [];
 	const outSystems: CitationSystem[] = [];
@@ -406,16 +435,14 @@ export function compileRegistry(): CompiledRegistry {
 	}
 
 	for (const file of workFiles) {
-		const src = parseYaml(readFileSync(file, 'utf8')) as WorkSource;
+		const src = parseSource(
+			WorkSource,
+			parseYaml(readFileSync(file, 'utf8')),
+			basename(file),
+		);
 		const workKey = src.work.key;
 		const workIri = `https://textrefs.org/id/work/${workKey}`;
 		const systemKey = src.citation_system;
-		const system = systems.get(systemKey);
-		if (!system) {
-			throw new Error(
-				`${basename(file)}: references unknown citation_system "${systemKey}"`,
-			);
-		}
 
 		// Direct SKOS mapping edges (skos:exactMatch / skos:closeMatch via the
 		// context) projected from the work's mapping assertions, in addition to
@@ -434,6 +461,9 @@ export function compileRegistry(): CompiledRegistry {
 			key: workKey,
 			type: 'Work' as const,
 			preferred_label: src.work.preferred_label,
+			// The top-level `citation_system:` block is the preferred one
+			// (ADR-0005); it is what mints the bare `/cite/{work}/{locator}` alias.
+			preferred_citation_system_key: systemKey,
 			status: src.work.status,
 			created: src.work.created,
 			modified: src.work.modified,
@@ -488,59 +518,48 @@ export function compileRegistry(): CompiledRegistry {
 			setAlias(aliases, mapping.identifier, workIri);
 		}
 
-		const explicitRefs: ReferenceSource[] = src.references ?? [];
-		const expandedRefs: ReferenceSource[] = (
-			src.references_range ?? []
-		).flatMap(expandRange);
-		const seenLocators = new Set<string>();
-		const allRefs: ReferenceSource[] = [];
-		for (const r of [...expandedRefs, ...explicitRefs]) {
-			const loc = typeof r === 'string' ? r : r.locator;
-			if (seenLocators.has(loc)) continue;
-			seenLocators.add(loc);
-			allRefs.push(r);
-		}
+		// The preferred block first, then any fallback systems. Each block is
+		// emitted against its own citation system, resolvers, and status.
+		const blocks: Array<{ block: SystemBlockSource; isPreferred: boolean }> = [
+			{
+				block: {
+					citation_system: systemKey,
+					reference_status: src.reference_status,
+					resolvers: src.resolvers,
+					references: src.references,
+					references_range: src.references_range,
+				},
+				isPreferred: true,
+			},
+			...(src.additional_systems ?? []).map((block) => ({
+				block,
+				isPreferred: false,
+			})),
+		];
 
-		for (const refSrc of allRefs) {
-			const locator = typeof refSrc === 'string' ? refSrc : refSrc.locator;
-			assertValidLocator(locator, system);
-			const extraResolvers =
-				typeof refSrc === 'string' ? [] : (refSrc.extra_resolvers ?? []);
-			const vars = deriveLocatorVars(locator, system);
-			const targets: Record<string, unknown>[] = [];
-			for (const resolver of src.resolvers ?? []) {
-				const entry = buildResolverEntry(resolver, vars);
-				if (entry) targets.push(entry);
-				else warnings++;
+		for (const { block, isPreferred } of blocks) {
+			const system = systems.get(block.citation_system);
+			if (!system) {
+				throw new Error(
+					`${basename(file)}: references unknown citation_system "${block.citation_system}"`,
+				);
 			}
-			for (const resolver of extraResolvers) {
-				const entry = buildResolverEntry(resolver, vars);
-				if (entry) targets.push(entry);
-			}
-			const uuid = referenceUuid(workKey, systemKey, locator);
-			const record = {
-				id: `https://textrefs.org/id/ref/${uuid}`,
-				type: 'CanonicalReference' as const,
-				work_key: workKey,
-				citation_system_key: systemKey,
-				locator,
-				resolver_targets: targets,
-				status: src.work.status,
+			warnings += emitBlockReferences({
+				workKey,
+				block,
+				system,
+				// The preferred block inherits the work's status; a fallback block
+				// defaults to `draft`, never to the work's status, so adding a
+				// system to an active work never promotes data by inheritance
+				// (ADR-0005).
+				status:
+					block.reference_status ?? (isPreferred ? src.work.status : 'draft'),
 				created: src.work.created,
 				modified: src.work.modified,
-			};
-			const parsed = CanonicalReference.safeParse(record);
-			if (!parsed.success) {
-				console.error(`✗ ref/${workKey}/${locator}: invalid`);
-				for (const issue of parsed.error.issues) {
-					console.error(
-						`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
-					);
-				}
-				throw new Error(`invalid reference: ${workKey}/${locator}`);
-			}
-			outReferences.push(parsed.data);
-			setAlias(aliases, `${workKey}/${locator}`, record.id);
+				isPreferred,
+				outReferences,
+				aliases,
+			});
 		}
 	}
 
@@ -588,10 +607,8 @@ function enforceRegistryInvariants(reg: {
 	];
 
 	const tombstoneIris = new Set<string>();
-	const draftIris = new Set<string>();
 	for (const r of all) {
 		if (TOMBSTONE_STATUSES.has(r.status)) tombstoneIris.add(r.id);
-		if (r.status === 'draft') draftIris.add(r.id);
 	}
 
 	const errors: string[] = [];
@@ -606,54 +623,85 @@ function enforceRegistryInvariants(reg: {
 		}
 	}
 
-	// Active CanonicalReferences MUST NOT point at tombstoned work/system —
-	// those break resolution. Successor links are carried by the tombstoned
-	// record's own superseded_by field (dcterms:isReplacedBy), not by
-	// MappingAssertions, which are reserved for work-level equivalence.
-	const isActive = (r: StatusRecord) => !TOMBSTONE_STATUSES.has(r.status);
+	// A reference that is not itself a tombstone MUST NOT point at a tombstoned
+	// work or system — those break resolution. Successor links are carried by
+	// the tombstoned record's own superseded_by field (dcterms:isReplacedBy),
+	// not by MappingAssertions, which are reserved for work-level equivalence.
 	for (const ref of reg.references) {
-		if (!isActive(ref)) continue;
+		if (TOMBSTONE_STATUSES.has(ref.status)) continue;
 		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
 		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
 		if (tombstoneIris.has(workIri))
 			errors.push(
-				`${ref.id}: active reference points at tombstoned work ${workIri}`,
+				`${ref.id}: live reference points at tombstoned work ${workIri}`,
 			);
 		if (tombstoneIris.has(systemIri))
 			errors.push(
-				`${ref.id}: active reference points at tombstoned system ${systemIri}`,
+				`${ref.id}: live reference points at tombstoned system ${systemIri}`,
 			);
 	}
 
-	// Analogously (ADR-0004): a promoted record — anything past `draft`, so
-	// anything that carries or once carried the persistence promise — MUST NOT
-	// depend on a record that is still retractable.
-	const isPromoted = (r: StatusRecord) => r.status !== 'draft';
-	for (const ref of reg.references) {
-		if (!isPromoted(ref)) continue;
-		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
-		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
-		if (draftIris.has(workIri))
+	// Status dependency rules — ADR-0004's general rule (an active record MUST
+	// NOT depend on a draft one), specialised by ADR-0005:
+	//
+	//   an active reference requires an active work AND an active citation
+	//     system for its own citation_system_key;
+	//   an active work requires an active preferred citation system.
+	//
+	// A work MAY additionally carry draft fallback systems and draft references
+	// without being downgraded — the status of a fallback never touches the work.
+	const statusByIri = new Map<string, string>();
+	for (const r of [...reg.works, ...reg.systems])
+		statusByIri.set(r.id, r.status);
+	const systemKeys = new Set(reg.systems.map((s) => s.key));
+
+	for (const work of reg.works) {
+		const key = work.preferred_citation_system_key;
+		if (!systemKeys.has(key)) {
 			errors.push(
-				`${ref.id}: promoted reference (${ref.status}) points at draft work ${workIri}`,
+				`${work.id}: preferred_citation_system_key "${key}" is not a known CitationSystem`,
 			);
-		if (draftIris.has(systemIri))
+			continue;
+		}
+		const preferredIri = `https://textrefs.org/id/system/${key}`;
+		const preferredStatus = statusByIri.get(preferredIri);
+		if (work.status === 'active' && preferredStatus !== 'active')
 			errors.push(
-				`${ref.id}: promoted reference (${ref.status}) points at draft system ${systemIri}`,
+				`${work.id}: active work requires an active preferred citation system, but ${preferredIri} is ${preferredStatus}`,
 			);
 	}
-	for (const mapping of reg.mappings) {
-		if (!isPromoted(mapping)) continue;
-		if (draftIris.has(mapping.subject))
+
+	for (const ref of reg.references) {
+		if (ref.status !== 'active') continue;
+		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
+		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
+		const workStatus = statusByIri.get(workIri);
+		const systemStatus = statusByIri.get(systemIri);
+		if (workStatus !== 'active')
 			errors.push(
-				`${mapping.id}: promoted mapping (${mapping.status}) points at draft work ${mapping.subject}`,
+				`${ref.id}: active reference requires an active work, but ${workIri} is ${workStatus ?? 'missing'}`,
+			);
+		if (systemStatus !== 'active')
+			errors.push(
+				`${ref.id}: active reference requires an active citation system, but ${systemIri} is ${systemStatus ?? 'missing'}`,
+			);
+	}
+
+	for (const mapping of reg.mappings) {
+		if (mapping.status !== 'active') continue;
+		const subjectStatus = statusByIri.get(mapping.subject);
+		if (subjectStatus !== 'active')
+			errors.push(
+				`${mapping.id}: active mapping requires an active subject work, but ${mapping.subject} is ${subjectStatus ?? 'missing'}`,
 			);
 	}
 
 	if (errors.length > 0) {
 		for (const e of errors) console.error(`✗ ${e}`);
 		throw new Error(
-			`${errors.length} registry invariant violation(s); fix the offending records`,
+			`${errors.length} registry invariant violation(s); fix the offending records:\n${errors
+				.map((e) => `  - ${e}`)
+				.join('\n')}`,
 		);
 	}
 	return 0;

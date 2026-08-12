@@ -200,7 +200,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
         - type: object
-          required: [id, key, type, preferred_label]
+          required:
+            [id, key, type, preferred_label, preferred_citation_system_key]
           properties:
             id:
               type: string
@@ -208,6 +209,14 @@ components:
             key: { $ref: '#/components/schemas/FlatKey' }
             type: { type: string, enum: [Work] }
             preferred_label: { type: string, minLength: 1 }
+            preferred_citation_system_key:
+              allOf:
+                - $ref: '#/components/schemas/FlatKey'
+              description:
+                Key of the CitationSystem this work is cited under by default.
+                Governs the bare /cite/{work_key}/{locator} alias and default
+                presentation only; it is identity-neutral and never affects how
+                a fully qualified reference validates or resolves.
             exactMatch:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
