@@ -3,6 +3,7 @@
     "tr": "https://textrefs.org/ontology#",
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "dcterms": "http://purl.org/dc/terms/",
+    "prov": "http://www.w3.org/ns/prov#",
     "schema": "https://schema.org/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "id": "@id",
@@ -38,12 +39,12 @@
       "@type": "xsd:date"
     },
     "relation": "tr:relation",
-    "exactMatch": {
-      "@id": "skos:exactMatch",
+    "alternateOf": {
+      "@id": "prov:alternateOf",
       "@type": "@id"
     },
-    "closeMatch": {
-      "@id": "skos:closeMatch",
+    "isReferencedBy": {
+      "@id": "dcterms:isReferencedBy",
       "@type": "@id"
     },
     "subject": {

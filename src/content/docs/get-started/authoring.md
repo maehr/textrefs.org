@@ -35,7 +35,7 @@ work:
 citation_system: dhammapada-chapter-verse # the work's PREFERRED citation system
 
 mappings:
-  - relation: exactMatch
+  - relation: alternateOf
     identifier: 'https://www.wikidata.org/entity/Q220114'
     conforms_to: 'https://www.wikidata.org/'
     source: manual-curation
@@ -123,7 +123,7 @@ Follow CSL-JSON conventions so citeproc-js / Zotero render correctly.
 - Mononyms (Homer, Plato, Confucius, Laozi, Murasaki Shikibu, …): `kind: person` with `family` only and no `given`. CSL convention for single-name authors; matches Chicago's "Homer, _Iliad_ 1.1." output.
 - Anonymous / collective: **omit `creators` entirely**. Don't write a literal "Anonymous" — absence is the correct CSL signal.
 - Reserve `kind: literal` for names that genuinely should not decompose: corporate/institutional authors ("World Health Organization") or pseudonymous attribution strings ("[Pseudo-]Aristotle").
-- Attributed-but-disputed (e.g. Laozi for _Daodejing_): record the traditional attribution as `kind: person, family: Laozi`; encode uncertainty via a `closeMatch` mapping, not in the name string.
+- Attributed-but-disputed (e.g. Laozi for _Daodejing_): record the traditional attribution as `kind: person, family: Laozi`; do not encode the dispute in the name string. TextRefs has no relation for attribution uncertainty in this version.
 
 ## How URL templates work
 

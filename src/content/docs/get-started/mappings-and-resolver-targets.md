@@ -32,13 +32,13 @@ Common mapping targets include:
 - DOIs, Handles, ARKs, PURLs, or URN:NBNs for editions or digital objects;
 - another TextRefs Work when two registries need to be aligned.
 
-Use `exactMatch` only when the target identifies the same work with enough precision. Use `closeMatch` for edition or scope mismatches.
+Choose the relation by what the target is, not by how confident you feel: use `alternateOf` when the target is another entity denoting the same work (e.g. a Wikidata item). Use `isReferencedBy` when the target is a document or page about the work (e.g. a Wikipedia article).
 
 ```json
 {
   "type": "MappingAssertion",
   "subject": "https://textrefs.org/id/work/dhammapada",
-  "relation": "exactMatch",
+  "relation": "alternateOf",
   "target": {
     "identifier": "https://www.wikidata.org/entity/Q220114",
     "conforms_to": "https://www.wikidata.org/"
@@ -114,9 +114,9 @@ An author's name alone is not a `Work`. For example, "Confucius" is an authority
 
 **Translations.** A translation is a resolver target when it lets readers inspect the cited passage. It is not a new canonical reference unless the translation has its own independently cited segmentation.
 
-**Divergent numbering.** If two traditions number the same material differently, create separate `CanonicalReference`s under separate `CitationSystem`s and connect them with `closeMatch` mappings.
+**Divergent numbering.** If two traditions number the same material differently, create separate `CanonicalReference`s under separate `CitationSystem`s. The equivalence between the two citation systems is not yet expressible in this version: `MappingAssertion.subject` MUST be a Work IRI, so a system-to-system assertion cannot be authored. A future revision may widen `subject` to admit a `CitationSystem` IRI.
 
-**Contained-by relationships.** If an identifier points to a whole edition, scan, or digital object rather than the exact passage, avoid `exactMatch`. Use `closeMatch` only when the connection is useful and the scope is clear.
+**Contained-by relationships.** If an identifier points to a whole edition, scan, or digital object rather than the exact passage, it is not a `MappingAssertion` target at all. If it is an alternate presentation of the whole work, model it as `alternateOf`; otherwise it belongs in `resolver_targets`.
 
 **Unstable websites.** A website URL can be useful as a resolver target even if it is not a stable identifier. Do not derive TextRefs IDs from it.
 
@@ -127,7 +127,7 @@ Before proposing mappings or resolver targets, check that:
 - the cited passage has a clear `Work`, `CitationSystem`, and canonical locator;
 - the citation system documents its canonical locator form and declares a `locator_regex`;
 - each `MappingAssertion` subject is a Work IRI and its target identifies a textual resource;
-- each `exactMatch` is precise enough to survive review;
+- each `relation` matches what the target actually is (`alternateOf` for a same-work entity, `isReferencedBy` for a document about the work);
 - each `resolver_targets` entry has a dereferenceable URL and honest access metadata;
 - the proposal documents its source or curation basis;
 - no full text, translation text, apparatus, or commentary is copied into the registry.

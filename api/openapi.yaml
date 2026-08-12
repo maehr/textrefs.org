@@ -217,17 +217,17 @@ components:
                 Governs the bare /cite/{work_key}/{locator} alias and default
                 presentation only; it is identity-neutral and never affects how
                 a fully qualified reference validates or resolves.
-            exactMatch:
+            alternateOf:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
               description:
-                Compiler-derived from the work's non-tombstoned exactMatch
+                Compiler-derived from the work's non-tombstoned alternateOf
                 MappingAssertions. Read-only, never authored.
-            closeMatch:
+            isReferencedBy:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
               description:
-                Compiler-derived from the work's non-tombstoned closeMatch
+                Compiler-derived from the work's non-tombstoned isReferencedBy
                 MappingAssertions. Read-only, never authored.
     CitationSystem:
       allOf:
@@ -294,7 +294,11 @@ components:
               description: MUST be a Work IRI.
             relation:
               type: string
-              enum: [exactMatch, closeMatch]
+              enum: [alternateOf, isReferencedBy]
+              description: Chosen by what the target is (ADR-0006). alternateOf
+                (prov:alternateOf) — another entity denoting the same work.
+                isReferencedBy (dcterms:isReferencedBy) — a document or page
+                about the work.
             target:
               type: object
               required: [identifier]

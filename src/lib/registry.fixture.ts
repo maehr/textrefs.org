@@ -19,6 +19,8 @@ export const fixtureRegistry: CompiledRegistry = {
 			status: 'active',
 			created: '2026-01-01',
 			modified: '2026-01-01',
+			alternateOf: ['https://example.org/fixture-work'],
+			isReferencedBy: ['https://example.org/about-fixture-work'],
 		},
 	],
 	systems: [
@@ -90,9 +92,25 @@ export const fixtureRegistry: CompiledRegistry = {
 			id: 'https://textrefs.org/id/mapping/00000000-0000-5000-8000-000000000002',
 			type: 'MappingAssertion',
 			subject: fixtureWorkIri,
-			relation: 'exactMatch',
+			relation: 'alternateOf',
 			target: {
 				identifier: 'https://example.org/fixture-work',
+			},
+			source: 'Local fixture for fast site validation.',
+			status: 'active',
+			created: '2026-01-01',
+			modified: '2026-01-01',
+		},
+		// The second relation ADR-0006 defines: a page *about* the work rather
+		// than another identifier for it. Present so the work page renders both
+		// relation tags under `build:fast`.
+		{
+			id: 'https://textrefs.org/id/mapping/00000000-0000-5000-8000-000000000004',
+			type: 'MappingAssertion',
+			subject: fixtureWorkIri,
+			relation: 'isReferencedBy',
+			target: {
+				identifier: 'https://example.org/about-fixture-work',
 			},
 			source: 'Local fixture for fast site validation.',
 			status: 'active',
@@ -105,6 +123,7 @@ export const fixtureRegistry: CompiledRegistry = {
 		'fixture.work/1': fixtureRefIri,
 		'fixture.work/fixture-alternate/1': fixtureAltRefIri,
 		'https://example.org/fixture-work': fixtureWorkIri,
+		'https://example.org/about-fixture-work': fixtureWorkIri,
 	},
 	warnings: 0,
 };
