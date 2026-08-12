@@ -34,7 +34,7 @@ Four record types carry the model. `Work`, `CitationSystem`, `CanonicalReference
 
 ## Live examples
 
-- [`/id/work/dhammapada/`](/id/work/dhammapada/) — Dhammapada with four real providers (Gutenberg, Wikisource, ancient-buddhist-texts.net, palikanon.com) across English and German.
+- [`/id/work/dhammapada/`](/id/work/dhammapada/) — Dhammapada with three real providers (SuttaCentral in Pali and English, ancient-buddhist-texts.net).
 - [`/id/work/plato.republic/`](/id/work/plato.republic/) — Plato's _Republic_ with Stephanus pagination.
 - [`/cite/plato.republic/514a`](/cite/plato.republic/514a) — a short alias that redirects to the canonical reference URL. The qualified form, [`/cite/plato.republic/stephanus/514a`](/cite/plato.republic/stephanus/514a), resolves to the same page.
 - [`/reg/`](/reg/) — the registry browser.

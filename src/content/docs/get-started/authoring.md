@@ -44,25 +44,20 @@ mappings:
     modified: 2026-05-31
 
 resolvers:
-  - provider: Project Gutenberg
-    edition: 'Müller (1881), Gutenberg ebook #2017'
+  - provider: SuttaCentral
+    edition: 'Bhikkhu Sujato translation'
     language: en
     access: open
-    url: 'https://www.gutenberg.org/files/2017/2017-h/2017-h.htm#link2HCH{chapter04}'
+    url: 'https://suttacentral.net/dhp{verseGlobal}/en/sujato'
 
-  - provider: Wikisource
+  - provider: ancient-buddhist-texts.net
     language: en
     access: open
     url_by:
       chapter:
-        1: 'https://en.wikisource.org/wiki/Dhammapada_(Muller)#Chapter_I:_The_Twin-Verses'
-        2: 'https://en.wikisource.org/wiki/Dhammapada_(Muller)#Chapter_II:_On_Earnestness'
+        1: 'https://ancient-buddhist-texts.net/Texts-and-Translations/Dhammapada/01-Pairs.htm'
+        2: 'https://ancient-buddhist-texts.net/Texts-and-Translations/Dhammapada/02-Heedfulness.htm'
         # … one per chapter you have registered references for
-
-  - provider: palikanon.com
-    language: de
-    access: open
-    url: 'https://palikanon.com/khuddaka/dhp/dhp.html#dhp_{verse}'
 
 references:
   - '1.1'
@@ -71,7 +66,9 @@ references:
   # …
 ```
 
-Each reference gets one entry per resolver. The compiler expands `{chapter04}` and `{verse}` from the named capture groups in the citation system's `locator_regex`, and looks up `url_by.chapter[N]` for providers whose URL structure isn't templatable.
+Each reference gets one entry per resolver. The compiler derives `{verseGlobal}` from the citation system's `chapter_sizes` (see [How URL templates work](#how-url-templates-work)), and looks up `url_by.chapter[N]` for providers whose URL structure isn't templatable.
+
+Every resolver must actually address the cited passage. A URL with no locator variable in it resolves every reference in the work to the same landing page, which is worse than having no resolver at all — the registry says "here is 1.1" and hands the reader a book.
 
 ### Optional: `creators`
 
@@ -132,9 +129,35 @@ The compiler treats every resolver `url` as an [RFC 6570](https://www.rfc-editor
 1. **Named capture groups** in the citation system's `locator_regex`. For example, a regex like `^(?<chapter>\d+)\.(?<verse>\d+)$` exposes `{chapter}` and `{verse}` to every template.
 2. **Zero-padded variants** of any numeric capture, generated automatically: `{chapter02}`, `{chapter03}`, `{chapter04}`, `{verse02}`, `{verse03}`. Use the padding width that matches the target site's URL.
 3. **Roman-numeral variants** of any numeric capture in 1..3999, generated automatically: `{chapterRoman}` produces `I`, `VIII`, `XXVI`. Useful for sites that anchor sections by Roman chapter (e.g. Wikisource's `#I:8` Dhammapada verses).
-4. **Cumulative `{verseGlobal}`** — for systems whose locators have numeric `chapter` and `verse` groups _and_ declare `chapter_sizes:` (see below), the compiler exposes a global 1..N verse counter. Useful for single-page resolvers (e.g. palikanon.com's `#dhp_8`, `#dhp_102`) whose anchors use one running index across all chapters.
+4. **Cumulative `{verseGlobal}`** — for systems whose locators have numeric `chapter` and `verse` groups _and_ declare `chapter_sizes:` (see below), the compiler exposes a global 1..N verse counter. Useful for single-page resolvers (e.g. SuttaCentral's `/dhp8`, `/dhp102`) whose URLs use one running index across all chapters.
+5. **Provider-specific spellings** declared per resolver with `vars:` — see below.
 
 If a template references a variable that doesn't exist for a given reference, the compiler skips that resolver entry for that reference and warns. Empty `resolver_targets` arrays are valid; references stay registered.
+
+## When a provider spells a locator value differently
+
+A locator carries one canonical vocabulary — for `bible-book-chapter-verse` that is the [OSIS book codes](https://wiki.crosswire.org/OSIS_Book_Abbreviations) (`Gen`, `John`, `1Cor`). Providers do not all agree with it: die-bibel.de addresses the same books with USFM codes (`GEN`, `JHN`, `1CO`). `vars:` declares that translation for one resolver, leaving the rest of the template intact:
+
+```yaml
+- provider: Deutsche Bibelgesellschaft
+  edition: 'Nestle-Aland, Novum Testamentum Graece, 28th edn (NA28)'
+  language: grc
+  access: open
+  vars:
+    bookUsfm:
+      from: book
+      map:
+        Matt: MAT
+        John: JHN
+        1Cor: 1CO
+  url: 'https://www.die-bibel.de/bibel/NA28/{bookUsfm}.{chapter}/#{bookUsfm}.{chapter}.{verse}'
+```
+
+Each entry takes the value of `from` and looks it up in `map`, binding the result to a new variable usable anywhere in `url` or as the `url_by` key. The name must be new: a `vars` name that shadows a locator capture group is rejected, so `{book}` always means the canonical code no matter which resolver you are reading.
+
+A value with no entry in the map is treated exactly like a missing template variable — the entry is skipped and the compiler warns. A hole in a book table therefore shows up in the build output instead of quietly producing a wrong URL, so watch the skipped-entry count when filling one in.
+
+Reach for `vars:` when a provider renames _part_ of the URL; reach for `url_by:` (below) when the whole URL is arbitrary.
 
 ## When a URL pattern isn't templatable
 

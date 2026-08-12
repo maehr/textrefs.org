@@ -222,10 +222,41 @@ function expandTemplate(
 	return missing ? null : out;
 }
 
-function buildResolverEntry(
+/**
+ * Bind a resolver's `vars` on top of the locator-derived variables. Each entry
+ * translates one canonical value into the provider's own spelling — OSIS `John`
+ * into die-bibel.de's USFM `JHN`. A source value with no entry in the map is
+ * treated exactly like a missing template variable: the caller skips the
+ * resolver for this reference and warns, so a hole in a book table shows up in
+ * the build output instead of silently emitting a wrong URL.
+ */
+function applyResolverVars(
 	resolver: ResolverEntry,
 	vars: Record<string, string>,
+): Record<string, string> | null {
+	if (!resolver.vars) return vars;
+	const out = { ...vars };
+	for (const [name, spec] of Object.entries(resolver.vars)) {
+		if (name in vars) {
+			throw new Error(
+				`resolver var "${name}" shadows a locator-derived variable; give the mapped value its own name`,
+			);
+		}
+		const source = vars[spec.from];
+		if (source === undefined) return null;
+		const mapped = spec.map[source];
+		if (mapped === undefined) return null;
+		out[name] = mapped;
+	}
+	return out;
+}
+
+function buildResolverEntry(
+	resolver: ResolverEntry,
+	locatorVars: Record<string, string>,
 ): Record<string, unknown> | null {
+	const vars = applyResolverVars(resolver, locatorVars);
+	if (!vars) return null;
 	let url: string | null = null;
 	if (resolver.url) {
 		url = expandTemplate(resolver.url, vars);

@@ -368,3 +368,115 @@ mappings:
 	});
 	assert.match(message, /test\.work/);
 });
+
+// --- Resolver URL expansion -------------------------------------------------
+//
+// `vars` (this section's main subject) rides on the same skip-and-warn path as
+// a missing template variable, so the pre-existing `url` / `url_by` behaviour
+// is pinned here too — it had no coverage before.
+
+const bookChapter = {
+	'book-chapter': system(
+		'book-chapter',
+		'active',
+		'^(?<book>[1-4]?[A-Za-z]+)\\.(?<chapter>[1-9][0-9]*)$',
+	),
+};
+
+/** One work, one resolver, two locators — `Gen.1` and `John.3`. */
+const workWithResolver = (resolver: string) => ({
+	systems: bookChapter,
+	works: {
+		'test.work': `${workHeader()}
+citation_system: book-chapter
+resolvers:
+${resolver}
+references:
+  - 'Gen.1'
+  - 'John.3'
+`,
+	},
+});
+
+const urlFor = (reg: CompiledRegistry, locator: string) =>
+	reg.references.find((r) => r.locator === locator)?.resolver_targets[0]?.url;
+
+test('a url template expands the locator capture groups', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/Gen/1');
+	assert.equal(urlFor(reg, 'John.3'), 'https://example.org/John/3');
+	assert.equal(reg.warnings, 0);
+});
+
+test('url_by picks a whole URL by key, and an absent key skips the entry', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url_by:
+      book:
+        Gen: 'https://example.org/genesis'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/genesis');
+	assert.equal(urlFor(reg, 'John.3'), undefined, 'John has no url_by entry');
+	assert.equal(reg.warnings, 1);
+});
+
+test('vars translates a locator value into the provider vocabulary', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - vars:
+      bookUsfm:
+        from: book
+        map:
+          Gen: GEN
+          John: JHN
+    url: 'https://example.org/{bookUsfm}.{chapter}/#{bookUsfm}.{chapter}'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/GEN.1/#GEN.1');
+	assert.equal(urlFor(reg, 'John.3'), 'https://example.org/JHN.3/#JHN.3');
+	assert.equal(reg.warnings, 0);
+});
+
+test('a hole in a vars map skips the entry and warns rather than emitting a wrong URL', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - vars:
+      bookUsfm:
+        from: book
+        map:
+          Gen: GEN
+    url: 'https://example.org/{bookUsfm}.{chapter}'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/GEN.1');
+	assert.equal(urlFor(reg, 'John.3'), undefined, 'John is unmapped');
+	assert.equal(reg.warnings, 1);
+});
+
+test('vars composes with url_by', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - vars:
+      slug:
+        from: book
+        map:
+          Gen: genesis
+          John: john
+    url_by:
+      slug:
+        genesis: 'https://example.org/a'
+        john: 'https://example.org/b'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/a');
+	assert.equal(urlFor(reg, 'John.3'), 'https://example.org/b');
+	assert.equal(reg.warnings, 0);
+});
+
+test('a vars name that shadows a locator variable is rejected', (t) => {
+	const message = expectCompileError(
+		t,
+		workWithResolver(`  - vars:
+      book:
+        from: book
+        map:
+          Gen: GEN
+    url: 'https://example.org/{book}'`),
+	);
+	assert.match(message, /shadows a locator-derived variable/);
+});
