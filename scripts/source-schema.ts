@@ -11,6 +11,21 @@ export const ResolverEntrySource = z
 	.strictObject({
 		url: z.string().min(1).optional(),
 		url_by: z.record(z.string(), z.record(z.string(), z.string())).optional(),
+		// Provider-specific spellings of a locator variable. The canonical
+		// vocabulary stays in the locator (e.g. the OSIS book code `John`); a
+		// provider that names the same book differently (die-bibel.de's USFM
+		// `JHN`) declares the translation here rather than forcing a second
+		// citation system into existence. Compile-time only — nothing new
+		// reaches the published record, just a different expanded URL.
+		vars: z
+			.record(
+				z.string().min(1),
+				z.strictObject({
+					from: z.string().min(1),
+					map: z.record(z.string().min(1), z.string().min(1)),
+				}),
+			)
+			.optional(),
 		provider: z.string().min(1).optional(),
 		edition: z.string().min(1).optional(),
 		language: z.string().min(2).optional(),
@@ -21,6 +36,13 @@ export const ResolverEntrySource = z
 	})
 	.refine((r) => r.url !== undefined || r.url_by !== undefined, {
 		message: 'resolver needs either url or url_by',
+	})
+	// `url_by` selects a whole URL by the value of exactly one variable. More
+	// than one selector has no defined meaning, and the compiler would skip the
+	// entry per reference — an authoring typo would surface as silently missing
+	// resolver targets rather than a failed build.
+	.refine((r) => r.url_by === undefined || Object.keys(r.url_by).length === 1, {
+		message: 'url_by takes exactly one selector variable',
 	});
 
 export type ResolverEntrySource = z.infer<typeof ResolverEntrySource>;

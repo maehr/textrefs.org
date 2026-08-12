@@ -71,16 +71,17 @@ Each entry records what a reader needs to understand the link: `language` (BCP 4
   "locator": "1.1",
   "resolver_targets": [
     {
-      "url": "https://en.wikisource.org/wiki/Dhammapada_(Muller)#Chapter_I:_The_Twin-Verses",
-      "language": "en",
-      "edition": "Müller (1881)",
-      "provider": "Wikisource",
+      "url": "https://suttacentral.net/dhp1/pli/ms",
+      "language": "pli",
+      "edition": "Mahāsaṅgīti Tipiṭaka",
+      "provider": "SuttaCentral",
       "access": "open"
     },
     {
-      "url": "https://palikanon.com/khuddaka/dhp/dhp.html#dhp_1",
-      "language": "de",
-      "provider": "palikanon.com",
+      "url": "https://ancient-buddhist-texts.net/Texts-and-Translations/Dhammapada/01-Pairs.htm",
+      "language": "en",
+      "edition": "Anandajoti Bhikkhu translation",
+      "provider": "ancient-buddhist-texts.net",
       "access": "open"
     }
   ]
