@@ -2,7 +2,3 @@
 	path = data
 	url = https://github.com/textrefs/registry.git
 	branch = main
-[submodule "github-profile"]
-	path = github-profile
-	url = https://github.com/textrefs/.github.git
-	branch = main
