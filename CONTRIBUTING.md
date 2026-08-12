@@ -122,13 +122,15 @@ Two release trains. The Zenodo–GitHub webhook MUST be enabled once per reposit
 
 **Standard + site** (this repo):
 
-1. Bump `version` in `package.json` to match the new tag.
-2. `npm run changelog` to regenerate `CHANGELOG.md`.
-3. Update spec page frontmatter `maturity:` if the release transitions the ladder.
-4. Open a PR `staging → main` and squash-merge it. The squash message should be a conventional commit (`docs(release): vX.Y.Z` or similar) so the changelog stays clean.
-5. Tag `vX.Y.Z[-pre]` on `main`; push the tag.
-6. Verify the GitHub Release fires and Zenodo mints the version DOI.
-7. Fill the concept DOI into `CITATION.cff` `identifiers:` and the badge in `README.md` (once, after the first release).
+1. Bump `version` in `package.json` to match the new tag. The compiler reads it, so it also becomes the `datapackage.json` version of the published dump.
+2. Set `version` and `date-released` in `CITATION.cff` to the same tag and its release date. Without them the file cannot say which release it describes.
+3. `npx git-cliff --tag vX.Y.Z -o CHANGELOG.md` to regenerate `CHANGELOG.md`. Pass `--tag` explicitly: the tag does not exist yet at this point, and bare `npm run changelog` would file the commits under `## [Unreleased]`.
+4. Update spec page frontmatter `maturity:` if the release transitions the ladder.
+5. Dispatch the **Pages** workflow on `staging`. `main`'s ruleset requires a successful `github-pages` deployment for the exact SHA being merged, so the release PR stays blocked until the branch tip has one.
+6. Open a PR `staging → main` and squash-merge it. The squash message should be a conventional commit (`docs(release): vX.Y.Z` or similar) so the changelog stays clean.
+7. Tag `vX.Y.Z[-pre]` on `main`; push the tag.
+8. Verify the GitHub Release fires and Zenodo mints the version DOI.
+9. Fill the concept DOI into `CITATION.cff` `identifiers:` and the badge in `README.md` (once, after the first release).
 
 **Registry** ([`textrefs/registry`](https://github.com/textrefs/registry)):
 
