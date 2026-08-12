@@ -67,8 +67,9 @@ Each `datapackage.json` MUST include:
 - `name`: `textrefs-registry`.
 - `version`: SemVer package version.
 - `licenses`: SPDX identifier `CC0-1.0` for registry data.
-- `resources`: one resource per JSONL file.
-- `schema`: field descriptors for each resource.
+- `resources`: one resource per JSONL file, each carrying `path`, `format`, `mediatype`, `encoding`, `bytes`, and a `sha256:` `hash` of the resource body.
+
+Resources SHOULD additionally carry a Frictionless `schema` with field descriptors. Exports through `v0.1.0` omit it: record shapes are normative in the [specification](/standard/specification/) and enforced by the compiler, and restating them as Frictionless descriptors is [tracked separately](https://github.com/textrefs/textrefs.org/issues/74). Validate against the published shapes, not against the data package alone.
 
 ## Per-record versioning
 
