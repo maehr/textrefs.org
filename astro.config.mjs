@@ -6,16 +6,24 @@ import starlightLinksValidator from 'starlight-links-validator';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightOpenAPI, { openAPISidebarGroups } from 'starlight-openapi';
 import starlightBlog from 'starlight-blog';
+import sitemap from '@astrojs/sitemap';
+import { buildNoindexPredicate } from './src/lib/noindex.ts';
 
 const siteDomain = process.env.SITE_DOMAIN ?? 'textrefs.org';
 const site = siteDomain.startsWith('http')
 	? siteDomain
 	: `https://${siteDomain}`;
 
+const isNoindex = buildNoindexPredicate();
+
 export default defineConfig({
 	site,
 	integrations: [
 		mermaid({ autoTheme: true }),
+		// Declared explicitly so the sitemap can drop draft record pages;
+		// Starlight adds `@astrojs/sitemap` with default options only when the
+		// project has not already registered it.
+		sitemap({ filter: (page) => !isNoindex(new URL(page).pathname) }),
 		starlight({
 			plugins: [
 				starlightBlog({
