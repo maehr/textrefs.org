@@ -9,7 +9,6 @@ import { join, basename, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { v5 as uuidv5 } from 'uuid';
 import { parse as parseYaml } from 'yaml';
-import { createRequire } from 'node:module';
 import {
 	Work,
 	CitationSystem,
@@ -24,16 +23,12 @@ import {
 	type ReferenceRangeSource as ReferenceRange,
 	type ReferenceSource,
 	type ResolverEntrySource as ResolverEntry,
+	SPDX_IDS,
 	type SystemBlockSource,
 } from './source-schema.js';
 
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
-
-const require = createRequire(import.meta.url);
-const spdxLicenseIds: string[] = require('spdx-license-ids');
-const spdxDeprecatedIds: string[] = require('spdx-license-ids/deprecated');
-const SPDX_IDS = new Set<string>([...spdxLicenseIds, ...spdxDeprecatedIds]);
 
 const projectRoot = resolve(process.cwd());
 const dataRoot = join(projectRoot, 'data');
@@ -281,15 +276,17 @@ function buildResolverEntry(
 	if (resolver.provider !== undefined) entry.provider = resolver.provider;
 	entry.access = resolver.access ?? 'unknown';
 	if (resolver.license !== undefined) {
-		if (SPDX_IDS.has(resolver.license)) {
-			// Emit the canonical SPDX IRI so dcterms:license has a single
-			// IRI-typed range in the JSON-LD output.
-			entry.license = `https://spdx.org/licenses/${resolver.license}`;
-		} else {
-			console.warn(
-				`⚠ license "${resolver.license}" is not an SPDX id; omitted from output (use license_url for non-SPDX terms)`,
+		if (!SPDX_IDS.has(resolver.license)) {
+			// Unreachable via authored YAML — ResolverEntrySource rejects it at
+			// parse time. Kept so a future caller that skips the parser cannot
+			// drop a licence statement silently.
+			throw new Error(
+				`license "${resolver.license}" is not an SPDX id (use license_url for non-SPDX terms)`,
 			);
 		}
+		// Emit the canonical SPDX IRI so dcterms:license has a single
+		// IRI-typed range in the JSON-LD output.
+		entry.license = `https://spdx.org/licenses/${resolver.license}`;
 	}
 	if (resolver.license_url !== undefined)
 		entry.license_url = resolver.license_url;

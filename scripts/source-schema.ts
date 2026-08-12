@@ -4,8 +4,19 @@
 // authoritative — see `standard/schema/` — but a typo in source YAML used to
 // slip through an unchecked `as WorkSource` cast and surface much later, or not
 // at all. Objects are strict: an unknown key is an authoring error.
+import { createRequire } from 'node:module';
 import { z } from 'zod';
 import { FlatKey, IsoDate, Status } from '../standard/schema/common.js';
+
+const require = createRequire(import.meta.url);
+const spdxLicenseIds: string[] = require('spdx-license-ids');
+const spdxDeprecatedIds: string[] = require('spdx-license-ids/deprecated');
+
+/** Current and deprecated SPDX identifiers, the only accepted `license` values. */
+export const SPDX_IDS = new Set<string>([
+	...spdxLicenseIds,
+	...spdxDeprecatedIds,
+]);
 
 export const ResolverEntrySource = z
 	.strictObject({
@@ -30,7 +41,17 @@ export const ResolverEntrySource = z
 		edition: z.string().min(1).optional(),
 		language: z.string().min(2).optional(),
 		access: z.enum(['open', 'paywalled', 'restricted', 'unknown']).optional(),
-		license: z.string().min(1).optional(),
+		// Checked here rather than at emit time: the compiler maps an id to its
+		// canonical SPDX IRI, and anything it cannot map would otherwise drop out
+		// of the published record silently. A typo must fail the build, not
+		// remove the licence statement.
+		license: z
+			.string()
+			.min(1)
+			.refine((id) => SPDX_IDS.has(id), {
+				message: 'not an SPDX license id (use license_url for non-SPDX terms)',
+			})
+			.optional(),
 		license_url: z.string().min(1).optional(),
 		last_checked: IsoDate.optional(),
 	})

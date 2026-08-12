@@ -522,6 +522,34 @@ references:
 	assert.equal(reg.warnings, 1);
 });
 
+// --- Resolver licences -------------------------------------------------------
+
+test('an SPDX license id becomes the canonical SPDX IRI', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    license: CC-BY-4.0`),
+	);
+	assert.equal(
+		reg.references.find((r) => r.locator === 'Gen.1')?.resolver_targets[0]
+			?.license,
+		'https://spdx.org/licenses/CC-BY-4.0',
+	);
+});
+
+test('a non-SPDX license id fails the build instead of dropping the licence', (t) => {
+	const logged: string[] = [];
+	t.mock.method(console, 'error', (...args: unknown[]) => {
+		logged.push(args.join(' '));
+	});
+	assert.throws(() =>
+		compileFixture(
+			workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    license: CC-BY-4`),
+		),
+	);
+	assert.match(logged.join('\n'), /not an SPDX license id/);
+});
+
 test('url_by with more than one selector variable is rejected at parse time', (t) => {
 	// The thrown message only names the file; the failing rule goes to
 	// console.error, so capture it rather than assert on any parse error.
