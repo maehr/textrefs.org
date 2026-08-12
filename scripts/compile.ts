@@ -149,7 +149,11 @@ function deriveLocatorVars(
 ): Record<string, string> {
 	const re = new RegExp(system.locator_regex);
 	const m = locator.match(re);
-	const vars: Record<string, string> = {};
+	// Null-prototype: variable names come from named capture groups and their
+	// values from locators, both author-controlled. On a plain object a name
+	// like `constructor` or `toString` would resolve up the prototype chain and
+	// expand into a URL instead of being treated as absent.
+	const vars: Record<string, string> = Object.create(null);
 	if (m?.groups) {
 		for (const [k, v] of Object.entries(m.groups)) {
 			if (v === undefined) continue;
@@ -235,18 +239,19 @@ function applyResolverVars(
 	vars: Record<string, string>,
 ): Record<string, string> | null {
 	if (!resolver.vars) return vars;
-	const out = { ...vars };
+	const out: Record<string, string> = Object.assign(Object.create(null), vars);
 	for (const [name, spec] of Object.entries(resolver.vars)) {
-		if (name in vars) {
+		if (Object.hasOwn(vars, name)) {
 			throw new Error(
 				`resolver var "${name}" shadows a locator-derived variable; give the mapped value its own name`,
 			);
 		}
 		const source = vars[spec.from];
 		if (source === undefined) return null;
-		const mapped = spec.map[source];
-		if (mapped === undefined) return null;
-		out[name] = mapped;
+		// `map` is parsed YAML, so own-property only: a locator value of
+		// `toString` must miss the map, not inherit Object.prototype's method.
+		if (!Object.hasOwn(spec.map, source)) return null;
+		out[name] = spec.map[source];
 	}
 	return out;
 }
@@ -266,7 +271,8 @@ function buildResolverEntry(
 		const byVar = byVars[0];
 		const key = vars[byVar];
 		if (key === undefined) return null;
-		url = resolver.url_by[byVar][key] ?? null;
+		const byMap = resolver.url_by[byVar];
+		url = Object.hasOwn(byMap, key) ? (byMap[key] ?? null) : null;
 	}
 	if (!url) return null;
 	const entry: Record<string, unknown> = { url };

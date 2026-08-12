@@ -36,6 +36,13 @@ export const ResolverEntrySource = z
 	})
 	.refine((r) => r.url !== undefined || r.url_by !== undefined, {
 		message: 'resolver needs either url or url_by',
+	})
+	// `url_by` selects a whole URL by the value of exactly one variable. More
+	// than one selector has no defined meaning, and the compiler would skip the
+	// entry per reference — an authoring typo would surface as silently missing
+	// resolver targets rather than a failed build.
+	.refine((r) => r.url_by === undefined || Object.keys(r.url_by).length === 1, {
+		message: 'url_by takes exactly one selector variable',
 	});
 
 export type ResolverEntrySource = z.infer<typeof ResolverEntrySource>;

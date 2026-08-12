@@ -480,3 +480,63 @@ test('a vars name that shadows a locator variable is rejected', (t) => {
 	);
 	assert.match(message, /shadows a locator-derived variable/);
 });
+
+// Variable names and locator values are both author-controlled, so every lookup
+// on the way to a URL is own-property only. On a plain object these three cases
+// would inherit from Object.prototype and expand into a published URL.
+
+test('a template variable naming an Object.prototype member is absent, not inherited', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url: 'https://example.org/{book}/{toString}'`),
+	);
+	assert.equal(urlFor(reg, 'Gen.1'), undefined);
+	assert.equal(urlFor(reg, 'John.3'), undefined);
+	assert.equal(reg.warnings, 2);
+});
+
+test('a locator value naming an Object.prototype member misses the vars map', () => {
+	const reg = compileFixture({
+		systems: bookChapter,
+		works: {
+			'test.work': `${workHeader()}
+citation_system: book-chapter
+resolvers:
+  - vars:
+      bookUsfm:
+        from: book
+        map:
+          Gen: GEN
+    url: 'https://example.org/{bookUsfm}.{chapter}'
+references:
+  - 'Gen.1'
+  - 'toString.1'
+`,
+		},
+	});
+	assert.equal(urlFor(reg, 'Gen.1'), 'https://example.org/GEN.1');
+	assert.equal(
+		urlFor(reg, 'toString.1'),
+		undefined,
+		'toString is not a mapped book',
+	);
+	assert.equal(reg.warnings, 1);
+});
+
+test('url_by with more than one selector variable is rejected at parse time', (t) => {
+	// The thrown message only names the file; the failing rule goes to
+	// console.error, so capture it rather than assert on any parse error.
+	const logged: string[] = [];
+	t.mock.method(console, 'error', (...args: unknown[]) => {
+		logged.push(args.join(' '));
+	});
+	assert.throws(() =>
+		compileFixture(
+			workWithResolver(`  - url_by:
+      book:
+        Gen: 'https://example.org/genesis'
+      chapter:
+        '1': 'https://example.org/one'`),
+		),
+	);
+	assert.match(logged.join('\n'), /url_by takes exactly one selector variable/);
+});
