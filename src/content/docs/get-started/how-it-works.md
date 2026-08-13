@@ -158,5 +158,5 @@ Keep those in editions, libraries, repositories, or reading platforms. TextRefs 
 
 - [Authoring registry data](/get-started/authoring/) documents the contributor YAML format and the `npm run build:data` pipeline.
 - [Mappings and resolver targets](/get-started/mappings-and-resolver-targets/) explains how to decide whether an external resource should be modelled as a `MappingAssertion` or a resolver-target entry.
-- [Related identifier systems](/get-started/related-systems/) compares TextRefs with DOI, ARK, CTS, DTS, Wikidata, VIAF, TEI, and platform URLs.
+- [Related standards and systems](/get-started/related-systems/) groups the neighbouring standards by the layer they address, from identifier schemes to annotation models and reading platforms.
 - [The standard](/standard/) contains the normative object model and validation rules.

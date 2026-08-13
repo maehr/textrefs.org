@@ -27,7 +27,7 @@ Four record types carry the model: `Work`, `CitationSystem`, `CanonicalReference
 - [Use cases](/get-started/use-cases/) — concrete scenarios across research, libraries, digital editions, and AI grounding.
 - [Mappings and resolver targets](/get-started/mappings-and-resolver-targets/) — how to model external identifiers, reading URLs, and canonical-citation candidates.
 - [Authoring registry data](/get-started/authoring/) — the contributor YAML format and the `npm run build:data` pipeline.
-- [Related identifier systems](/get-started/related-systems/) — how TextRefs relates to DOI, ARK, CTS, DTS, Wikidata, VIAF, and friends.
+- [Related standards and systems](/get-started/related-systems/) — how TextRefs relates to identifier schemes, text APIs, bibliographic models, edition and annotation standards, digital surrogates, and reading platforms.
 - [URL layout](/get-started/url-layout/) — how `/id/`, `/reg/`, `/cite/`, and `/api/` fit together.
 - [The standard](/standard/) — the normative specification text (`v0.1.0-draft`).
 - [The association](/association/) — the non-profit behind TextRefs, its statutes, and the open board search.
