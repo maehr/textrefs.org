@@ -14,6 +14,8 @@ TextRefs versions three things that move at different speeds, and archives each 
 | Registry data        | `textrefs/registry`       | `vYYYY.MM.N`                   | TextRefs Registry                 |
 | Data-package version | inside `datapackage.json` | SemVer **without** leading `v` | (carried within registry deposit) |
 
+The release tag and the spec document's own version string (e.g. `0.1.0-draft` in `specification.md`) are independent labels, not aliases: the tag marks the site repository's release, the document version marks the spec's own maturity, and the two are not required to read identically.
+
 The site repository couples the spec, JSON-LD context, Zod schemas, and Astro site under a single tag because pre-1.0 the site is the spec's reference rendering; splitting them now would create empty changelogs and confuse Zenodo metadata. Registry data is decoupled — record changes flow on their own cadence — and lives in a separate repository because the [Zenodo–GitHub integration](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content) mints one concept DOI per repository. The two repositories are cross-linked via `.zenodo.json` `related_identifiers`.
 
 The site repository includes `textrefs/registry` as a git submodule at `data/`. The registry uses `main` as its working branch. The site pins a specific registry `main` commit through the submodule pointer, and its compiler builds registry dumps from that pinned content for reproducible site releases.
@@ -31,7 +33,7 @@ Each `/standard/*` page carries a `maturity` field in its frontmatter, encoding 
 
 Transitions:
 
-- `0.x` releases stay `working-draft` regardless of any `-draft` suffix on the tag.
+- `0.x` releases stay `working-draft` regardless of any `-draft` suffix on the spec document's version string.
 - First `1.0.0-rc.1` enters `candidate-recommendation`.
 - `1.0.0` enters `recommendation`.
 
@@ -87,7 +89,7 @@ Registry identity is permanent once promoted: the IRI of a `Work`, `CitationSyst
 
 ### Schema
 
-Tombstones use a status value plus one optional field. The old record stays in the data tree with `status: withdrawn` (or `blocked`, for a rights or policy dispute). If a successor exists, the record carries its IRI in `superseded_by` (`dcterms:isReplacedBy` in the published context); a `deprecated` record may do the same. Consumers follow `superseded_by` to find the successor. `MappingAssertion`s are reserved for genuine work-level equivalence claims and MUST NOT be used for succession links.
+Tombstones use a status value plus one optional field. The old record stays in the data tree with `status: withdrawn` (or `blocked`, for a rights or policy dispute). If a successor exists, the record carries its IRI in `superseded_by` (`dcterms:isReplacedBy` in the published context); a `deprecated` record may do the same. Consumers follow `superseded_by` to find the successor. `MappingAssertion`s are reserved for work-level relations to external identifiers and MUST NOT be used for succession links.
 
 ### On-disk representation
 
@@ -112,7 +114,7 @@ The compiler enforces these invariants, and fails the build on any violation:
 5. An `active` `CanonicalReference` MUST have an `active` `Work` and an `active` `CitationSystem` for its own `citation_system_key`. Works and systems are promoted to `active` before or together with whatever depends on them.
 6. An `active` `MappingAssertion` MUST take an `active` `Work` as its `subject`.
 
-Two further checks run when a source file is parsed, before any record is built: a work MUST NOT declare the same citation system twice, and a `locator` MUST NOT contain `/` — the alias grammar below distinguishes its two forms by segment count alone.
+Two further checks apply. A work MUST NOT declare the same citation system twice, checked when a source file is parsed, before any record is built. A `locator` MUST NOT contain `/`, checked per reference during emission — the alias grammar below distinguishes its two forms by segment count alone.
 
 ### Aliases vs. tombstones
 
