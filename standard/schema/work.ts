@@ -27,8 +27,8 @@ export const WorkBase = AdminMetadata.extend({
 	// known CitationSystem.
 	preferred_citation_system_key: FlatKey,
 	creators: z.array(Creator).optional(),
-	// Compiler-derived projection of the work's non-tombstoned
-	// MappingAssertions (prov:alternateOf / dcterms:isReferencedBy in the
+	// Compiler-derived projection of the work's MappingAssertions that are not
+	// withdrawn or blocked (prov:alternateOf / dcterms:isReferencedBy in the
 	// published context, ADR-0006). Never authored.
 	alternateOf: z.array(Iri).optional(),
 	isReferencedBy: z.array(Iri).optional(),

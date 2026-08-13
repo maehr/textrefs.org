@@ -30,3 +30,13 @@ export const AdminMetadata = z.object({
 export const FlatKey = z
 	.string()
 	.regex(/^[a-z0-9][a-z0-9._-]*$/, 'flat key syntax: ^[a-z0-9][a-z0-9._-]*$');
+
+// BCP 47 well-formedness (RFC 5646 langtag + privateuse). Registry validity is
+// not checked — only that the tag parses. Irregular grandfathered tags
+// (i-klingon, …) are out of scope: no text language in the registry needs one.
+export const LanguageTag = z
+	.string()
+	.regex(
+		/^(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}|[A-Za-z]{4,8})(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[\dA-Za-z]{5,8}|\d[\dA-Za-z]{3}))*(?:-[\dA-WY-Za-wy-z](?:-[\dA-Za-z]{2,8})+)*(?:-[Xx](?:-[\dA-Za-z]{1,8})+)?$|^[Xx](?:-[\dA-Za-z]{1,8})+$/,
+		'must be a well-formed BCP 47 language tag',
+	);

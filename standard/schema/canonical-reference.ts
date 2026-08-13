@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { AdminMetadata, FlatKey, Iri, IsoDate } from './common.js';
+import { AdminMetadata, FlatKey, Iri, IsoDate, LanguageTag } from './common.js';
 
 export const ResolverTargetEntry = z.object({
 	url: Iri,
-	language: z.string().min(2).optional(),
+	language: LanguageTag.optional(),
 	edition: z.string().optional(),
 	provider: z.string().optional(),
 	access: z.enum(['open', 'paywalled', 'restricted', 'unknown']),

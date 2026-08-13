@@ -568,3 +568,26 @@ test('url_by with more than one selector variable is rejected at parse time', (t
 	);
 	assert.match(logged.join('\n'), /url_by takes exactly one selector variable/);
 });
+
+// --- Resolver language tags (BCP 47) -----------------------------------------
+
+test('a malformed language tag is rejected at parse time', (t) => {
+	const message = expectCompileError(
+		t,
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    language: 'e n'`),
+	);
+	assert.match(message, /test\.work/);
+});
+
+test('a well-formed subtagged language tag is accepted', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    language: grc-Grek`),
+	);
+	assert.equal(
+		reg.references.find((r) => r.locator === 'Gen.1')?.resolver_targets[0]
+			?.language,
+		'grc-Grek',
+	);
+});

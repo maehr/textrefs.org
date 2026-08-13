@@ -6,7 +6,12 @@
 // at all. Objects are strict: an unknown key is an authoring error.
 import { createRequire } from 'node:module';
 import { z } from 'zod';
-import { FlatKey, IsoDate, Status } from '../standard/schema/common.js';
+import {
+	FlatKey,
+	IsoDate,
+	LanguageTag,
+	Status,
+} from '../standard/schema/common.js';
 
 const require = createRequire(import.meta.url);
 const spdxLicenseIds: string[] = require('spdx-license-ids');
@@ -39,7 +44,7 @@ export const ResolverEntrySource = z
 			.optional(),
 		provider: z.string().min(1).optional(),
 		edition: z.string().min(1).optional(),
-		language: z.string().min(2).optional(),
+		language: LanguageTag.optional(),
 		access: z.enum(['open', 'paywalled', 'restricted', 'unknown']).optional(),
 		// Checked here rather than at emit time: the compiler maps an id to its
 		// canonical SPDX IRI, and anything it cannot map would otherwise drop out
