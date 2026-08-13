@@ -9,8 +9,8 @@ Astro + Starlight site for textrefs.org. See [`README.md`](./README.md) for the 
 - `npm run build:fast` — site build against a tiny fixture registry, without compiling full data
 - `npm run format` — Prettier (with `prettier-plugin-astro`)
 - `npm run check` — `astro check`
-- `npm run verify:fast` — fast local verification: format:check + fixture-backed check + fixture-backed build
-- `npm run verify` — format:check + check + build (the CI gate)
+- `npm run verify:fast` — fast local verification: format:check + fixture-backed check + tests + fixture-backed build
+- `npm run verify` — format:check + check + tests + build (the CI gate)
 - `npm run validate:data` / `compile:data` / `build:data` — registry-data gates; see [`data/AGENTS.md`](./data/AGENTS.md)
 
 Use `npm run verify:fast` by default for local validation and agent work. Only use the full `npm run verify` and/or `npm run validate:data` when changes affect registry data, release artifacts, production build behavior, or CI parity.
@@ -29,7 +29,8 @@ Husky installs on `npm install`: Prettier runs on staged files, `commitlint` enf
 - `src/styles/brand.css` — brand tokens
 - `public/{logo.svg,favicon.svg,fonts/}` — brand assets
 - `data/` — git submodule pointing at [`textrefs/registry`](https://github.com/textrefs/registry); hand-authored YAML lives there. See [`data/AGENTS.md`](./data/AGENTS.md) for authoring rules and [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the submodule workflow.
-- `standard/`, `api/` — scaffolds reserved for future repo splits
+- `standard/` — draft standard workspace: canonical Zod schemas (`standard/schema/`)
+- `api/` — the OpenAPI contract (`api/openapi.yaml`)
 
 ## Conventions
 
@@ -47,7 +48,7 @@ Husky installs on `npm install`: Prettier runs on staged files, `commitlint` enf
 
 ## Mirrored community files
 
-`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md` live at the repo root (for GitHub's Community profile) and are mirrored at `src/content/docs/community/` with Starlight frontmatter. Edit both in the same commit.
+`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md` live at the repo root for GitHub's Community profile; `ROADMAP.md` lives there as the canonical roadmap text. All four are mirrored at `src/content/docs/community/` with Starlight frontmatter. Edit both halves of a pair in the same commit.
 
 ## Pointers
 

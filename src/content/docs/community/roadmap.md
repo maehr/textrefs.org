@@ -5,7 +5,7 @@ sidebar:
   order: 7
 ---
 
-This is the public roadmap. The same content is mirrored on the docs site at [textrefs.org/community/roadmap/](/community/roadmap/).
+This is the public roadmap. The canonical text is [`ROADMAP.md`](https://github.com/textrefs/textrefs.org/blob/main/ROADMAP.md) in the repo; this page mirrors it.
 
 ## Status
 
@@ -23,7 +23,7 @@ Status legend: done · in progress · planned · blocked.
 - done: Get-started section (welcome, use cases, related identifier systems, mappings, and authoring guidance).
 - done: Standard draft workspace with Zod schemas and JSON-LD context.
 - done: Seed registry data and static registry browsing pages.
-- in progress: Replace remaining community placeholder pages with contributor-facing guidance.
+- done: Replace remaining community placeholder pages with contributor-facing guidance.
 - done: Serve canonical record pages under `/id/work/{key}/`, `/id/system/{key}/`, `/id/ref/{uuid}/`, `/id/mapping/{uuid}/`, each with a `.json` JSON-LD sibling advertised via `<link rel="alternate">`.
 - done: Decide how the `data/` repo split is packaged — extracted to [`textrefs/registry`](https://github.com/textrefs/registry) and included here as a git submodule.
 

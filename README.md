@@ -49,13 +49,16 @@ TextRefs is a non-profit infrastructure project that builds, maintains, and publ
 ├── src/
 │   ├── components/             # Starlight component overrides (Footer)
 │   ├── content/docs/           # site content (English at root, German under de/)
+│   ├── layouts/                # shared page layouts (e.g. canonical record pages)
+│   ├── lib/                    # registry loading, citation, and banner helpers
+│   ├── pages/                  # id/, reg/, cite/ routes (see AGENTS.md)
 │   ├── styles/brand.css        # brand tokens (see public/BRAND notes)
 │   └── content.config.ts
 ├── data/                       # git submodule → textrefs/registry (hand-authored YAML)
 ├── scripts/                    # data compile + validate pipeline
-├── standard/, api/             # scaffolds reserved for future repo splits
+├── standard/                   # draft standard workspace: Zod schemas, JSON-LD context
+├── api/                        # OpenAPI contract (api/openapi.yaml)
 ├── decisions/                  # Architecture Decision Records (MADR)
-├── docs-internal/              # maintainer-only notes, not published
 ├── astro.config.mjs            # Astro + Starlight config (i18n, sidebar)
 ├── cliff.toml                  # git-cliff config for CHANGELOG generation
 ├── commitlint.config.js        # conventional-commit enforcement
@@ -79,7 +82,7 @@ Configuration lives in `.env`; use [`.env.example`](./.env.example) as the start
 | `npm run validate:data` | Validate every compiled record against the canonical Zod schemas                                                                                                    |
 | `npm run build:data`    | `compile:data` then `validate:data` — the contributor data pipeline                                                                                                 |
 | `npm run verify:fast`   | Fast local check using fixture registry data                                                                                                                        |
-| `npm run verify`        | Prettier + `astro check` + production build — the CI gate                                                                                                           |
+| `npm run verify`        | Prettier + `astro check` + tests + production build — the CI gate                                                                                                   |
 | `npm run changelog`     | Regenerate `CHANGELOG.md` from git history (git-cliff)                                                                                                              |
 
 Contributors edit the YAML under [`data/works/`](https://github.com/textrefs/registry/tree/main/works) and [`data/systems/`](https://github.com/textrefs/registry/tree/main/systems); the directory is a git submodule pointing at [`textrefs/registry`](https://github.com/textrefs/registry). Run `git submodule update --init --recursive` after cloning. The compiler expands the pinned submodule into the flat registry dump (works, systems, refs, mappings) under `dist/dump/`. See [`docs/get-started/authoring`](https://textrefs.org/get-started/authoring/) for the format. For documentation, styling, and route work, use `npm run verify:fast` locally; run the full `npm run verify` before PRs that touch registry data, release output, production build behaviour, or CI behaviour.
