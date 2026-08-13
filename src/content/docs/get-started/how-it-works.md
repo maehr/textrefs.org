@@ -11,7 +11,7 @@ The core move is simple: separate the cited passage from the places where someon
 
 ## The four records
 
-TextRefs uses three records for identity and one record for work-level equivalences. Reading locations are embedded directly on the `CanonicalReference`.
+TextRefs uses three records for identity and one record for work-level mappings. Reading locations are embedded directly on the `CanonicalReference`.
 
 | Record               | Question it answers               | Example                                       |
 | -------------------- | --------------------------------- | --------------------------------------------- |
@@ -51,18 +51,18 @@ The identity is the Stephanus reference, not any one Greek text, translation, or
       "edition": "Plato, Republic (Burnet, OCT)",
       "provider": "Perseus Digital Library",
       "access": "open",
-      "license": "CC-BY-SA-3.0",
+      "license": "https://spdx.org/licenses/CC-BY-SA-3.0",
       "license_url": "https://www.perseus.tufts.edu/hopper/opensource",
       "last_checked": "2026-06-03"
     }
   ],
-  "status": "active",
+  "status": "draft",
   "created": "2026-05-31",
-  "modified": "2026-06-03"
+  "modified": "2026-08-12"
 }
 ```
 
-When reading locations exist, they are embedded on the reference itself, one entry per provider or translation. For example, the compiled registry record for [`new-testament` `John.3.16`](/id/ref/b6438d55-f3f2-5fc7-ab40-4f582f8774c3/) contains a resolver target to STEP Bible:
+When reading locations exist, they are embedded on the reference itself, one entry per provider or translation. For example, the compiled registry record for [`new-testament` `John.3.16`](/id/ref/b6438d55-f3f2-5fc7-ab40-4f582f8774c3/) contains resolver targets to STEP Bible and Deutsche Bibelgesellschaft:
 
 ```json
 {
@@ -73,22 +73,32 @@ When reading locations exist, they are embedded on the reference itself, one ent
   "locator": "John.3.16",
   "resolver_targets": [
     {
-      "url": "https://www.stepbible.org/?q=version=SBLG|reference=John.3.16",
+      "url": "https://www.stepbible.org/?q=version=SBLG%7Creference=John.3.16",
       "language": "grc",
       "edition": "SBL Greek New Testament",
       "provider": "STEP Bible",
       "access": "open",
-      "license": "CC-BY-4.0",
-      "license_url": "https://sblgnt.com/license/"
+      "license": "https://spdx.org/licenses/CC-BY-4.0",
+      "license_url": "https://sblgnt.com/license/",
+      "last_checked": "2026-06-03"
+    },
+    {
+      "url": "https://www.die-bibel.de/bibel/NA28/JHN.3/#JHN.3.16",
+      "language": "grc",
+      "edition": "Nestle-Aland, Novum Testamentum Graece, 28th edn (NA28)",
+      "provider": "Deutsche Bibelgesellschaft",
+      "access": "open",
+      "license_url": "https://www.die-bibel.de/impressum",
+      "last_checked": "2026-08-12"
     }
   ],
-  "status": "active",
+  "status": "draft",
   "created": "2026-05-31",
-  "modified": "2026-05-31"
+  "modified": "2026-08-12"
 }
 ```
 
-Work-level equivalences live in a `MappingAssertion`:
+Work-level mappings live in a `MappingAssertion`. This one says the Wikidata item denotes the same work:
 
 ```json
 {
@@ -100,9 +110,9 @@ Work-level equivalences live in a `MappingAssertion`:
     "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation",
-  "status": "active",
+  "status": "draft",
   "created": "2026-05-31",
-  "modified": "2026-06-02"
+  "modified": "2026-08-11"
 }
 ```
 
@@ -123,7 +133,7 @@ For a heavily translated work, many locations can share one reference identity. 
 
 An English translation, a German translation, a Greek edition, and a library scan can all sit in the `resolver_targets` array on the same reference. Adding a new translation adds another entry, not another canonical reference.
 
-For complete worked examples, see the live [Dhammapada work page](/id/work/dhammapada/) (four providers, two languages, 423 references) or the [Plato _Republic_ work page](/id/work/plato.republic/) (Stephanus pagination). The contributor YAML behind them is documented in [Authoring registry data](/get-started/authoring/).
+For complete worked examples, see the live [Dhammapada work page](/id/work/dhammapada/) (three resolver targets across two providers, two languages, 423 references) or the [Plato _Republic_ work page](/id/work/plato.republic/) (Stephanus pagination). The contributor YAML behind them is documented in [Authoring registry data](/get-started/authoring/).
 
 Where traditions number passages differently, create separate references under separate citation systems. Do not collapse divergent versification, pagination, or segmentation into one identity. The equivalence between the citation systems themselves is not yet expressible in this version: `MappingAssertion.subject` MUST be a Work IRI, so a system-to-system assertion cannot be authored. A future revision may widen `subject` to admit a `CitationSystem` IRI.
 

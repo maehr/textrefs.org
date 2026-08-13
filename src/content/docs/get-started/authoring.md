@@ -17,11 +17,11 @@ data/
 └── systems/{system_key}.yaml          # one file per CitationSystem
 ```
 
-A `Work` source file declares the work itself, references the citation system it uses as its **preferred** citation system (optionally alongside fallback systems, see [Additional citation systems](#additional-citation-systems-and-reference_status)), lists references, optionally lists resolver templates, and optionally lists work-level mappings. A `CitationSystem` source file declares the locator regex and examples.
+A `Work` source file declares the work itself, references the citation system it uses as its **preferred** citation system (optionally alongside fallback systems, see [Additional citation systems](#additional-citation-systems-and-reference_status)), lists references, optionally lists resolver templates, and optionally lists work-level mappings. A `CitationSystem` source file declares the locator regex and a prose description of the locator format.
 
 ## A worked example
 
-The Dhammapada has 423 verses across 26 chapters and is hosted on four different reading platforms with four different URL patterns. The whole work, with chapter 1 fully wired up, is roughly 60 lines of YAML:
+The Dhammapada has 423 verses across 26 chapters and is hosted on two different reading platforms with two different URL patterns. The whole work, with chapter 1 fully wired up, is roughly 60 lines of YAML:
 
 ```yaml
 # data/works/dhammapada.yaml
@@ -36,7 +36,7 @@ citation_system: dhammapada-chapter-verse # the work's PREFERRED citation system
 
 mappings:
   - relation: alternateOf
-    identifier: 'https://www.wikidata.org/entity/Q220114'
+    identifier: 'https://www.wikidata.org/entity/Q748878'
     conforms_to: 'https://www.wikidata.org/'
     source: manual-curation
     status: draft
@@ -124,7 +124,7 @@ Follow CSL-JSON conventions so citeproc-js / Zotero render correctly.
 
 ## How URL templates work
 
-The compiler treats every resolver `url` as an [RFC 6570](https://www.rfc-editor.org/rfc/rfc6570) Level 1 template. Variables are drawn from two sources:
+The compiler treats every resolver `url` as an [RFC 6570](https://www.rfc-editor.org/rfc/rfc6570) Level 1 template. Variables are drawn from five sources:
 
 1. **Named capture groups** in the citation system's `locator_regex`. For example, a regex like `^(?<chapter>\d+)\.(?<verse>\d+)$` exposes `{chapter}` and `{verse}` to every template.
 2. **Zero-padded variants** of any numeric capture, generated automatically: `{chapter02}`, `{chapter03}`, `{chapter04}`, `{verse02}`, `{verse03}`. Use the padding width that matches the target site's URL.
@@ -173,7 +173,7 @@ Some providers use chapter or section names that don't fit a formula (e.g. `01-P
       2: 'https://ancient-buddhist-texts.net/Texts-and-Translations/Dhammapada/02-Heedfulness.htm'
 ```
 
-The compiler looks up the value of the chosen variable (`chapter`) in the map and uses the matching URL. References for chapters not in the map are silently skipped for this provider — finish the map at your own pace.
+The compiler looks up the value of the chosen variable (`chapter`) in the map and uses the matching URL. A chapter not in the map is treated exactly like a missing template variable — the entry is skipped and the compiler warns — so finish the map at your own pace and watch the skipped-entry count.
 
 ## When even that isn't enough
 
@@ -330,7 +330,7 @@ The top-level `citation_system:` block is the work's **preferred** system: its r
 work:
   key: plato.republic
   preferred_label: Republic
-  status: active
+  status: draft
   created: 2026-05-31
   modified: 2026-05-31
 
@@ -339,11 +339,13 @@ references:
   - '514a'
 
 additional_systems:
-  - citation_system: book-chapter # fallback system
+  - citation_system: book-chapter # fallback system — must already exist as data/systems/book-chapter.yaml
     reference_status: draft # optional; explicit here for clarity
     references:
       - '7.1'
 ```
+
+`book-chapter` here is illustrative only; every `citation_system` key, whether at the top level or inside `additional_systems`, must already be registered under `data/systems/`. An unregistered key is a build-time error: the compiler throws `references unknown citation_system "…"` for that work.
 
 The status default is **asymmetric**: the top-level block's `reference_status` defaults to the work's own `status`, but an `additional_systems` block's `reference_status` defaults to `draft` — never to the work's status. Adding a fallback system to an already-active work never silently promotes its references to `active`; each fallback is reviewed on its own. Declaring the same `citation_system` twice for one work — as the preferred system and again under `additional_systems`, or twice within `additional_systems` — is rejected when the source file is parsed.
 
@@ -414,10 +416,10 @@ The compiler is deterministic: re-running `compile:data` against unchanged sourc
 ## What lives where
 
 - `/id/work/{key}/` — a Work's canonical landing page (mappings, references, citation systems). A sibling `/id/work/{key}.json` serves the same record as JSON-LD.
-- `/id/system/{key}/` — a CitationSystem's canonical landing page (regex, examples, references). Plus `/id/system/{key}.json`.
+- `/id/system/{key}/` — a CitationSystem's canonical landing page (description, regex, works using it with reference counts). Plus `/id/system/{key}.json`.
 - `/id/ref/{uuid}/` — a CanonicalReference page with every resolver URL grouped by language. Plus `/id/ref/{uuid}.json`.
 - `/id/mapping/{uuid}/` — a MappingAssertion page. Plus `/id/mapping/{uuid}.json`.
-- `/reg/` — the human registry browser (filter works and citation systems, then browse paginated reference lists from work/system pages).
+- `/reg/` — the human registry browser (filter works and citation systems, then browse paginated reference lists from work pages).
 - `/cite/{work_key}/{citation_system_key}/{locator}/` — qualified short alias, minted for every reference.
 - `/cite/{work_key}/{locator}/` — bare short alias, minted only for a work's preferred citation system; it MAY be retargeted if that preference changes.
 

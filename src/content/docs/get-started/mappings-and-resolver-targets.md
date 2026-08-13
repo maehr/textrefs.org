@@ -19,7 +19,7 @@ Ask what the external thing is doing.
 | is a URL where a reader can inspect a specific passage              | entry in `CanonicalReference.resolver_targets` |
 | is only an author, institution, subject, or non-textual authority   | usually not TextRefs                           |
 
-A `MappingAssertion` is about work-level equivalence. A `resolver_targets` entry is about dereferencing one passage.
+A `MappingAssertion` is about the work as a whole. A `resolver_targets` entry is about dereferencing one passage.
 
 ## Use a MappingAssertion for work-level identifiers
 
@@ -40,7 +40,7 @@ Choose the relation by what the target is, not by how confident you feel: use `a
   "subject": "https://textrefs.org/id/work/dhammapada",
   "relation": "alternateOf",
   "target": {
-    "identifier": "https://www.wikidata.org/entity/Q220114",
+    "identifier": "https://www.wikidata.org/entity/Q748878",
     "conforms_to": "https://www.wikidata.org/"
   },
   "source": "manual-curation"
@@ -117,7 +117,7 @@ An author's name alone is not a `Work`. For example, "Confucius" is an authority
 
 **Divergent numbering.** If two traditions number the same material differently, create separate `CanonicalReference`s under separate `CitationSystem`s. The equivalence between the two citation systems is not yet expressible in this version: `MappingAssertion.subject` MUST be a Work IRI, so a system-to-system assertion cannot be authored. A future revision may widen `subject` to admit a `CitationSystem` IRI.
 
-**Contained-by relationships.** If an identifier points to a whole edition, scan, or digital object rather than the exact passage, it is not a `MappingAssertion` target at all. If it is an alternate presentation of the whole work, model it as `alternateOf`; otherwise it belongs in `resolver_targets`.
+**Contained-by relationships.** An identifier for a whole edition, scan, or digital object is still chosen by what it denotes, per the [ADR-0006](https://github.com/textrefs/textrefs.org/blob/main/decisions/ADR-0006-mapping-relation-vocabulary.md) test: if it denotes the same work, model it as `alternateOf`; if it is a document about the work, model it as `isReferencedBy`; if it only lets a reader inspect one specific passage, it belongs in `resolver_targets`, not a mapping.
 
 **Unstable websites.** A website URL can be useful as a resolver target even if it is not a stable identifier. Do not derive TextRefs IDs from it.
 
