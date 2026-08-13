@@ -32,8 +32,12 @@ export const FlatKey = z
 	.regex(/^[a-z0-9][a-z0-9._-]*$/, 'flat key syntax: ^[a-z0-9][a-z0-9._-]*$');
 
 // BCP 47 well-formedness (RFC 5646 langtag + privateuse). Registry validity is
-// not checked — only that the tag parses. Irregular grandfathered tags
-// (i-klingon, …) are out of scope: no text language in the registry needs one.
+// not checked — only that the tag parses. Grandfathered tags split on that same
+// line: the nine regular ones (art-lojban, zh-min-nan, …) are well-formed
+// langtags and pass, and the seventeen irregular ones are out of scope — both
+// the i- forms (i-klingon, …) and the four without that prefix (en-GB-oed,
+// sgn-BE-FR, sgn-BE-NL, sgn-CH-DE). No text language in the registry needs one.
+// `scripts/compile.test.ts` locks this split to the regex.
 export const LanguageTag = z
 	.string()
 	.regex(
