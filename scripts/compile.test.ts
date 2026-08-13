@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { v5 as uuidv5 } from 'uuid';
 import { compileRegistry, type CompiledRegistry } from './compile.js';
+import { LanguageTag } from '../standard/schema/common.js';
 
 type RegistryFiles = {
 	systems: Record<string, string>;
@@ -567,4 +568,71 @@ test('url_by with more than one selector variable is rejected at parse time', (t
 		),
 	);
 	assert.match(logged.join('\n'), /url_by takes exactly one selector variable/);
+});
+
+// --- Resolver language tags (BCP 47) -----------------------------------------
+
+test('a malformed language tag is rejected at parse time', (t) => {
+	const message = expectCompileError(
+		t,
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    language: 'e n'`),
+	);
+	assert.match(message, /test\.work/);
+});
+
+test('a well-formed subtagged language tag is accepted', () => {
+	const reg = compileFixture(
+		workWithResolver(`  - url: 'https://example.org/{book}/{chapter}'
+    language: grc-Grek`),
+	);
+	assert.equal(
+		reg.references.find((r) => r.locator === 'Gen.1')?.resolver_targets[0]
+			?.language,
+		'grc-Grek',
+	);
+});
+
+// RFC 5646 keeps grandfathered tags outside the langtag production it defines,
+// so `LanguageTag` accepts or rejects them by whether they happen to parse as a
+// langtag. This locks that split, which the comment on `LanguageTag` describes.
+test('regular grandfathered tags parse and irregular ones do not', () => {
+	const regular = [
+		'art-lojban',
+		'cel-gaulish',
+		'no-bok',
+		'no-nyn',
+		'zh-guoyu',
+		'zh-hakka',
+		'zh-min',
+		'zh-min-nan',
+		'zh-xiang',
+	];
+	const irregular = [
+		'en-GB-oed',
+		'i-ami',
+		'i-bnn',
+		'i-default',
+		'i-enochian',
+		'i-hak',
+		'i-klingon',
+		'i-lux',
+		'i-mingo',
+		'i-navajo',
+		'i-pwn',
+		'i-tao',
+		'i-tay',
+		'i-tsu',
+		'sgn-BE-FR',
+		'sgn-BE-NL',
+		'sgn-CH-DE',
+	];
+	assert.deepEqual(
+		regular.filter((tag) => !LanguageTag.safeParse(tag).success),
+		[],
+	);
+	assert.deepEqual(
+		irregular.filter((tag) => LanguageTag.safeParse(tag).success),
+		[],
+	);
 });

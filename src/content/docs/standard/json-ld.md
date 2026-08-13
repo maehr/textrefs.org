@@ -16,14 +16,14 @@ https://textrefs.org/contexts/v1.jsonld
 
 ## Vocabularies
 
-| Prefix    | Namespace                              | Used for                                                                                                |
-| --------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `tr`      | `https://textrefs.org/ontology#`       | TextRefs object types, keys, and TextRefs-specific metadata                                             |
-| `skos`    | `http://www.w3.org/2004/02/skos/core#` | Labels and schemes (`inScheme`)                                                                         |
-| `dcterms` | `http://purl.org/dc/terms/`            | `created`, `modified`, `source`, `language`, `license`, `conformsTo`, `isReferencedBy` mapping relation |
-| `prov`    | `http://www.w3.org/ns/prov#`           | Work ↔ same-entity mapping relation (`alternateOf`)                                                     |
-| `schema`  | `https://schema.org/`                  | `url`, `provider`, `edition`, `creator`, `familyName`, `givenName`, `name`                              |
-| `xsd`     | `http://www.w3.org/2001/XMLSchema#`    | `xsd:date` typing for `created` / `modified` / `last_checked`                                           |
+| Prefix    | Namespace                              | Used for                                                                                                                                              |
+| --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tr`      | `https://textrefs.org/ontology#`       | TextRefs object types, keys, and TextRefs-specific metadata                                                                                           |
+| `skos`    | `http://www.w3.org/2004/02/skos/core#` | Labels and schemes (`inScheme`)                                                                                                                       |
+| `dcterms` | `http://purl.org/dc/terms/`            | `created`, `modified`, `source`, `language`, `license`, `conformsTo`, `description`, `isReferencedBy` mapping relation, `isReplacedBy` successor link |
+| `prov`    | `http://www.w3.org/ns/prov#`           | Work ↔ same-entity mapping relation (`alternateOf`)                                                                                                   |
+| `schema`  | `https://schema.org/`                  | `url`, `provider`, `edition`, `creator`, `familyName`, `givenName`, `name`                                                                            |
+| `xsd`     | `http://www.w3.org/2001/XMLSchema#`    | `xsd:date` typing for `created` / `modified` / `last_checked`                                                                                         |
 
 ## Mapping relations
 
@@ -32,7 +32,7 @@ The mapping relations are chosen by what the target is, never by author confiden
 - `alternateOf` → `prov:alternateOf`, when the target is another entity denoting the same work (e.g. a Wikidata item).
 - `isReferencedBy` → `dcterms:isReferencedBy`, when the target is a document or page about the work (e.g. a Wikipedia article).
 
-Published `Work` records additionally carry direct `alternateOf` / `isReferencedBy` arrays derived from their non-tombstoned mapping assertions, published as `prov:alternateOf` / `dcterms:isReferencedBy` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records. The arrays are a read-only projection; the assertion stays authoritative ([Specification §6](/standard/specification/#6-work)).
+Published `Work` records additionally carry direct `alternateOf` / `isReferencedBy` arrays derived from mapping assertions that are not `withdrawn` or `blocked`, published as `prov:alternateOf` / `dcterms:isReferencedBy` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records. The arrays are a read-only projection; the assertion stays authoritative ([Specification §6](/standard/specification/#6-work)).
 
 Choose `alternateOf` when the target identifies the same work from a different perspective or at a different level of abstraction; choose `isReferencedBy` when the target describes the work rather than identifying it. See [Specification §10](/standard/specification/#10-mappingassertion).
 

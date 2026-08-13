@@ -66,7 +66,7 @@ Registry data lives in [`textrefs/registry`](https://github.com/textrefs/registr
 Before pushing routine documentation, styling, or route work, run the fast local gate:
 
 ```sh
-npm run verify:fast      # Prettier check + fixture-backed astro check + fixture-backed build
+npm run verify:fast      # Prettier check + fixture-backed astro check + tests + fixture-backed build
 ```
 
 Run the full `npm run verify` before PRs that touch registry data, release output, production build behaviour, or CI behaviour. Run `npm run validate:data` as well for registry-data and standard PRs.

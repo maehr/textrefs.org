@@ -10,7 +10,7 @@ info:
     - `/id/{type}/{key}.json` — JSON-LD for machines.
 
     There is **no** `Accept`-header content negotiation. Clients either
-    follow the `<link rel="alternate" type="application/json" href="…json">`
+    follow the `<link rel="alternate" type="application/ld+json" href="…json">`
     advertised in the HTML head, or simply append `.json` to the canonical
     URL. JSON bodies carry the JSON-LD `@context` at
     [`/contexts/v1.jsonld`](https://textrefs.org/contexts/v1.jsonld); the
@@ -196,6 +196,24 @@ components:
           description:
             Successor IRI. Only present when status is deprecated, withdrawn,
             or blocked.
+    Creator:
+      description:
+        Discriminated on `kind`. A `person` entry names a family name (and
+        optional given name); mononyms such as Plato use `family` alone. A
+        `literal` entry is the escape hatch for pseudonymous, collective, or
+        institutional authorship.
+      oneOf:
+        - type: object
+          required: [kind, family]
+          properties:
+            kind: { type: string, enum: [person] }
+            family: { type: string, minLength: 1 }
+            given: { type: string, minLength: 1 }
+        - type: object
+          required: [kind, name]
+          properties:
+            kind: { type: string, enum: [literal] }
+            name: { type: string, minLength: 1 }
     Work:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
@@ -217,18 +235,21 @@ components:
                 Governs the bare /cite/{work_key}/{locator} alias and default
                 presentation only; it is identity-neutral and never affects how
                 a fully qualified reference validates or resolves.
+            creators:
+              type: array
+              items: { $ref: '#/components/schemas/Creator' }
             alternateOf:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
               description:
-                Compiler-derived from the work's non-tombstoned alternateOf
-                MappingAssertions. Read-only, never authored.
+                Compiler-derived from the work's alternateOf MappingAssertions
+                that are not withdrawn or blocked. Read-only, never authored.
             isReferencedBy:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
-              description:
-                Compiler-derived from the work's non-tombstoned isReferencedBy
-                MappingAssertions. Read-only, never authored.
+              description: Compiler-derived from the work's isReferencedBy
+                MappingAssertions that are not withdrawn or blocked.
+                Read-only, never authored.
     CitationSystem:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'
@@ -248,7 +269,10 @@ components:
       required: [url, access]
       properties:
         url: { $ref: '#/components/schemas/Iri' }
-        language: { type: string, minLength: 2 }
+        language:
+          type: string
+          minLength: 2
+          pattern: '^(?:[A-Za-z]{2,3}(?:-[A-Za-z]{3}){0,3}|[A-Za-z]{4,8})(?:-[A-Za-z]{4})?(?:-(?:[A-Za-z]{2}|\d{3}))?(?:-(?:[\dA-Za-z]{5,8}|\d[\dA-Za-z]{3}))*(?:-[\dA-WY-Za-wy-z](?:-[\dA-Za-z]{2,8})+)*(?:-[Xx](?:-[\dA-Za-z]{1,8})+)?$|^[Xx](?:-[\dA-Za-z]{1,8})+$'
         edition: { type: string }
         provider: { type: string }
         access:

@@ -28,7 +28,7 @@ A dataset conforms to the TextRefs Standard if it satisfies all of the following
 4. Every `CanonicalReference` points to one known `Work` and one known `CitationSystem`.
 5. Every `CanonicalReference.locator` validates syntactically against the referenced `CitationSystem` and semantically by being a registered reference point for the referenced `Work`.
 6. Every `CitationSystem` declares a `description` of its citation tradition and a `locator_regex` that is a valid ECMAScript regular expression.
-7. Every dereferenceable location is represented as an entry in the `resolver_targets` array of its `CanonicalReference`, and every external identifier or cross-reference equivalence through a `MappingAssertion`.
+7. Every dereferenceable location is represented as an entry in the `resolver_targets` array of its `CanonicalReference`, and every external identifier or cross-reference through a `MappingAssertion`.
 8. Every registry object includes administrative metadata.
 9. Registry records contain identifiers, metadata, mappings, provenance, and resolver targets rather than primary text content.
 
@@ -41,7 +41,7 @@ The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHALL`, `SHALL NOT`, `SHOULD`, `S
 TextRefs separates **identity** from **location**.
 
 - **Identity** is abstract and language-independent. `Work`, `CitationSystem`, and `CanonicalReference` answer the question "_which_ passage": for example _the New Testament, book-chapter-verse, John.3.16_. There is exactly one such identity, regardless of how many editions, translations, or websites carry it.
-- **Location and equivalence** answer "_where_ can I read it" and "_what else_ is this the same as". The `resolver_targets` array embedded in each `CanonicalReference` lists places where the reference can be read (specific translations, editions, or providers). `MappingAssertion` records that a `Work` is equivalent to an external identifier or to another `Work`.
+- **Location and mapping** answer "_where_ can I read it" and "_what else_ relates to it". The `resolver_targets` array embedded in each `CanonicalReference` lists places where the reference can be read (specific translations, editions, or providers). `MappingAssertion` relates a `Work` to an external identifier or to another `Work` — either as another entity denoting the same work, or as a document about it ([§10](#10-mappingassertion)).
 
 A reference such as `John.3.16` is the **same identity** whether read in Greek, the King James Version, or the Lutherbibel. The translation is a property of the _location_, never of the identity. This is what lets the model scale to works with many editions and translations (see [§13](#13-worked-example-a-multi-translation-work)).
 
@@ -56,7 +56,7 @@ A conforming registry MUST support these object types. Each top-level object MUS
 | `Work`               | identity            | An abstract textual work.                                               |
 | `CitationSystem`     | identity            | A notation that fragments works into locators.                          |
 | `CanonicalReference` | identity + location | One abstract reference point in a work, with embedded resolver targets. |
-| `MappingAssertion`   | equivalence         | A curated equivalence between a `Work` and an external identifier.      |
+| `MappingAssertion`   | relation            | A curated relation between a `Work` and an external identifier.         |
 
 Dereferenceable locations are not a separate object type. They are recorded as entries in the `resolver_targets` array embedded in each `CanonicalReference` (see [§9](#9-embedded-resolver-targets)). This keeps language-tagged locations co-located with the reference they describe, and means a work with N translations adds N array entries — not N standalone records.
 
@@ -68,6 +68,7 @@ classDiagram
         +URI id
         +string key
         +string preferred_label
+        +string preferred_citation_system_key
         +Creator[] creators
     }
     class CitationSystem {
@@ -230,14 +231,14 @@ Required per entry: `url`, `access`.
 - `url` MUST be a dereferenceable external IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)).
 - `language` MUST be present when the entry is language-specific (e.g. a translation), as a [BCP 47](https://www.rfc-editor.org/info/bcp47) language tag ([RFC 5646](https://www.rfc-editor.org/rfc/rfc5646)). Tags MUST include an [ISO 15924](https://www.unicode.org/iso15924/) script subtag when the entry uses a non-default script for the language (e.g. `grc-Grek`, `hbo-Hebr`, `grc-Latn`). `edition` SHOULD name the specific edition or version when known.
 - `access` MUST be one of `open`, `paywalled`, `restricted`, `unknown`.
-- `license` SHOULD be authored as a current [SPDX license identifier](https://spdx.org/licenses/) (e.g. `CC0-1.0`, `CC-BY-4.0`) when the licence of the target resource is known; published JSON-LD carries the canonical SPDX IRI (`https://spdx.org/licenses/{id}`), so `dcterms:license` has a single IRI-typed range. For licences not in the SPDX list, omit `license` and use the optional `license_url` to point at the licence text.
+- `license`, when present, MUST be the canonical SPDX IRI (`https://spdx.org/licenses/{id}`) of a current or deprecated [SPDX license identifier](https://spdx.org/licenses/), so `dcterms:license` has a single IRI-typed range. Authoring formats carry the bare identifier (e.g. `CC0-1.0`, `CC-BY-4.0`) and the published record carries the IRI; see [§14](#14-validation-requirements) item 10. For licences not in the SPDX list, omit `license` and use the optional `license_url` to point at the licence text.
 - Values implying permission to host copyrighted full text (e.g. a `license` of `proprietary` accompanied by hosted text) are forbidden; the no-text rule in [§2](#2-conformance) governs.
 - A `CanonicalReference` whose `resolver_targets` is an empty array remains a valid identity record; adding or removing an entry MUST NOT change the parent reference's `id`.
 - Tombstoning a single bad URL is done by removing the entry; tombstoning the whole reference uses the parent `status` field. There is no independent status on individual entries.
 
 ## 10. MappingAssertion
 
-A `MappingAssertion` records a curated equivalence claim between a TextRefs `Work` and an **external identifier** (CTS URN, Wikidata Q-ID, DOI, ARK, …) or another TextRefs `Work`. There is no separate object type for external identifiers; they are always expressed as mapping targets.
+A `MappingAssertion` records a curated relation between a TextRefs `Work` and an **external identifier** (CTS URN, Wikidata Q-ID, DOI, ARK, …) or another TextRefs `Work`. There is no separate object type for external identifiers; they are always expressed as mapping targets.
 
 ```json
 {
@@ -276,7 +277,7 @@ A `MappingAssertion` identifier MUST be generated deterministically from `subjec
 
 The persistence promise attaches at **promotion**: the first time a record is published at status `active` ([§12](#12-administrative-metadata)). Promotion changes `status` only and MUST NOT change identity-defining fields, so the identifier survives promotion unchanged. Records at status `draft` are excluded from the persistence policy: they MAY be corrected (changing an identity field mints a different identifier; the previous one ceases to resolve) or retracted (the record is deleted) without a tombstone.
 
-An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated`, `withdrawn`, or `blocked`, [§12](#12-administrative-metadata)) and SHOULD carry the successor IRI in `superseded_by`. `MappingAssertion`s MUST NOT be used for succession; they are reserved for work-level equivalence ([§10](#10-mappingassertion)).
+An implementation MUST NOT silently change the identity-defining fields of an existing **promoted** `CanonicalReference`. Because those fields seed the deterministic identifier, any change produces a new `CanonicalReference` with a new identifier. The prior reference MUST be retained as a tombstone (`status` `deprecated`, `withdrawn`, or `blocked`, [§12](#12-administrative-metadata)) and SHOULD carry the successor IRI in `superseded_by`. `MappingAssertion`s MUST NOT be used for succession; they are reserved for work-level relations to external identifiers ([§10](#10-mappingassertion)). The three tombstone statuses differ in reach: a `deprecated` record is retained and still resolves, while a `withdrawn` or `blocked` record is additionally excluded from `Work` mapping projections ([§6](#6-work)) and MUST NOT be depended on by a live record.
 
 A conforming registry SHOULD publish each `/id/{type}/{key}` IRI at two static URLs: the canonical URL itself (HTML for browsers) and a sibling with a `.json` extension carrying the JSON-LD payload. The HTML representation SHOULD advertise the JSON-LD sibling via `<link rel="alternate" type="application/ld+json" href="…json">` in the document head. `Accept`-header content negotiation is not required.
 
@@ -321,6 +322,7 @@ This is the case that motivates separating identity from location. The New Testa
       "key": "new-testament",
       "type": "Work",
       "preferred_label": "New Testament",
+      "preferred_citation_system_key": "bible-book-chapter-verse",
       "status": "active",
       "created": "2026-05-31",
       "modified": "2026-05-31"
@@ -357,7 +359,7 @@ This is the case that motivates separating identity from location. The New Testa
           "edition": "King James Version",
           "provider": "Bible Gateway",
           "access": "open",
-          "license": "CC0-1.0"
+          "license": "https://spdx.org/licenses/CC0-1.0"
         }
       ],
       "status": "active",
@@ -385,7 +387,7 @@ A conforming validator MUST check:
 7. canonical-reference semantic validity: accepted records must be registered, attested reference points for their `Work` and `CitationSystem`;
 8. deterministic-identifier correctness for canonical references and mapping assertions;
 9. UUID-based identifier shape for `CanonicalReference` and `MappingAssertion` records;
-10. `resolver_targets` entries: `access` values, BCP 47 syntax of `language` and its presence for language-specific entries, and SPDX syntax of `license` when present;
+10. `resolver_targets` entries: `access` values, BCP 47 syntax of `language`, and SPDX license IRI syntax of `license` when present ([§9](#9-embedded-resolver-targets)) — the bare SPDX identifier form is an authoring-time check, not a published-record validation concern;
 11. mapping `relation` values and the Work-IRI shape of `MappingAssertion.subject`;
 12. absence of forbidden full-text/apparatus/commentary content;
 13. that no `active` record depends on a `draft` one: an `active` `CanonicalReference` references an `active` `Work` and an `active` `CitationSystem`, and an `active` `MappingAssertion` takes an `active` `Work` as its `subject`; `Work.preferred_citation_system_key` MUST reference a known `CitationSystem`, and an `active` `Work` requires an `active` preferred `CitationSystem`.
@@ -415,7 +417,8 @@ This standard relies on the following external standards. Each is normative wher
 | Regular expression dialect           | [ECMA-262](https://262.ecma-international.org/) §22.2                                                |
 | Versioning                           | [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html)                                                  |
 | Linked-data serialization            | [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/)                                                      |
-| Concepts and mapping relations       | [SKOS](https://www.w3.org/TR/skos-reference/)                                                        |
+| Labels and concept schemes           | [SKOS](https://www.w3.org/TR/skos-reference/)                                                        |
+| Alternate-presentation relations     | [PROV-O](https://www.w3.org/TR/prov-o/)                                                              |
 | Dates, provenance, language, licence | [Dublin Core Terms](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/)               |
 | URL, provider, edition, work type    | [schema.org](https://schema.org/)                                                                    |
 | Licence identifiers                  | [SPDX License List](https://spdx.org/licenses/)                                                      |
