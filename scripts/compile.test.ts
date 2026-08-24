@@ -10,7 +10,13 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { v5 as uuidv5 } from 'uuid';
-import { compileRegistry, type CompiledRegistry } from './compile.js';
+import { createHash } from 'node:crypto';
+import {
+	compileRegistry,
+	dumpResources,
+	describeResource,
+	type CompiledRegistry,
+} from './compile.js';
 import { LanguageTag } from '../standard/schema/common.js';
 
 type RegistryFiles = {
@@ -669,5 +675,102 @@ test('regular grandfathered tags parse and irregular ones do not', () => {
 	assert.deepEqual(
 		irregular.filter((tag) => LanguageTag.safeParse(tag).success),
 		[],
+	);
+});
+
+// --- Dump resources (#84) -------------------------------------------------
+
+// `workWithMappings` gives an alias table with both kinds of entry: `/cite/`
+// aliases targeting reference IRIs, and external identifiers targeting the work
+// IRI.
+const dumped = () => dumpResources(compileFixture(workWithMappings()));
+
+const aliasSpec = (specs: ReturnType<typeof dumpResources>) => {
+	const spec = specs.find((s) => s.name === 'aliases');
+	assert.ok(spec, 'the dump carries an alias resource');
+	return spec;
+};
+
+test('the dump carries the alias table beside the four JSONL resources', () => {
+	const specs = dumped();
+	assert.deepEqual(
+		specs.map((s) => s.name),
+		['works', 'citation-systems', 'references', 'mappings', 'aliases'],
+	);
+	const spec = aliasSpec(specs);
+	assert.equal(spec.filename, 'aliases.json');
+	assert.equal(spec.format, 'json');
+	assert.equal(spec.mediatype, 'application/json');
+});
+
+test('the alias resource body is the whole alias table', () => {
+	const reg = compileFixture(workWithMappings());
+	const spec = aliasSpec(dumpResources(reg));
+	const table = JSON.parse(spec.body) as Record<string, string>;
+	assert.deepEqual(table, reg.aliases);
+	// A `/cite/` alias resolves to a reference; an external identifier resolves
+	// to the work. A `://` in the key marks the second kind.
+	assert.match(
+		table['test.work/primary-section/5'],
+		/^https:\/\/textrefs\.org\/id\/ref\//,
+	);
+	assert.equal(
+		table['https://www.wikidata.org/entity/Q1'],
+		'https://textrefs.org/id/work/test.work',
+	);
+});
+
+test('alias keys are sorted, so the body does not depend on visit order', () => {
+	const keys = Object.keys(JSON.parse(aliasSpec(dumped()).body));
+	assert.ok(keys.length > 1);
+	assert.deepEqual(keys, [...keys].sort());
+});
+
+test('the alias body is minified and newline-terminated', () => {
+	const body = aliasSpec(dumped()).body;
+	assert.equal(body.split('\n').length, 2);
+	assert.ok(body.startsWith('{"'));
+	assert.ok(body.endsWith('}\n'));
+});
+
+test('every descriptor states the bytes and sha256 of its own body', () => {
+	for (const spec of dumped()) {
+		const d = describeResource(spec);
+		// Recomputed the way a downstream consumer verifies a download.
+		assert.equal(d.bytes, Buffer.byteLength(spec.body, 'utf8'));
+		assert.equal(
+			d.hash,
+			`sha256:${createHash('sha256').update(spec.body).digest('hex')}`,
+		);
+	}
+});
+
+test('every descriptor carries the Frictionless fields', () => {
+	for (const spec of dumped()) {
+		const d = describeResource(spec);
+		assert.equal(d.profile, 'data-resource');
+		assert.equal(d.encoding, 'utf-8');
+		assert.equal(d.path, spec.filename);
+		assert.equal(d.name, spec.name);
+	}
+});
+
+test('the JSONL bodies are unchanged by the alias-resource refactor', () => {
+	const reg = compileFixture(workWithMappings());
+	const specs = dumpResources(reg);
+	const bodyOf = (name: string) => specs.find((s) => s.name === name)?.body;
+	assert.equal(
+		bodyOf('works'),
+		reg.works.map((r) => JSON.stringify(r)).join('\n') + '\n',
+	);
+	assert.equal(
+		bodyOf('references'),
+		reg.references.map((r) => JSON.stringify(r)).join('\n') + '\n',
+	);
+	// An empty record array still yields an empty body, not a bare newline.
+	assert.equal(
+		dumpResources({ ...reg, mappings: [] }).find((s) => s.name === 'mappings')
+			?.body,
+		'',
 	);
 });
