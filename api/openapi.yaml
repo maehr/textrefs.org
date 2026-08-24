@@ -243,13 +243,16 @@ components:
               items: { $ref: '#/components/schemas/Iri' }
               description:
                 Compiler-derived from the work's alternateOf MappingAssertions
-                that are not withdrawn or blocked. Read-only, never authored.
+                that are not deprecated, withdrawn or blocked. The array enriches
+                the work and makes no review claim. Read the MappingAssertion for
+                status. Read-only, never authored.
             isReferencedBy:
               type: array
               items: { $ref: '#/components/schemas/Iri' }
               description: Compiler-derived from the work's isReferencedBy
-                MappingAssertions that are not withdrawn or blocked.
-                Read-only, never authored.
+                MappingAssertions that are not deprecated, withdrawn or blocked.
+                The array enriches the work and makes no review claim. Read the
+                MappingAssertion for status. Read-only, never authored.
     CitationSystem:
       allOf:
         - $ref: '#/components/schemas/AdminMetadata'

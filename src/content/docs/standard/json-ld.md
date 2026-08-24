@@ -32,7 +32,7 @@ The mapping relations are chosen by what the target is, never by author confiden
 - `alternateOf` → `prov:alternateOf`, when the target is another entity denoting the same work (e.g. a Wikidata item).
 - `isReferencedBy` → `dcterms:isReferencedBy`, when the target is a document or page about the work (e.g. a Wikipedia article).
 
-Published `Work` records additionally carry direct `alternateOf` / `isReferencedBy` arrays derived from mapping assertions that are not `withdrawn` or `blocked`, published as `prov:alternateOf` / `dcterms:isReferencedBy` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records. The arrays are a read-only projection; the assertion stays authoritative ([Specification §6](/standard/specification/#6-work)).
+Published `Work` records additionally carry direct `alternateOf` / `isReferencedBy` arrays derived from mapping assertions that are not `deprecated`, `withdrawn` or `blocked`, published as `prov:alternateOf` / `dcterms:isReferencedBy` edges from the work IRI to the mapped identifiers without dereferencing the reified `MappingAssertion` records. The arrays are a read-only projection; the assertion stays authoritative ([Specification §6](/standard/specification/#6-work)). The arrays enrich the work. They make no claim about review: a consumer that needs the status of a mapping must read the `MappingAssertion`.
 
 Choose `alternateOf` when the target identifies the same work from a different perspective or at a different level of abstraction; choose `isReferencedBy` when the target describes the work rather than identifying it. See [Specification §10](/standard/specification/#10-mappingassertion).
 

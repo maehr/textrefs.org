@@ -138,7 +138,7 @@ Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_s
 
 External identifiers for a `Work` (e.g. Wikidata Q-ID, DOI, VIAF) are asserted as `MappingAssertion`s whose `subject` is the `Work` ([§10](#10-mappingassertion)). They MUST NOT be authored directly on the `Work`.
 
-`alternateOf` and `isReferencedBy` are the compiler's read-only projection of those assertions — every one whose `status` is not `withdrawn` or `blocked`, grouped by `relation` — published straight from the work IRI as `prov:alternateOf` / `dcterms:isReferencedBy` edges ([JSON-LD](/standard/json-ld/#mapping-relations)). They carry no status or provenance; the `MappingAssertion` stays authoritative.
+`alternateOf` and `isReferencedBy` are the compiler's read-only projection of those assertions — every one whose `status` is not `deprecated`, `withdrawn` or `blocked`, grouped by `relation` — published straight from the work IRI as `prov:alternateOf` / `dcterms:isReferencedBy` edges ([JSON-LD](/standard/json-ld/#mapping-relations)). They carry no status or provenance; the `MappingAssertion` stays authoritative. The arrays enrich the work. They make no claim about review: a consumer that needs the status of a mapping MUST read the `MappingAssertion`.
 
 ## 7. CitationSystem
 
