@@ -28,8 +28,9 @@ export const WorkBase = AdminMetadata.extend({
 	preferred_citation_system_key: FlatKey,
 	creators: z.array(Creator).optional(),
 	// Compiler-derived projection of the work's MappingAssertions that are not
-	// withdrawn or blocked (prov:alternateOf / dcterms:isReferencedBy in the
-	// published context, ADR-0006). Never authored.
+	// deprecated, withdrawn or blocked (prov:alternateOf / dcterms:isReferencedBy
+	// in the published context, ADR-0006). The arrays enrich the work; they make
+	// no review claim. Read the MappingAssertion for status. Never authored.
 	alternateOf: z.array(Iri).optional(),
 	isReferencedBy: z.array(Iri).optional(),
 });

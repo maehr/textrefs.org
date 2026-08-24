@@ -483,12 +483,14 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 		// the context, ADR-0006) projected from the work's mapping assertions,
 		// in addition to the reified MappingAssertion records below. Keyed off
 		// the relation enum so adding a relation needs no branch here.
+		// A retired assertion does not project: the edge carries no status, so
+		// it would advertise a mapping the registry has taken out of use (#45).
 		const mappingEdges: Record<MappingSource['relation'], string[]> = {
 			alternateOf: [],
 			isReferencedBy: [],
 		};
 		for (const m of src.mappings ?? []) {
-			if (TOMBSTONE_STATUSES.has(m.status)) continue;
+			if (RETIRED_STATUSES.has(m.status)) continue;
 			mappingEdges[m.relation].push(m.identifier);
 		}
 
@@ -631,7 +633,9 @@ type StatusRecord = {
 };
 
 const TOMBSTONE_STATUSES = new Set(['withdrawn', 'blocked']);
-const SUPERSEDABLE_STATUSES = new Set(['deprecated', 'withdrawn', 'blocked']);
+// ADR-0004: deprecated, withdrawn and blocked are the states for records that
+// have left active use.
+const RETIRED_STATUSES = new Set(['deprecated', 'withdrawn', 'blocked']);
 
 function enforceRegistryInvariants(reg: {
 	works: Work[];
@@ -656,7 +660,7 @@ function enforceRegistryInvariants(reg: {
 	// superseded_by carries the successor of a record that has left active use.
 	// A record still in use has none.
 	for (const r of all) {
-		if (r.superseded_by !== undefined && !SUPERSEDABLE_STATUSES.has(r.status)) {
+		if (r.superseded_by !== undefined && !RETIRED_STATUSES.has(r.status)) {
 			errors.push(
 				`${r.id}: superseded_by is only allowed on deprecated/withdrawn/blocked records (status: ${r.status})`,
 			);

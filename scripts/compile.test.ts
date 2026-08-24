@@ -332,6 +332,41 @@ mappings:
 	assert.equal(reg.mappings.length, 2);
 });
 
+test('deprecated mappings are excluded from the projection', () => {
+	const reg = compileFixture({
+		systems: twoSystems,
+		works: {
+			'test.work': `${workHeader()}
+citation_system: primary-section
+references:
+  - '5'
+
+mappings:
+  - relation: alternateOf
+    identifier: 'https://www.wikidata.org/entity/Q1'
+    source: manual-curation
+    status: deprecated
+    created: 2026-01-01
+    modified: 2026-01-01
+  - relation: isReferencedBy
+    identifier: 'https://en.wikipedia.org/wiki/Test'
+    source: manual-curation
+    status: deprecated
+    created: 2026-01-01
+    modified: 2026-01-01
+`,
+		},
+	});
+	const work = reg.works.find((w) => w.key === 'test.work');
+	assert.ok(work);
+	// `deprecated` is retained but no longer recommended (specification §12), so
+	// the unqualified edge must not advertise it (#45).
+	assert.equal(work.alternateOf, undefined);
+	assert.equal(work.isReferencedBy, undefined);
+	// The reified assertions survive; only the projection drops them.
+	assert.equal(reg.mappings.length, 2);
+});
+
 test('mapping IRIs are deterministic from [subject, relation, target]', () => {
 	const reg = compileFixture(workWithMappings());
 	// Recomputed independently here, exactly as validate-data.ts and any
