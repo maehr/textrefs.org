@@ -23,16 +23,20 @@ info:
     yet live.
 
     A client that does not yet know a key starts at `/reg/works.json` or
-    `/reg/systems.json`. `/dump/` carries the whole registry as
-    newline-delimited JSON for bulk consumers.
+    `/reg/systems.json`. A client that knows a work key, a citation system
+    key, and a locator reads the reference UUID from
+    `/reg/work/{key}/aliases.json`. It needs no UUIDv5 implementation of its
+    own. `/dump/` carries the whole registry as newline-delimited JSON, plus
+    the whole alias table as one JSON object, for bulk consumers.
 
     The site is static, and the host derives every `Content-Type` from the
     file extension. This contract therefore declares the media type that
     the host actually sends, not the media type that best describes the
-    payload. A `.json` body is JSON-LD by content and arrives as
-    `application/json`. A `.jsonl` body is newline-delimited JSON by
-    content and arrives as `application/octet-stream`. Parse by
-    documented shape, not by response header.
+    payload. A record or collection `.json` body is JSON-LD by content and
+    arrives as `application/json`. The two alias artifacts are plain JSON
+    and arrive the same way. A `.jsonl` body is newline-delimited JSON by
+    content and arrives as `application/octet-stream`. Parse by documented
+    shape, not by response header.
   license:
     name: AGPL-3.0-or-later
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -47,13 +51,15 @@ tags:
     description: Canonical record URLs under `/id/`.
   - name: Collections
     description:
-      Registry-wide JSON-LD collections under `/reg/`. Entry points for a
-      client that does not yet know a key.
+      Registry-wide JSON-LD collections and per-work locator indexes under
+      `/reg/`. Entry points for a client that knows no key, or that knows a
+      locator but no reference UUID.
   - name: Bulk
     description:
       Whole-registry artifacts under `/dump/`, rebuilt on every deploy. The
-      host serves them as `application/octet-stream`; the bodies are
-      newline-delimited JSON.
+      `.jsonl` bodies are newline-delimited JSON, and the host serves them
+      as `application/octet-stream`. The `.json` bodies are single JSON
+      objects, and the host serves them as `application/json`.
 paths:
   /id/work/{key}/:
     get:
@@ -200,6 +206,28 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/SystemCollection' }
+  /reg/work/{key}/aliases.json:
+    get:
+      tags: [Collections]
+      summary: Work locator index — JSON
+      operationId: getWorkAliasIndex
+      description: Maps every locator of one work to the UUID of its
+        CanonicalReference, grouped by citation system key. A client that
+        knows a passage as work, citation system, and locator reads the UUID
+        here, then fetches `/id/ref/{uuid}.json`. It needs no UUIDv5
+        implementation of its own. The body is plain JSON, not JSON-LD, and
+        carries no `@context`.
+      parameters:
+        - $ref: '#/components/parameters/FlatKey'
+      responses:
+        '200':
+          description:
+            Every reference of this work, in every status, keyed by citation
+            system key and then by locator.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkAliasIndex' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /dump/works.jsonl:
     get:
       tags: [Bulk]
@@ -252,6 +280,23 @@ paths:
           content:
             application/octet-stream:
               schema: { type: string }
+  /dump/aliases.json:
+    get:
+      tags: [Bulk]
+      summary: Alias table — JSON
+      operationId: getAliasesDump
+      description:
+        The complete alias table as one JSON object, with sorted keys and no
+        indentation. For a single lookup, use
+        `/reg/work/{key}/aliases.json` instead. This file serves a consumer
+        that mirrors the whole table.
+      responses:
+        '200':
+          description: One JSON object. Each key is an alias. Each value is the
+            canonical IRI that the alias resolves to.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AliasTable' }
   /dump/datapackage.json:
     get:
       tags: [Bulk]
@@ -260,9 +305,10 @@ paths:
       responses:
         '200':
           description:
-            The Frictionless data-package descriptor that lists the four
-            JSONL resources with, for each, its byte count and its
-            `sha256:` hash, plus the registry version.
+            The Frictionless data-package descriptor that lists the five
+            resources — the four JSONL files and the JSON alias table —
+            with, for each, its byte count and its `sha256:` hash, plus the
+            registry version.
           content:
             application/json:
               schema: { type: object }
@@ -481,6 +527,46 @@ components:
         '@graph':
           type: array
           items: { $ref: '#/components/schemas/CitationSystem' }
+    WorkAliasIndex:
+      description:
+        The `/reg/work/{key}/aliases.json` locator index of one work. Plain
+        JSON, not JSON-LD; it carries no `@context`. The index states
+        identity alone. Read the CanonicalReference for the status and the
+        resolver targets.
+      type: object
+      required: [work_key, preferred_citation_system_key, refs]
+      properties:
+        work_key: { $ref: '#/components/schemas/FlatKey' }
+        preferred_citation_system_key:
+          allOf:
+            - $ref: '#/components/schemas/FlatKey'
+          description:
+            The system that the bare `/cite/{work_key}/{locator}` alias uses
+            (ADR-0005). A default for presentation, never an identity claim.
+            The other keys of `refs` have equal standing.
+        refs:
+          type: object
+          description: One entry per citation system key that this work carries
+            references under. An empty object means the work has no
+            references yet. The same locator under two systems denotes a
+            different passage, and a different UUID, each time.
+          additionalProperties:
+            type: object
+            description: Locator to CanonicalReference UUID.
+            additionalProperties:
+              type: string
+              pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    AliasTable:
+      description:
+        The `/dump/aliases.json` table, with one entry per alias. A key is
+        either a `/cite/` alias path — `{work_key}/{locator}` or
+        `{work_key}/{citation_system_key}/{locator}` — or an external
+        identifier IRI carried by a MappingAssertion. A value is the
+        canonical IRI that the key resolves to — an `/id/ref/` IRI for a
+        `/cite/` alias, an `/id/work/` IRI for an external identifier. A
+        `://` in the key marks the second kind.
+      type: object
+      additionalProperties: { $ref: '#/components/schemas/Iri' }
     RegistryObject:
       oneOf:
         - { $ref: '#/components/schemas/Work' }

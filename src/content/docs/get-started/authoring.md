@@ -7,7 +7,7 @@ sidebar:
 
 Hand-authored YAML lives in the separate [`textrefs/registry`](https://github.com/textrefs/registry) repository. This repo mounts it as a git submodule at `data/`. After cloning, run `git submodule update --init --recursive`. See [`CONTRIBUTING.md`](https://github.com/textrefs/textrefs.org/blob/main/CONTRIBUTING.md) for the full workflow. Contributors edit `data/works/{work_key}.yaml` and `data/systems/{system_key}.yaml` there.
 
-`npm run build:data` produces the compiled registry from the pinned submodule pointer. The compiled registry holds Works, CitationSystems, CanonicalReferences, and MappingAssertions. The command writes them as JSONL resources plus `datapackage.json` under `dist/dump/`. Published dumps are attached to TextRefs Standard releases and site releases. They are also archived long-term in the [TextRefs Zenodo community](https://zenodo.org/communities/textrefs/) with citable DOIs.
+`npm run build:data` produces the compiled registry from the pinned submodule pointer. The compiled registry holds Works, CitationSystems, CanonicalReferences, and MappingAssertions. The command writes them as JSONL resources under `dist/dump/`, together with the alias table `aliases.json` and the descriptor `datapackage.json`. Published dumps are attached to TextRefs Standard releases and site releases. They are also archived long-term in the [TextRefs Zenodo community](https://zenodo.org/communities/textrefs/) with citable DOIs.
 
 This page documents the YAML format.
 
@@ -426,7 +426,7 @@ Name your capture groups deliberately. Every URL template in every work that use
 ## Building, validating, and previewing
 
 ```sh
-npm run compile:data    # expand YAML → JSONL resources plus datapackage.json under dist/dump/
+npm run compile:data    # expand YAML → JSONL resources, aliases.json, and datapackage.json under dist/dump/
 npm run validate:data   # check every record against the canonical Zod schemas
 npm run build:data      # both, in order
 npm run dev             # browse at http://localhost:4321/reg/ ; records live under /id/
@@ -444,4 +444,4 @@ The compiler is deterministic. Re-running `compile:data` against unchanged sourc
 - `/cite/{work_key}/{citation_system_key}/{locator}/`: qualified short alias, minted for every reference.
 - `/cite/{work_key}/{locator}/`: a bare short alias, minted only for a work's preferred citation system. It MAY be retargeted if that preference changes.
 
-A reader who types `https://textrefs.org/cite/plato.republic/stephanus/514a` (qualified) or `https://textrefs.org/cite/plato.republic/514a` (bare) lands on the same canonical reference page. The compiler generates the alias index alongside the records. See [URL layout](/get-started/url-layout/) for the full four-prefix model and alias-permanence rules.
+A reader who types `https://textrefs.org/cite/plato.republic/stephanus/514a` (qualified) or `https://textrefs.org/cite/plato.republic/514a` (bare) lands on the same canonical reference page. The compiler generates the alias index alongside the records, and publishes it at `/reg/work/{work_key}/aliases.json` and `/dump/aliases.json`. See [URL layout](/get-started/url-layout/) for the full four-prefix model and alias-permanence rules.

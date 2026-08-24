@@ -757,53 +757,109 @@ function readPackageVersion(): string {
 	return pkg.version;
 }
 
+type ResourceSpec = {
+	name: string;
+	filename: string;
+	format: string;
+	mediatype: string;
+	/**
+	 * The pre-serialised body. The dump is no longer JSONL-only, so each
+	 * resource carries its own bytes rather than a record array.
+	 */
+	body: string;
+};
+
+interface ResourceDescriptor {
+	name: string;
+	path: string;
+	profile: 'data-resource';
+	format: string;
+	mediatype: string;
+	encoding: 'utf-8';
+	bytes: number;
+	hash: string;
+}
+
+function jsonlBody(records: ReadonlyArray<unknown>): string {
+	return records.length === 0
+		? ''
+		: records.map((r) => JSON.stringify(r)).join('\n') + '\n';
+}
+
+/**
+ * Every `/dump/` resource body, in descriptor order. Pure — `writeDump` does
+ * the I/O — so the resource set, its media types, and its bodies are testable
+ * without a filesystem.
+ */
+export function dumpResources(registry: CompiledRegistry): ResourceSpec[] {
+	const jsonl = (
+		name: string,
+		filename: string,
+		records: ReadonlyArray<unknown>,
+	): ResourceSpec => ({
+		name,
+		filename,
+		format: 'jsonl',
+		mediatype: 'application/x-ndjson',
+		body: jsonlBody(records),
+	});
+
+	// The complete alias table (#84). Two kinds of entry share it: a `/cite/`
+	// alias targeting a reference IRI, and an external mapping identifier
+	// targeting a work IRI. Values stay full IRIs so a consumer can tell the two
+	// apart; a `://` in the key marks the second kind.
+	//
+	// Keys are sorted by code unit, so the body — and therefore its sha256 —
+	// depends on the registry content alone, never on the order the compiler
+	// happened to visit the work files in. No indentation: the body is ~13 MB.
+	const aliasBody =
+		JSON.stringify(
+			Object.fromEntries(
+				Object.entries(registry.aliases).sort(([a], [b]) =>
+					a < b ? -1 : a > b ? 1 : 0,
+				),
+			),
+		) + '\n';
+
+	return [
+		jsonl('works', 'works.jsonl', registry.works),
+		jsonl('citation-systems', 'citation-systems.jsonl', registry.systems),
+		jsonl('references', 'references.jsonl', registry.references),
+		jsonl('mappings', 'mappings.jsonl', registry.mappings),
+		{
+			name: 'aliases',
+			filename: 'aliases.json',
+			format: 'json',
+			mediatype: 'application/json',
+			body: aliasBody,
+		},
+	];
+}
+
+/**
+ * The Frictionless descriptor of one resource body: the byte count and the
+ * `sha256:` hash that a consumer recomputes to verify a download.
+ */
+export function describeResource(spec: ResourceSpec): ResourceDescriptor {
+	return {
+		name: spec.name,
+		path: spec.filename,
+		profile: 'data-resource',
+		format: spec.format,
+		mediatype: spec.mediatype,
+		encoding: 'utf-8',
+		bytes: Buffer.byteLength(spec.body, 'utf8'),
+		hash: `sha256:${createHash('sha256').update(spec.body).digest('hex')}`,
+	};
+}
+
 function writeDump(registry: CompiledRegistry, version: string): void {
 	const dumpDir = join(distRoot, 'dump');
 	mkdirSync(dumpDir, { recursive: true });
 
-	type ResourceSpec = {
-		name: string;
-		filename: string;
-		records: ReadonlyArray<unknown>;
-	};
-
-	const specs: ResourceSpec[] = [
-		{ name: 'works', filename: 'works.jsonl', records: registry.works },
-		{
-			name: 'citation-systems',
-			filename: 'citation-systems.jsonl',
-			records: registry.systems,
-		},
-		{
-			name: 'references',
-			filename: 'references.jsonl',
-			records: registry.references,
-		},
-		{
-			name: 'mappings',
-			filename: 'mappings.jsonl',
-			records: registry.mappings,
-		},
-	];
-
-	const resources = specs.map((spec) => {
-		const body =
-			spec.records.length === 0
-				? ''
-				: spec.records.map((r) => JSON.stringify(r)).join('\n') + '\n';
-		const bytes = Buffer.byteLength(body, 'utf8');
-		const hash = createHash('sha256').update(body).digest('hex');
-		writeFileSync(join(dumpDir, spec.filename), body);
-		return {
-			name: spec.name,
-			path: spec.filename,
-			profile: 'data-resource',
-			format: 'jsonl',
-			mediatype: 'application/x-ndjson',
-			encoding: 'utf-8',
-			bytes,
-			hash: `sha256:${hash}`,
-		};
+	const resources = dumpResources(registry).map((spec) => {
+		writeFileSync(join(dumpDir, spec.filename), spec.body);
+		return describeResource(spec);
 	});
 
 	const datapackage = {

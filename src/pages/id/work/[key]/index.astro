@@ -103,6 +103,18 @@ const jsonHref = `/id/work/${work.key}.json`;
 					rel: 'alternate',
 					type: 'application/ld+json',
 					href: jsonHref,
+					title: 'Work record',
+				},
+			},
+			// The locator index that resolves {system, locator} to a reference
+			// UUID without a UUIDv5 implementation (#84).
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/json',
+					href: `/reg/work/${work.key}/aliases.json`,
+					title: 'Locator index',
 				},
 			},
 			// Draft records are excluded from search indexing (ADR-0003).
@@ -147,6 +159,10 @@ const jsonHref = `/id/work/${work.key}.json`;
 
 	<h2>Aliases ({aliases.length})</h2>
 	<AliasList aliases={aliases} empty="No aliases registered for this work." />
+	<p class="reg-sub">
+		Every locator of this work maps to its reference UUID in the{' '}
+		<a href={`/reg/work/${work.key}/aliases.json`}>locator index</a>.
+	</p>
 
 	<h2>Mappings ({mappings.length})</h2>
 	{
