@@ -10,7 +10,7 @@ TextRefs uses four URL prefixes, each with one job. Together they make every reg
 | Prefix   | Role           | What lives there                                                                                                                                                                                                                                      |
 | -------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/id/`   | **Identifier** | The canonical, persistent URL of every record. Each record is published twice: `/id/.../` (HTML) and a sibling `/id/....json` (JSON-LD).                                                                                                              |
-| `/reg/`  | **Browse**     | The human registry browser: filter works and citation systems, then browse paginated reference lists from work pages. Links into `/id/`.                                                                                                              |
+| `/reg/`  | **Browse**     | The human registry browser: filter works and citation systems, then browse paginated reference lists from work pages. Links into `/id/`. Also serves two JSON-LD collections, so a client can discover records without a key.                         |
 | `/cite/` | **Cite**       | Short, memorable URLs (`/cite/{work}/{system}/{locator}` always, and bare `/cite/{work}/{locator}` for the work's preferred system) that redirect to the canonical `/id/` URL. Convenience only. Bare aliases MAY be retargeted. `/id/` is permanent. |
 | `/api/`  | **API docs**   | The OpenAPI document that describes the `/id/` URL contract, plus the JSON-LD `@context` at `/contexts/`.                                                                                                                                             |
 
@@ -48,6 +48,45 @@ There is no `Accept`-header content negotiation. Every HTML record page advertis
 A client either reads that `<link>` tag, or appends `.json` to the canonical URL. The JSON payload carries the JSON-LD `@context` at [`/contexts/v1.jsonld`](/contexts/v1.jsonld) and is valid JSON-LD by content.
 
 This mirrors how arxiv.org publishes each paper at `/abs/{id}` and `/pdf/{id}` — two static URLs, two representations, no negotiation needed.
+
+## Collections and bulk data
+
+Every `/id/` URL needs a key you already know. The `/reg/` collections give a client a starting point when it does not have one yet.
+
+`/reg/` serves two static JSON-LD collections:
+
+- `https://textrefs.org/reg/works.json` — every work in the registry
+- `https://textrefs.org/reg/systems.json` — every citation system in the registry
+
+Each collection wraps its records in one `@context` and one `@graph` array:
+
+```json
+{
+  "@context": "https://textrefs.org/contexts/v1.jsonld",
+  "@graph": [
+    {
+      "id": "https://textrefs.org/id/work/plato.republic",
+      "key": "plato.republic",
+      "type": "Work",
+      "…": "…"
+    }
+  ]
+}
+```
+
+Each item carries no `@context` of its own. The collection lists records of every status — active, draft, and retired — sorted by `key`.
+
+For bulk use, five artifacts live under `/dump/`:
+
+- `https://textrefs.org/dump/works.jsonl`
+- `https://textrefs.org/dump/citation-systems.jsonl`
+- `https://textrefs.org/dump/references.jsonl`
+- `https://textrefs.org/dump/mappings.jsonl`
+- `https://textrefs.org/dump/datapackage.json` — a Frictionless data-package descriptor. It lists the four JSONL resources with a byte count and a `sha256:` hash for each.
+
+Each `.jsonl` file holds one record per line, with no `@context`. This is the bulk-archive form of the registry.
+
+Use the small JSON-LD collection for a browser client. Use the `/dump/` files for a bulk consumer. See [`/api/`](/api/) for the full contract.
 
 ## Why four prefixes, not one
 
