@@ -25,6 +25,14 @@ info:
     A client that does not yet know a key starts at `/reg/works.json` or
     `/reg/systems.json`. `/dump/` carries the whole registry as
     newline-delimited JSON for bulk consumers.
+
+    The site is static, and the host derives every `Content-Type` from the
+    file extension. This contract therefore declares the media type that
+    the host actually sends, not the media type that best describes the
+    payload. A `.json` body is JSON-LD by content and arrives as
+    `application/json`. A `.jsonl` body is newline-delimited JSON by
+    content and arrives as `application/octet-stream`. Parse by
+    documented shape, not by response header.
   license:
     name: AGPL-3.0-or-later
     url: https://www.gnu.org/licenses/agpl-3.0.html
@@ -42,7 +50,10 @@ tags:
       Registry-wide JSON-LD collections under `/reg/`. Entry points for a
       client that does not yet know a key.
   - name: Bulk
-    description: Whole-registry artifacts under `/dump/`, rebuilt on every deploy.
+    description:
+      Whole-registry artifacts under `/dump/`, rebuilt on every deploy. The
+      host serves them as `application/octet-stream`; the bodies are
+      newline-delimited JSON.
 paths:
   /id/work/{key}/:
     get:
@@ -171,7 +182,7 @@ paths:
             Every Work record in the registry, in every status, sorted by
             key.
           content:
-            application/ld+json:
+            application/json:
               schema: { $ref: '#/components/schemas/WorkCollection' }
   /reg/systems.json:
     get:
@@ -187,7 +198,7 @@ paths:
             Every CitationSystem record in the registry, in every status,
             sorted by key.
           content:
-            application/ld+json:
+            application/json:
               schema: { $ref: '#/components/schemas/SystemCollection' }
   /dump/works.jsonl:
     get:
@@ -200,7 +211,7 @@ paths:
             Newline-delimited JSON, one Work record object per line, with
             no `@context`.
           content:
-            application/x-ndjson:
+            application/octet-stream:
               schema: { type: string }
   /dump/citation-systems.jsonl:
     get:
@@ -213,7 +224,7 @@ paths:
             Newline-delimited JSON, one CitationSystem record object per
             line, with no `@context`.
           content:
-            application/x-ndjson:
+            application/octet-stream:
               schema: { type: string }
   /dump/references.jsonl:
     get:
@@ -226,7 +237,7 @@ paths:
             Newline-delimited JSON, one CanonicalReference record object
             per line, with no `@context`.
           content:
-            application/x-ndjson:
+            application/octet-stream:
               schema: { type: string }
   /dump/mappings.jsonl:
     get:
@@ -239,7 +250,7 @@ paths:
             Newline-delimited JSON, one MappingAssertion record object per
             line, with no `@context`.
           content:
-            application/x-ndjson:
+            application/octet-stream:
               schema: { type: string }
   /dump/datapackage.json:
     get:

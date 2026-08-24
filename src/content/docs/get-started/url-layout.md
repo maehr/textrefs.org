@@ -86,6 +86,8 @@ For bulk use, five artifacts live under `/dump/`:
 
 Each `.jsonl` file holds one record per line, with no `@context`. This is the bulk-archive form of the registry.
 
+The site is static, and the host sets each `Content-Type` from the file extension. A `.json` body is JSON-LD by content, but it arrives as `application/json`. A `.jsonl` body arrives as `application/octet-stream`. Parse each body by its documented shape. Do not parse it by the response header.
+
 Use the small JSON-LD collection for a browser client. Use the `/dump/` files for a bulk consumer. See [`/api/`](/api/) for the full contract.
 
 ## Why four prefixes, not one
