@@ -2,9 +2,10 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import { loadWorks, loadSystems } from '../../lib/registry.ts';
 import { UNSTABLE_BANNER } from '../../lib/banner.ts';
+import { byKey } from '../../lib/collection.ts';
 
-const works = [...loadWorks()].sort((a, b) => a.key.localeCompare(b.key));
-const systems = [...loadSystems()].sort((a, b) => a.key.localeCompare(b.key));
+const works = [...loadWorks()].sort(byKey);
+const systems = [...loadSystems()].sort(byKey);
 ---
 
 <StarlightPage
@@ -15,6 +16,26 @@ const systems = [...loadSystems()].sort((a, b) => a.key.localeCompare(b.key));
 		template: 'doc',
 		tableOfContents: false,
 		banner: UNSTABLE_BANNER,
+		head: [
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/ld+json',
+					href: '/reg/works.json',
+					title: 'Works',
+				},
+			},
+			{
+				tag: 'link',
+				attrs: {
+					rel: 'alternate',
+					type: 'application/ld+json',
+					href: '/reg/systems.json',
+					title: 'Citation systems',
+				},
+			},
+		],
 	}}
 >
 	<p>
