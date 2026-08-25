@@ -393,6 +393,17 @@ components:
             key: { $ref: '#/components/schemas/FlatKey' }
             type: { type: string, enum: [Work] }
             preferred_label: { type: string, minLength: 1 }
+            alternative_labels:
+              type: array
+              minItems: 1
+              uniqueItems: true
+              items: { type: string, minLength: 1 }
+              description:
+                Additional names for the work — abbreviations, translated
+                titles, and established short forms. Search and display only.
+                Identity-neutral, because no label is a UUID seed input, so a
+                label change never moves an identifier. Unique within one work;
+                two different works MAY share an alternative label.
             preferred_citation_system_key:
               allOf:
                 - $ref: '#/components/schemas/FlatKey'

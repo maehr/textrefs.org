@@ -20,6 +20,14 @@ export const WorkBase = AdminMetadata.extend({
 	key: FlatKey,
 	type: z.literal('Work'),
 	preferred_label: z.string().min(1),
+	// Additional names for the work: abbreviations ("NE"), translated titles
+	// ("Nikomachische Ethik"), and established short forms. Search and display
+	// only. Identity-neutral: no label is a UUID seed input (ADR-0002), so a
+	// label change never moves an identifier (ADR-0007). Two works MAY share an
+	// alternative label; the compiler does not treat that as an error. Omit the
+	// field rather than publishing an empty array; the entries are checked for
+	// uniqueness below.
+	alternative_labels: z.array(z.string().min(1)).min(1).optional(),
 	// The citation system this work is cited under by default (ADR-0005). It
 	// governs the bare `/cite/{work}/{locator}` alias and default presentation
 	// only — it is identity-neutral and never affects how a fully qualified
@@ -43,6 +51,28 @@ export const Work = WorkBase.superRefine((w, ctx) => {
 			path: ['id'],
 		});
 	}
+	// The rules the specification states for alternative_labels (§6). They are
+	// enforced here, on the published record, and not only on the authored
+	// YAML, so a record that reaches a consumer cannot carry a label twice.
+	// Uniqueness is deliberately local to one work: two different works MAY
+	// claim the same label (ADR-0007).
+	const seenLabels = new Set<string>();
+	(w.alternative_labels ?? []).forEach((label, i) => {
+		if (label === w.preferred_label) {
+			ctx.addIssue({
+				code: 'custom',
+				message: `alternative label "${label}" repeats the preferred label`,
+				path: ['alternative_labels', i],
+			});
+		} else if (seenLabels.has(label)) {
+			ctx.addIssue({
+				code: 'custom',
+				message: `alternative label "${label}" is declared more than once for this work`,
+				path: ['alternative_labels', i],
+			});
+		}
+		seenLabels.add(label);
+	});
 });
 
 export type Work = z.infer<typeof Work>;

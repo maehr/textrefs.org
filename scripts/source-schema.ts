@@ -166,6 +166,9 @@ export const WorkSource = z
 		work: z.strictObject({
 			key: FlatKey,
 			preferred_label: z.string().min(1),
+			// Abbreviations, translated titles, and established short forms.
+			// Omit the key rather than authoring an empty list.
+			alternative_labels: z.array(z.string().min(1)).min(1).optional(),
 			status: Status,
 			created: IsoDate,
 			modified: IsoDate,
@@ -181,6 +184,28 @@ export const WorkSource = z
 		additional_systems: z.array(AdditionalSystemSource).optional(),
 	})
 	.superRefine((src, ctx) => {
+		// Alternative labels are unique inside one work, and none of them
+		// repeats the preferred label. Two different works MAY share a label —
+		// "Ethics" fits Aristotle and Spinoza — so this check stays local
+		// (ADR-0007).
+		const seenLabels = new Set<string>();
+		(src.work.alternative_labels ?? []).forEach((label, i) => {
+			if (label === src.work.preferred_label) {
+				ctx.addIssue({
+					code: 'custom',
+					message: `alternative label "${label}" repeats the preferred label`,
+					path: ['work', 'alternative_labels', i],
+				});
+			} else if (seenLabels.has(label)) {
+				ctx.addIssue({
+					code: 'custom',
+					message: `alternative label "${label}" is declared more than once for this work`,
+					path: ['work', 'alternative_labels', i],
+				});
+			}
+			seenLabels.add(label);
+		});
+
 		const seen = new Set<string>([src.citation_system]);
 		(src.additional_systems ?? []).forEach((block, i) => {
 			if (seen.has(block.citation_system)) {

@@ -15,6 +15,10 @@ export const fixtureRegistry: CompiledRegistry = {
 			key: 'fixture.work',
 			type: 'Work',
 			preferred_label: 'Fixture Work',
+			// Exercises the ADR-0007 field under `build:fast`: the record page
+			// renders the list, and the registry browser finds the work by
+			// "fw" and by "Musterwerk".
+			alternative_labels: ['FW', 'Musterwerk'],
 			preferred_citation_system_key: 'fixture-section',
 			status: 'active',
 			created: '2026-01-01',

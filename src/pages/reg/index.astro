@@ -6,6 +6,14 @@ import { byKey } from '../../lib/collection.ts';
 
 const works = [...loadWorks()].sort(byKey);
 const systems = [...loadSystems()].sort(byKey);
+
+// The client filter below is a plain substring match on this attribute, so a
+// work is found by its abbreviation and by a translated title as soon as those
+// sit in the haystack (ADR-0007).
+const workFilterKey = (w: (typeof works)[number]) =>
+	[w.preferred_label, ...(w.alternative_labels ?? []), w.key]
+		.join(' ')
+		.toLowerCase();
 ---
 
 <StarlightPage
@@ -68,7 +76,7 @@ const systems = [...loadSystems()].sort(byKey);
 		) : (
 			<ul id="reg-works" class="reg-list" data-reg-list>
 				{works.map((w) => (
-					<li data-reg-item={`${w.preferred_label} ${w.key}`.toLowerCase()}>
+					<li data-reg-item={workFilterKey(w)}>
 						<a href={`/id/work/${w.key}/`}>{w.preferred_label}</a>{' '}
 						<span class="reg-tag">{w.status}</span>{' '}
 						<code class="reg-iri">{w.key}</code>

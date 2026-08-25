@@ -68,6 +68,7 @@ classDiagram
         +URI id
         +string key
         +string preferred_label
+        +string[] alternative_labels
         +string preferred_citation_system_key
         +Creator[] creators
     }
@@ -121,6 +122,7 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
   "key": "plato.republic",
   "type": "Work",
   "preferred_label": "Republic",
+  "alternative_labels": ["Politeia", "Der Staat"],
   "preferred_citation_system_key": "stephanus",
   "creators": [{ "kind": "person", "family": "Plato" }],
   "status": "active",
@@ -129,12 +131,14 @@ A `Work.key` is a single flat registry key used to identify the abstract work in
 }
 ```
 
-Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_system_key`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `creators`, `alternateOf`, `isReferencedBy`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
+Required: `id`, `key`, `type` (`Work`), `preferred_label`, `preferred_citation_system_key`, `status`, plus administrative metadata ([§12](#12-administrative-metadata)). Optional: `alternative_labels`, `creators`, `alternateOf`, `isReferencedBy`. The `id` MUST be a persistent TextRefs HTTP URI of the form `https://textrefs.org/id/work/{key}`, where `{key}` is one flat key and occupies exactly one URI path segment. The `key` MUST be stable and suitable for deterministic identity generation.
 
 - `preferred_citation_system_key` MUST reference a known `CitationSystem`. It governs the bare `/cite/{work_key}/{locator}/` alias and default presentation only; it is identity-neutral and MUST NOT affect the validation or resolution of a fully qualified reference ([§7](#7-citationsystem)).
 - A `Work` MAY be referenced under more than one `CitationSystem`, of which exactly one is preferred.
 
 `creators`, when present, is an array of entries discriminated by `kind`. A `person` entry has `family` (required) and `given` (optional); mononyms such as Plato or Homer use `family` alone, following CSL convention. A `literal` entry has `name` and is the escape hatch for pseudonymous, collective, or institutional authorship (e.g. `[Pseudo-]Aristotle`, an editorial committee). Anonymous works and canonical corpora such as the Bible simply omit `creators`. For attributed-but-disputed works, record the traditional attribution in `creators` and express uncertainty through mappings or editorial review notes, not in the name string. Implementations MUST treat the field as optional and MUST NOT infer authorship from `preferred_label` or `key`.
+
+`alternative_labels`, when present, is an array of additional names for the work: abbreviations such as `NE`, translated titles such as `Nikomachische Ethik`, and other established short forms. It is published as `skos:altLabel`. The field serves search and display only. It is identity-neutral: no label is an input to any deterministic UUID seed ([§11](#11-identifier-policy)), so adding, editing, or removing an alternative label MUST NOT move an identifier. Each entry MUST be unique within the work and MUST NOT repeat the `preferred_label`. A work with no additional names MUST omit the field rather than publish an empty array. Two different works MAY claim the same alternative label — `Ethics` fits both Aristotle and Spinoza — and implementations MUST treat such a match as ambiguous rather than as an error. Implementations MUST NOT derive identity, authorship, or a citation system from an alternative label.
 
 External identifiers for a `Work` (e.g. Wikidata Q-ID, DOI, VIAF) are asserted as `MappingAssertion`s whose `subject` is the `Work` ([§10](#10-mappingassertion)). They MUST NOT be authored directly on the `Work`.
 

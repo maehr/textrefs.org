@@ -55,6 +55,7 @@ Choose `alternateOf` when the target identifies the same work from a different p
     "MappingAssertion": "tr:MappingAssertion",
     "key": "tr:key",
     "preferred_label": "skos:prefLabel",
+    "alternative_labels": { "@id": "skos:altLabel", "@container": "@set" },
     "description": "dcterms:description",
     "creators": "schema:creator",
     "kind": "tr:creatorKind",
