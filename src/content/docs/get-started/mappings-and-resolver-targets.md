@@ -2,7 +2,7 @@
 title: Mappings and resolver targets
 description: How to model external identifiers, reading URLs, and canonical citation examples in TextRefs.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 This guide helps contributors decide whether an external resource belongs in a `MappingAssertion`, in the embedded `resolver_targets` array on a `CanonicalReference`, or neither.

@@ -2,7 +2,7 @@
 title: How it works
 description: A practical walkthrough of TextRefs identity, mappings, and resolver targets.
 sidebar:
-  order: 3
+  order: 4
 ---
 
 TextRefs turns traditional scholarly citations into stable, machine-readable identifiers without choosing one edition, translation, website, or provider as authoritative.

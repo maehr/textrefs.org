@@ -19,10 +19,11 @@ The division is deliberate. TextRefs holds the reference layer only and nothing 
 
 Four record types carry the model: `Work`, `CitationSystem`, `CanonicalReference`, and `MappingAssertion` for curated relations. TextRefs publishes all four as JSON-LD against SKOS, Dublin Core, PROV-O, and schema.org. Existing systems are layered, never displaced. A DOI still names the edition. A CTS URN still names the passage in Perseus. TextRefs holds the canonical reference they share, and makes it resolve.
 
-[Browse the registry](/reg/). [Read the standard](/standard/). [Bring your corpus in](/get-started/authoring/).
+[Find a reference](/find/). [Browse the registry](/reg/). [Read the standard](/standard/). [Bring your corpus in](/get-started/authoring/).
 
 ## Keep reading
 
+- [Find a reference](/get-started/finding-references/) — how the finder turns a familiar citation into a canonical reference, and what it refuses to guess.
 - [How it works](/get-started/how-it-works/) — the practical model: identity, mappings, resolver targets, and examples.
 - [Use cases](/get-started/use-cases/) — concrete scenarios across research, libraries, digital editions, and AI grounding.
 - [Mappings and resolver targets](/get-started/mappings-and-resolver-targets/) — how to model external identifiers, reading URLs, and canonical-citation candidates.

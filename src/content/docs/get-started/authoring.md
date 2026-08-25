@@ -2,7 +2,7 @@
 title: Authoring registry data
 description: How contributors add a work, references, and resolver URLs in compact YAML.
 sidebar:
-  order: 6
+  order: 7
 ---
 
 Hand-authored YAML lives in the separate [`textrefs/registry`](https://github.com/textrefs/registry) repository. This repo mounts it as a git submodule at `data/`. After cloning, run `git submodule update --init --recursive`. See [`CONTRIBUTING.md`](https://github.com/textrefs/textrefs.org/blob/main/CONTRIBUTING.md) for the full workflow. Contributors edit `data/works/{work_key}.yaml` and `data/systems/{system_key}.yaml` there.
