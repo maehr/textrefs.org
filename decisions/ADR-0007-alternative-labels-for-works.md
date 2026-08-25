@@ -42,7 +42,9 @@ The field is named **`alternative_labels`**, not the `alt_labels` that #85 and t
 
 **Homonymy.** Two different works MAY claim the same alternative label. `Ethics` fits Aristotle and Spinoza. The compiler allows this and prints nothing. Homonymy is a fact about titles, not an authoring error, and the correct answer for a search field is two hits, not a rejected build. Consumers MUST treat such a match as ambiguous.
 
-**Authoring.** Inside one work, entries MUST be unique and MUST NOT repeat the `preferred_label`. Both are checked in the existing `WorkSource.superRefine` (`scripts/source-schema.ts:186-202`), beside the duplicate-citation-system check, so a slip fails at parse time with a field path. An empty list is rejected too: omit the key instead. This keeps the uniqueness rule strictly local, which is what makes the homonymy allowance above coherent.
+**Authoring.** Inside one work, entries MUST be unique and MUST NOT repeat the `preferred_label`. An empty list is rejected too: omit the key instead. This keeps the uniqueness rule strictly local, which is what makes the homonymy allowance above coherent.
+
+These rules are enforced **twice**, because the two schemas answer different questions. `WorkSource.superRefine` (`scripts/source-schema.ts:191-207`) rejects the authored YAML at parse time with a field path, beside the duplicate-citation-system check. `Work.superRefine` (`standard/schema/work.ts:59-75`) rejects the compiled record, and it is the canonical schema the standard publishes — `scripts/validate-data.ts:36` and `scripts/compile.ts:519` both run it. Enforcing only the authoring shape would let a hand-built or third-party record carry a duplicate while still validating against the published schema, which would make the normative sentence in `specification.md` §6 unenforceable. The two report the same two messages, so a violation reads the same whichever layer catches it.
 
 **Scope.** `CitationSystem` does not get the field in this ADR, even though it has the same problem — `Bekker` and `Stephanus` are the names scholars use, not the registry's `preferred_label` strings. One decision per ADR. See _Open questions_.
 
@@ -70,14 +72,14 @@ The field is named **`alternative_labels`**, not the `alt_labels` that #85 and t
 
 - [x] Add `alternative_labels: z.array(z.string().min(1)).optional()` to `WorkBase` in `standard/schema/work.ts`, after `preferred_label`.
 - [x] Add `"alternative_labels": { "@id": "skos:altLabel", "@container": "@set" }` to `public/contexts/v1.jsonld`, and the same term to the copy in `src/content/docs/standard/json-ld.md`.
-- [x] Add the field to the strict `work` block of `WorkSource` in `scripts/source-schema.ts` with `.min(1)`, plus the uniqueness check in its `superRefine`.
+- [x] Add the field to the strict `work` block of `WorkSource` in `scripts/source-schema.ts` with `.min(1)`, plus the uniqueness check in its `superRefine`. Mirror both in the canonical `Work` schema, so the published record shape enforces what the specification asserts.
 - [x] Project the field onto the compiled record in `scripts/compile.ts`, following the conditional-spread pattern the `creators` field uses. The record is built from an explicit field list, so an unlisted key is silently dropped.
-- [x] Mirror the field on the `Work` schema in `api/openapi.yaml`, as an optional array.
+- [x] Mirror the field on the `Work` schema in `api/openapi.yaml`, as an optional array carrying `minItems: 1` and `uniqueItems: true`, so a downstream client validates against the same constraints.
 - [x] Fold the labels into the browser filter key in `src/pages/reg/index.astro`, and render them on `src/pages/id/work/[key]/index.astro`.
 - [x] Update `specification.md` — the mermaid `class Work` block, the `plato.republic` example, the `Optional:` list, and one normative paragraph in §6 stating the identity and homonymy rules.
 - [x] Replace the `alt_labels` promise in `src/content/docs/get-started/authoring.md` with a real `### alternative_labels` section.
 - [x] Add the field to the fixture work in `src/lib/registry.fixture.ts`, so `npm run build:fast` exercises both the record page and the filter without submodule data.
-- [x] Extend `scripts/compile.test.ts`: projection, omission, empty list, in-work duplicate, a label equal to `preferred_label`, a shared label across two works, and identifier stability under a label change.
+- [x] Extend `scripts/compile.test.ts`: projection, omission, empty list, in-work duplicate, a label equal to `preferred_label`, a shared label across two works, and identifier stability under a label change — through the YAML path, and again directly against the canonical `Work` schema.
 - [ ] Fix the stale `alt_labels` promise at `data/AGENTS.md:36`. That file lives in `textrefs/registry`, so it needs a pull request to the submodule repository.
 - [ ] Seed alternative labels on `data/works/*.yaml` in a `textrefs/registry` pull request — `NE`/`EN` for the _Nicomachean Ethics_, `PI` for the _Philosophical Investigations_ — then bump the submodule pointer here. Follow the workflow in `CONTRIBUTING.md:135-140`.
 - [ ] **Separate ADR or issue:** disambiguate a duplicate hit in the registry browser. Two works sharing a label is legal by this decision, and the row shows only the `key`.

@@ -188,9 +188,15 @@ export const WorkSource = z
 		// repeats the preferred label. Two different works MAY share a label —
 		// "Ethics" fits Aristotle and Spinoza — so this check stays local
 		// (ADR-0007).
-		const seenLabels = new Set<string>([src.work.preferred_label]);
+		const seenLabels = new Set<string>();
 		(src.work.alternative_labels ?? []).forEach((label, i) => {
-			if (seenLabels.has(label)) {
+			if (label === src.work.preferred_label) {
+				ctx.addIssue({
+					code: 'custom',
+					message: `alternative label "${label}" repeats the preferred label`,
+					path: ['work', 'alternative_labels', i],
+				});
+			} else if (seenLabels.has(label)) {
 				ctx.addIssue({
 					code: 'custom',
 					message: `alternative label "${label}" is declared more than once for this work`,

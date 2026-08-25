@@ -18,6 +18,7 @@ import {
 	type CompiledRegistry,
 } from './compile.js';
 import { LanguageTag } from '../standard/schema/common.js';
+import { Work } from '../standard/schema/work.js';
 
 type RegistryFiles = {
 	systems: Record<string, string>;
@@ -381,6 +382,48 @@ test('alternative labels never move a reference identifier', () => {
 	assert.deepEqual(
 		withLabels.references.map((r) => r.id),
 		withOtherLabels.references.map((r) => r.id),
+	);
+});
+
+// The rules above are enforced on the published record too, not only on the
+// authored YAML — a hand-built record that reaches a consumer must not be able
+// to carry an empty list, a repeat, or the preferred label.
+const workRecord = (alternative_labels?: string[]) => ({
+	id: 'https://textrefs.org/id/work/test.work',
+	key: 'test.work',
+	type: 'Work' as const,
+	preferred_label: 'Test Work',
+	...(alternative_labels ? { alternative_labels } : {}),
+	preferred_citation_system_key: 'primary-section',
+	status: 'active' as const,
+	created: '2026-01-01',
+	modified: '2026-01-01',
+});
+
+test('the canonical Work schema accepts a well-formed label list', () => {
+	assert.equal(Work.safeParse(workRecord(['TW', 'Testwerk'])).success, true);
+	assert.equal(Work.safeParse(workRecord()).success, true);
+});
+
+test('the canonical Work schema rejects an empty label list', () => {
+	assert.equal(Work.safeParse(workRecord([])).success, false);
+});
+
+test('the canonical Work schema rejects a repeated label', () => {
+	const result = Work.safeParse(workRecord(['TW', 'TW']));
+	assert.equal(result.success, false);
+	assert.match(
+		result.error?.issues[0]?.message ?? '',
+		/declared more than once/,
+	);
+});
+
+test('the canonical Work schema rejects a label equal to preferred_label', () => {
+	const result = Work.safeParse(workRecord(['Test Work']));
+	assert.equal(result.success, false);
+	assert.match(
+		result.error?.issues[0]?.message ?? '',
+		/repeats the preferred label/,
 	);
 });
 
