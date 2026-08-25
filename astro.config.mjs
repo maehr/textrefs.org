@@ -40,7 +40,7 @@ export default defineConfig({
 				}),
 				starlightLinksValidator({
 					errorOnFallbackPages: false,
-					exclude: ['/id/**', '/reg/**', '/cite/**', '/api/**'],
+					exclude: ['/id/**', '/reg/**', '/cite/**', '/api/**', '/find/**'],
 				}),
 				starlightOpenAPI([
 					{
@@ -103,7 +103,10 @@ export default defineConfig({
 				{
 					label: 'Registry',
 					translations: { de: 'Verzeichnis' },
-					items: [{ label: 'Browse', link: '/reg/' }],
+					items: [
+						{ label: 'Find a reference', link: '/find/' },
+						{ label: 'Browse', link: '/reg/' },
+					],
 				},
 				...openAPISidebarGroups,
 				{

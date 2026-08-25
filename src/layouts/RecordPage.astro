@@ -6,7 +6,8 @@
 interface Props {
 	title: string;
 	description: string;
-	jsonHref: string;
+	/** Omitted by a page with no single JSON-LD sibling, such as `/find/`. */
+	jsonHref?: string;
 	noindex?: boolean;
 }
 
@@ -22,7 +23,11 @@ const { title, description, jsonHref, noindex = false } = Astro.props;
 		<meta name="description" content={description} />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 		<link rel="stylesheet" href="/assets/record.css" />
-		<link rel="alternate" type="application/ld+json" href={jsonHref} />
+		{
+			jsonHref && (
+				<link rel="alternate" type="application/ld+json" href={jsonHref} />
+			)
+		}
 		{noindex && <meta name="robots" content="noindex" />}
 	</head>
 	<body>

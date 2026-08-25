@@ -2,7 +2,7 @@
 title: Related standards and systems
 description: How TextRefs relates to identifier schemes, text APIs, bibliographic models, edition and annotation standards, digital surrogates, and reading platforms.
 sidebar:
-  order: 5
+  order: 6
 ---
 
 Use TextRefs for _canonical references inside a work_, such as Stephanus 514a, Bekker 983b10, or _ST_ I-II.94.2. Use existing identifier systems for the editions, files, authority records, catalogues, and platforms that carry those references. The difference matters. You can cite Plato's _Republic_ 514a across a dozen editions and centuries without naming any specific edition. A DOI, by contrast, identifies one published object at a time.

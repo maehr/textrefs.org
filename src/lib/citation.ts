@@ -1,9 +1,15 @@
-import type {
-	Work,
-	Creator,
-	CanonicalReference,
-	CitationSystem,
-} from '../../standard/schema/index.js';
+import type { Creator } from '../../standard/schema/index.js';
+
+// The parameters below name the fields this module actually reads, rather than
+// the whole compiled records. A full `Work`, `CanonicalReference`, or
+// `CitationSystem` still satisfies them, so the record pages pass theirs
+// unchanged; `/find/` passes the subset that `/reg/works.json` gives a browser.
+export type CitedWork = {
+	preferred_label: string;
+	creators?: readonly Creator[];
+};
+export type CitedReference = { id: string; work_key: string; locator: string };
+export type CitedSystem = { preferred_label: string };
 
 export type CSLName = { family: string; given?: string } | { literal: string };
 
@@ -27,9 +33,9 @@ function cslAuthor(c: Creator): CSLName {
 }
 
 export function toCSL(
-	work: Work | undefined,
-	ref: CanonicalReference,
-	system: CitationSystem | undefined,
+	work: CitedWork | undefined,
+	ref: CitedReference,
+	system: CitedSystem | undefined,
 ): CSLItem {
 	const title = work ? work.preferred_label : ref.work_key;
 	const authors = (work?.creators ?? []).map(cslAuthor);

@@ -2,7 +2,7 @@
 title: URL layout
 description: How /id/, /reg/, /cite/, and /api/ fit together on textrefs.org.
 sidebar:
-  order: 7
+  order: 8
 ---
 
 TextRefs uses four URL prefixes, each with one job. Together they make every registry record citeable, browsable, machine-readable, and short-linkable.
@@ -92,6 +92,8 @@ The site is static, and the host sets each `Content-Type` from the file extensio
 Use the small JSON-LD collection for a browser client. Use the `/dump/` files for a bulk consumer. See [`/api/`](/api/) for the full contract.
 
 ## Find a reference by its locator
+
+This section is the machine path. For the same lookup by hand, use the finder at [`/find/`](/find/), which does exactly these steps in the browser; [Find a reference](/get-started/finding-references/) describes it.
 
 The UUID of a reference is a UUIDv5 of three fields: the work key, the citation system key, and the locator. A client can compute that UUID, but only with a UUIDv5 implementation. The registry therefore publishes the result as a static file.
 
