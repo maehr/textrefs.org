@@ -499,6 +499,9 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 			key: workKey,
 			type: 'Work' as const,
 			preferred_label: src.work.preferred_label,
+			...(src.work.alternative_labels
+				? { alternative_labels: src.work.alternative_labels }
+				: {}),
 			// The top-level `citation_system:` block is the preferred one
 			// (ADR-0005); it is what mints the bare `/cite/{work}/{locator}` alias.
 			preferred_citation_system_key: systemKey,

@@ -38,6 +38,9 @@ The Dhammapada has 423 verses across 26 chapters and is hosted on two different 
 work:
   key: dhammapada
   preferred_label: Dhammapada
+  alternative_labels:
+    - 'Dhp'
+    - 'Dhammapāda'
   status: draft
   created: 2026-05-31
   modified: 2026-05-31
@@ -121,12 +124,41 @@ The display title. Do not add a parenthetical disambiguator:
 
 - the author goes in `creators`;
 - the edition, such as SBLGNT or OCT, goes on the resolver target;
-- alt-names belong in a future `alt_labels` field.
+- alt-names go in `alternative_labels`.
 
 Use these forms:
 
 - Attributed works: just the title, for example `Iliad`, `Republic`, `Tractatus Logico-Philosophicus`.
 - Anonymous or collective works: the conventional English name, for example `Tanakh`, `Dhammapada`, `New Testament`.
+
+### `alternative_labels`
+
+The other names a scholar searches by. The registry browser matches this list, so a reader who types `NE` or `Nikomachische Ethik` still finds the work.
+
+```yaml
+work:
+  key: aristotle.nicomachean-ethics
+  preferred_label: Nicomachean Ethics
+  alternative_labels:
+    - 'NE'
+    - 'EN'
+    - 'Ethica Nicomachea'
+    - 'Nikomachische Ethik'
+```
+
+Rules:
+
+- Add established forms only: a recognised abbreviation, a Latin or Greek title, or a translated title in a language scholars cite in. Do not invent a short form.
+- Keep each entry unique inside the work. Do not repeat the `preferred_label`. The compiler rejects both.
+- Two different works may share an entry. `Ethics` fits Aristotle and Spinoza. This is allowed.
+- Omit the key when there is nothing to add. Do not author an empty list.
+- The field never changes an identifier. It is not part of any UUID seed, so you may add or correct a label at any time.
+
+Do not put these in the list:
+
+- the author, which goes in `creators`;
+- the edition, such as SBLGNT or OCT, which goes on the resolver target;
+- an external identifier, such as a Wikidata Q-ID, which goes in `mappings`.
 
 ### `creators`
 

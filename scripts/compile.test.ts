@@ -267,6 +267,123 @@ references:
 	}
 });
 
+// --- Alternative labels (ADR-0007) ----------------------------------------
+
+/** A work header whose `work:` block carries an `alternative_labels:` list. */
+const workWithLabels = (labels: string[]) => ({
+	systems: twoSystems,
+	works: {
+		'test.work': `
+work:
+  key: test.work
+  preferred_label: Test Work
+  alternative_labels:
+${labels.map((l) => `    - '${l}'`).join('\n')}
+  status: active
+  created: 2026-01-01
+  modified: 2026-01-01
+
+citation_system: primary-section
+references:
+  - '5'
+`,
+	},
+});
+
+test('authored alternative labels reach the compiled work in order', () => {
+	const reg = compileFixture(workWithLabels(['TW', 'Testwerk']));
+	const work = reg.works.find((w) => w.key === 'test.work');
+	assert.ok(work);
+	assert.deepEqual(work.alternative_labels, ['TW', 'Testwerk']);
+});
+
+test('a work without alternative labels omits the key entirely', () => {
+	const reg = compileFixture({
+		systems: twoSystems,
+		works: {
+			'test.work': `${workHeader()}
+citation_system: primary-section
+references:
+  - '5'
+`,
+		},
+	});
+	const work = reg.works.find((w) => w.key === 'test.work');
+	assert.ok(work);
+	assert.ok(!('alternative_labels' in work));
+});
+
+test('an empty alternative_labels list is an authoring error', (t) => {
+	const message = expectCompileError(t, {
+		systems: twoSystems,
+		works: {
+			'test.work': `
+work:
+  key: test.work
+  preferred_label: Test Work
+  alternative_labels: []
+  status: active
+  created: 2026-01-01
+  modified: 2026-01-01
+
+citation_system: primary-section
+references:
+  - '5'
+`,
+		},
+	});
+	assert.match(message, /invalid source file/);
+});
+
+test('repeating one alternative label within a work is an authoring error', (t) => {
+	const message = expectCompileError(t, workWithLabels(['TW', 'TW']));
+	assert.match(message, /invalid source file/);
+});
+
+test('an alternative label equal to the preferred label is an authoring error', (t) => {
+	const message = expectCompileError(t, workWithLabels(['Test Work']));
+	assert.match(message, /invalid source file/);
+});
+
+test('two different works may share one alternative label', () => {
+	const shared = (key: string, label: string) => `
+work:
+  key: ${key}
+  preferred_label: ${label}
+  alternative_labels:
+    - 'Ethics'
+  status: active
+  created: 2026-01-01
+  modified: 2026-01-01
+
+citation_system: primary-section
+references:
+  - '5'
+`;
+	const reg = compileFixture({
+		systems: twoSystems,
+		works: {
+			'aristotle.ne': shared('aristotle.ne', 'Nicomachean Ethics'),
+			'spinoza.ethica': shared('spinoza.ethica', 'Ethica'),
+		},
+	});
+	const claimants = reg.works.filter((w) =>
+		(w.alternative_labels ?? []).includes('Ethics'),
+	);
+	assert.equal(claimants.length, 2);
+});
+
+// An alternative label is not a UUID seed input (ADR-0002), so editing one
+// must leave every minted identifier where it was.
+test('alternative labels never move a reference identifier', () => {
+	const withLabels = compileFixture(workWithLabels(['TW']));
+	const withOtherLabels = compileFixture(workWithLabels(['Testwerk', 'TW-2']));
+	assert.deepEqual(
+		withLabels.references.map((r) => r.id),
+		withOtherLabels.references.map((r) => r.id),
+	);
+});
+
 // --- Mapping relation vocabulary (ADR-0006) -------------------------------
 
 const mappings = `

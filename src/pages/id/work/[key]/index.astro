@@ -87,6 +87,7 @@ const {
 	aliases,
 } = Astro.props;
 const jsonHref = `/id/work/${work.key}.json`;
+const alternativeLabels = work.alternative_labels ?? [];
 ---
 
 <StarlightPage
@@ -137,6 +138,19 @@ const jsonHref = `/id/work/${work.key}.json`;
 	</p>
 
 	<Tombstone status={work.status} supersededBy={work.superseded_by} />
+
+	{
+		alternativeLabels.length > 0 && (
+			<Fragment>
+				<h2>Alternative labels ({alternativeLabels.length})</h2>
+				<ul class="reg-list">
+					{alternativeLabels.map((label) => (
+						<li>{label}</li>
+					))}
+				</ul>
+			</Fragment>
+		)
+	}
 
 	<h2>Citation systems</h2>
 	{
