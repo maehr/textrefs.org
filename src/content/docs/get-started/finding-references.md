@@ -51,7 +51,7 @@ This is the part that matters for citation. TextRefs is the authority for identi
 
 **Fuzzy matching never reaches identity.** It helps find a work and stops there. A reference is identified by an exact lookup of its work, citation system, and locator, so a near-miss cannot invent one. `Republik` finds the _Republic_; `514b` never resolves to `514a`.
 
-When a passage is rejected, the finder names the numbering the work actually uses and quotes that system's own description. Ask for `Republic 327` and it explains what a Stephanus locator looks like; ask for `Iliad 25.1` and it tells you the Iliad has 24 books.
+When a passage is rejected, the finder names the numbering the work actually uses and quotes that citation system's own description. It does not work out which rule your locator broke. How much that explains depends on the description: ask for `Republic 327` and the Stephanus entry spells out the locator form, and ask for `Iliad 25.1` and the Homeric entry happens to mention the 24 books that make `25` wrong.
 
 ## What you get back
 

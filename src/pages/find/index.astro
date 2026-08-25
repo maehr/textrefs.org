@@ -588,17 +588,21 @@ import RecordPage from '../../layouts/RecordPage.astro';
 			}
 
 			case 'bare-locator':
+				// The candidates come from each work's PREFERRED citation system,
+				// because that is the only one `/reg/works.json` names (#91). A work
+				// cited under a second system might also accept this locator and not
+				// appear here, so neither string may claim to speak for the registry.
 				show(
 					el('p', {
 						text: `“${result.locator}” looks like a passage, but it does not say which text. Add a title or an author.`,
 					}),
 					result.candidates.length === 0
 						? note(
-								'No text in the registry is numbered in a way that would accept it.',
+								'No text in the registry uses a passage number of that shape as its main numbering.',
 							)
 						: el('p', { class: 'reg-sub find-hint' }, [
 								el('span', {
-									text: 'A passage number means a different place in every text. These are numbered in a way that would accept it:',
+									text: 'A passage number means a different place in every text. These use that shape as their main numbering:',
 								}),
 							]),
 					result.candidates.length === 0
