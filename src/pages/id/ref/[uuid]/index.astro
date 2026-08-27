@@ -81,8 +81,18 @@ const escapeHtml = (s: string) =>
 		.replace(/"/g, '&quot;');
 const chicagoHtml = escapeHtml(chicago).replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
+// ADR-0004 and specification.md §12 make `deprecated`, `withdrawn` and `blocked`
+// one tombstone category, and the compiler agrees (`RETIRED_STATUSES` in
+// scripts/compile.ts). The three differ in reach, not in kind: a `deprecated`
+// record is retained and still resolves, while a `withdrawn` or `blocked` record
+// is additionally excluded from `Work` mapping projections. The banner therefore
+// stays one presentation, and the copy below states which of the three applies.
+// Kept in step with src/components/Tombstone.astro by hand until #100 lands.
 const isDraft = ref.status === 'draft';
-const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
+const isTombstone =
+	ref.status === 'deprecated' ||
+	ref.status === 'withdrawn' ||
+	ref.status === 'blocked';
 ---
 
 <RecordPage
@@ -119,9 +129,17 @@ const isTombstone = ref.status === 'withdrawn' || ref.status === 'blocked';
 					<strong>
 						{ref.status === 'blocked'
 							? 'This record is blocked by a rights, trust, or policy dispute.'
-							: 'This record has been withdrawn.'}
+							: ref.status === 'deprecated'
+								? 'This record is deprecated.'
+								: 'This record has been withdrawn.'}
 					</strong>
 				</p>
+				{ref.status === 'deprecated' && (
+					<p>
+						It is retained and it still resolves, but it is no longer
+						recommended.
+					</p>
+				)}
 				{ref.superseded_by ? (
 					<p>
 						Superseded by <a href={ref.superseded_by}>{ref.superseded_by}</a>.
