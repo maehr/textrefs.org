@@ -6,8 +6,15 @@ interface Props {
 
 const { status, supersededBy } = Astro.props;
 
+// ADR-0004 and specification.md §12 make `deprecated`, `withdrawn` and `blocked`
+// one tombstone category, and the compiler agrees (`RETIRED_STATUSES` in
+// scripts/compile.ts). The three differ in reach, not in kind: a `deprecated`
+// record is retained and still resolves, while a `withdrawn` or `blocked` record
+// is additionally excluded from `Work` mapping projections. The banner therefore
+// stays one presentation, and the copy below states which of the three applies.
 const isDraft = status === 'draft';
-const isTombstone = status === 'withdrawn' || status === 'blocked';
+const isTombstone =
+	status === 'deprecated' || status === 'withdrawn' || status === 'blocked';
 ---
 
 {
@@ -33,9 +40,16 @@ const isTombstone = status === 'withdrawn' || status === 'blocked';
 				<strong>
 					{status === 'blocked'
 						? 'This record is blocked by a rights, trust, or policy dispute.'
-						: 'This record has been withdrawn.'}
+						: status === 'deprecated'
+							? 'This record is deprecated.'
+							: 'This record has been withdrawn.'}
 				</strong>
 			</p>
+			{status === 'deprecated' && (
+				<p>
+					It is retained and it still resolves, but it is no longer recommended.
+				</p>
+			)}
 			{supersededBy ? (
 				<p>
 					Superseded by <a href={supersededBy}>{supersededBy}</a>.
