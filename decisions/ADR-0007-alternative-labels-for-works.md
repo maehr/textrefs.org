@@ -80,10 +80,10 @@ These rules are enforced **twice**, because the two schemas answer different que
 - [x] Replace the `alt_labels` promise in `src/content/docs/get-started/authoring.md` with a real `### alternative_labels` section.
 - [x] Add the field to the fixture work in `src/lib/registry.fixture.ts`, so `npm run build:fast` exercises both the record page and the filter without submodule data.
 - [x] Extend `scripts/compile.test.ts`: projection, omission, empty list, in-work duplicate, a label equal to `preferred_label`, a shared label across two works, and identifier stability under a label change — through the YAML path, and again directly against the canonical `Work` schema.
-- [ ] Fix the stale `alt_labels` promise at `data/AGENTS.md:36`. That file lives in `textrefs/registry`, so it needs a pull request to the submodule repository.
-- [ ] Seed alternative labels on `data/works/*.yaml` in a `textrefs/registry` pull request — `NE`/`EN` for the _Nicomachean Ethics_, `PI` for the _Philosophical Investigations_ — then bump the submodule pointer here. Follow the workflow in `CONTRIBUTING.md:135-140`.
-- [ ] **Separate ADR or issue:** disambiguate a duplicate hit in the registry browser. Two works sharing a label is legal by this decision, and the row shows only the `key`.
-- [ ] **Separate ADR:** language tagging for labels, answered for `preferred_label` and `alternative_labels` together. See _Open questions_ 1.
+- [x] Fix the stale `alt_labels` promise at `data/AGENTS.md:36`. That file lives in `textrefs/registry`, so it needs a pull request to the submodule repository (textrefs/registry#21).
+- [x] Seed alternative labels on `data/works/*.yaml` in a `textrefs/registry` pull request — `NE`/`EN` for the _Nicomachean Ethics_, `PI` for the _Philosophical Investigations_ — then bump the submodule pointer here. Follow the workflow in `CONTRIBUTING.md:135-140`. Every work carries the field as of the `7d10919` pin.
+- [ ] **Separate ADR or issue:** disambiguate a duplicate hit in the registry browser ([#92](https://github.com/textrefs/textrefs.org/issues/92)). Two works sharing a label is legal by this decision, and the row shows only the `key`.
+- [ ] **Separate ADR:** language tagging for labels, answered for `preferred_label` and `alternative_labels` together ([#109](https://github.com/textrefs/textrefs.org/issues/109)). See _Open questions_ 1.
 
 ## Open questions
 
