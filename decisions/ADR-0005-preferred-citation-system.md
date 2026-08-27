@@ -73,17 +73,17 @@ We choose **Option 5**.
 
 ### Follow-up actions
 
-- [ ] Required `preferred_citation_system_key` in `standard/schema/work.ts`.
-- [ ] Zod validation of the YAML source shape, including duplicate-system rejection.
-- [ ] Per-block reference emission and alias minting in `scripts/compile.ts`.
-- [ ] Reject `/` in locators; new compiler invariant.
-- [ ] JSON-LD context term and OpenAPI `Work` schema.
-- [ ] Disambiguate duplicate locators in the work page, the paginated reference list, the reference page title, and the rendered citation.
-- [ ] Document `additional_systems:` and both alias forms.
-- [ ] Compiler test coverage.
-- [ ] A note in `textrefs/registry`'s `data/AGENTS.md`.
-- [ ] Deferred: real multi-system registry data (needs a curated second profile and attested reference points).
-- [ ] Deferred: per-community/per-language preference.
+- [x] Required `preferred_citation_system_key` in `standard/schema/work.ts`.
+- [x] Zod validation of the YAML source shape, including duplicate-system rejection.
+- [x] Per-block reference emission and alias minting in `scripts/compile.ts`.
+- [x] Reject `/` in locators; new compiler invariant.
+- [x] JSON-LD context term and OpenAPI `Work` schema.
+- [x] Disambiguate duplicate locators in the work page, the paginated reference list, the reference page title, and the rendered citation.
+- [x] Document `additional_systems:` and both alias forms.
+- [x] Compiler test coverage.
+- [x] A note in `textrefs/registry`'s `data/AGENTS.md`.
+- [ ] Deferred: real multi-system registry data (needs a curated second profile and attested reference points) ([#104](https://github.com/textrefs/textrefs.org/issues/104)).
+- [ ] Deferred: per-community/per-language preference ([#105](https://github.com/textrefs/textrefs.org/issues/105)).
 
 ## Links
 

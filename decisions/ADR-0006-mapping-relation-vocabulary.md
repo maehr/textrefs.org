@@ -1,6 +1,6 @@
 # ADR-0006: MappingAssertion relation vocabulary — `alternateOf` and `isReferencedBy`
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-08-11
 - **Deciders:** @maehr
 - **Tags:** spec, data-model
@@ -100,13 +100,13 @@ Line anchors below are against `feat/preferred-citation-system` (PR [#63](https:
 - [x] Add `"prov": "http://www.w3.org/ns/prov#"` to the namespace block in `public/contexts/v1.jsonld:2-7`; replace the `exactMatch` and `closeMatch` terms with `alternateOf` → `prov:alternateOf` and `isReferencedBy` → `dcterms:isReferencedBy`, both `"@type": "@id"`.
 - [x] Rename the projection fields in `standard/schema/work.ts:33-34` and rewrite the comment at `:31`, which names SKOS explicitly.
 - [x] Reclassify all 12 Wikidata mappings to `alternateOf` and all 12 Wikipedia mappings to `isReferencedBy` in `data/works/*.yaml`, via a PR to `textrefs/registry`; bump each `modified`.
-- [ ] Confirm in the spec that `isReferencedBy` targets remain lookup aliases (`scripts/compile.ts:518`, `setAlias(aliases, mapping.identifier, workIri)`). Recommended: yes — the alias table is a lookup convenience, not an identity claim — but it must be stated rather than inherited.
+- [x] Confirm in the spec that `isReferencedBy` targets remain lookup aliases (`scripts/compile.ts:518`, `setAlias(aliases, mapping.identifier, workIri)`). Recommended: yes — the alias table is a lookup convenience, not an identity claim — but it must be stated rather than inherited.
 - [x] Sweep the prose: `specification.md:131,140,247,264,373`, `json-ld.md:31-36,72-73`, `identifier-syntax.md:122` (the seed's enumerated literal values), `mappings-and-resolver-targets.md:35,41,117,119,130`, `authoring.md:38,126`, `how-it-works.md:97,128`, `data/AGENTS.md:14,41`, and `api/openapi.yaml:220-230,297`.
 - [x] Decide what the re-mint checklists mean now: `README.md:135`, `.github/PULL_REQUEST_TEMPLATE.md:39` and `data/.github/PULL_REQUEST_TEMPLATE.md:19` link a withdrawn record to its successor with `relation: exactMatch`. `alternateOf` fits (same referent, different presentation), but `superseded_by` → `dcterms:isReplacedBy` already covers succession — this may be a redundant instruction rather than one to translate.
 - [x] Extend `scripts/compile.test.ts` (260 lines from ADR-0005, no mapping coverage): projection grouping, tombstone exclusion, `mappingUuid` stability for a fixed triple, and rejection of an out-of-enum relation. Add an `isReferencedBy` mapping alongside `src/lib/registry.fixture.ts:93`.
-- [ ] **Separate ADR:** widen `MappingAssertion.subject` to admit a CitationSystem IRI, then re-introduce `closeMatch` as an additive change. Until then specification §13 must state that the equivalence it describes is not yet expressible.
-- [ ] **Separate ADR or issue:** how to express disputed authorship attribution, now that `closeMatch` no longer pretends to.
-- [ ] Publish an ontology stub at `https://textrefs.org/ontology#`. Pre-existing debt (`tr:Work`, `tr:relation`, `tr:locator` are all undereferenceable), not created here, but option 4 above was rejected partly on its account.
+- [ ] **Separate ADR:** widen `MappingAssertion.subject` to admit a CitationSystem IRI, then re-introduce `closeMatch` as an additive change ([#106](https://github.com/textrefs/textrefs.org/issues/106)). Until then specification §13 must state that the equivalence it describes is not yet expressible — it does.
+- [ ] **Separate ADR or issue:** how to express disputed authorship attribution, now that `closeMatch` no longer pretends to ([#107](https://github.com/textrefs/textrefs.org/issues/107)).
+- [ ] Publish an ontology stub at `https://textrefs.org/ontology#` ([#108](https://github.com/textrefs/textrefs.org/issues/108)). Pre-existing debt (`tr:Work`, `tr:relation`, `tr:locator` are all undereferenceable), not created here, but option 4 above was rejected partly on its account.
 
 ## Links
 
