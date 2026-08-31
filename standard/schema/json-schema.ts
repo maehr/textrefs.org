@@ -17,11 +17,21 @@ type JsonObject = Record<string, unknown>;
 
 /**
  * JSON Schema cannot express a Zod refinement, so the four `…Base` shapes are
- * converted, not the refined `Work` and `CitationSystem`. The two refinements
- * are agreement between `id` and `key`, and compilability of `locator_regex`.
- * The compiler enforces both on every record before it is published, so no
- * served record can violate them. `standard/schema/index.ts` builds the
- * `RegistryObject` union from the same four Base shapes.
+ * converted, not the refined `Work` and `CitationSystem`.
+ * `standard/schema/index.ts` builds the `RegistryObject` union from the same
+ * four Base shapes.
+ *
+ * Three rules therefore live in the refinements alone, and the compiler
+ * enforces all three on every record before publication:
+ *
+ * 1. `Work.id` agrees with `Work.key`, and `CitationSystem.id` with its `key`.
+ * 2. `CitationSystem.locator_regex` compiles as an ECMAScript regex.
+ * 3. No `Work.alternative_labels` entry repeats `Work.preferred_label` (§6).
+ *
+ * Only the fourth §6 rule — the entries are unique among themselves — has a
+ * keyword. `work.ts` carries it as `uniqueItems` metadata, so it reaches this
+ * document, and the same field's description states rule 3 in prose for a
+ * reader of the published schema.
  */
 const RECORD_SHAPES = {
 	Work: WorkBase,

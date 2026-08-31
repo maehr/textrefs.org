@@ -114,6 +114,35 @@ test('a resolver target with a non-ASCII IRI validates', () => {
 	);
 });
 
+test('a Work with repeated alternative labels is rejected', () => {
+	const validate = validator();
+	// §6: the entries are unique within one work. `uniqueItems` expresses it,
+	// and `work.ts` carries the keyword next to the refinement that enforces it.
+	const work = structuredClone(fixtureRegistry.works[0]);
+	work.alternative_labels = ['FW', 'FW'];
+	assert.equal(validate(work), false);
+});
+
+test('the label rule that JSON Schema cannot express is documented', () => {
+	// §6 also forbids an alternative label that repeats `preferred_label`. That
+	// rule compares two members, which no keyword does, so the published
+	// document states it in the field description instead. This test locks the
+	// gap: the record below is invalid per the specification and per the
+	// canonical Zod `Work`, yet it validates here. Only the compiler rejects it.
+	const validate = validator();
+	const doc = buildRegistryJsonSchema() as {
+		$defs: {
+			Work: { properties: { alternative_labels: { description: string } } };
+		};
+	};
+	const description = doc.$defs.Work.properties.alternative_labels.description;
+	assert.match(description, /MUST repeat preferred_label/);
+
+	const work = structuredClone(fixtureRegistry.works[0]);
+	work.alternative_labels = [work.preferred_label];
+	assert.ok(validate(work));
+});
+
 test('a record with an unknown type matches no branch', () => {
 	const validate = validator();
 	const record = { ...fixtureRegistry.works[0], type: 'Manuscript' };
