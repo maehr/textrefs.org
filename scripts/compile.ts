@@ -760,6 +760,15 @@ export function readPackageVersion(): string {
 	return pkg.version;
 }
 
+/**
+ * The registry version as the data package spells it: SemVer with no leading
+ * `v`, per `standard/versioning.md`. One function so the descriptor and the
+ * `/dump/` page can never disagree about the form.
+ */
+export function packageVersion(version: string): string {
+	return version.replace(/^v/, '');
+}
+
 type ResourceSpec = {
 	name: string;
 	filename: string;
@@ -788,6 +797,26 @@ function jsonlBody(records: ReadonlyArray<unknown>): string {
 		? ''
 		: records.map((r) => JSON.stringify(r)).join('\n') + '\n';
 }
+
+/**
+ * What `/dump/` publishes, without any body.
+ *
+ * Split out so a caller that only needs the file list pays nothing for it.
+ * `/dump/index.astro` renders this during `astro build`; calling
+ * `dumpResources` there instead would serialise and hash ~90 MB that
+ * `scripts/compile.ts` then serialises and hashes again.
+ */
+export const DUMP_MANIFEST = [
+	{ name: 'works', filename: 'works.jsonl', format: 'jsonl' },
+	{
+		name: 'citation-systems',
+		filename: 'citation-systems.jsonl',
+		format: 'jsonl',
+	},
+	{ name: 'references', filename: 'references.jsonl', format: 'jsonl' },
+	{ name: 'mappings', filename: 'mappings.jsonl', format: 'jsonl' },
+	{ name: 'aliases', filename: 'aliases.json', format: 'json' },
+] as const;
 
 /**
  * Every `/dump/` resource body, in descriptor order. Pure — `writeDump` does
@@ -874,7 +903,7 @@ export function datapackageDescriptor(
 		profile: 'data-package',
 		name: 'textrefs-registry',
 		title: 'TextRefs Registry',
-		version: version.replace(/^v/, ''),
+		version: packageVersion(version),
 		created,
 		homepage: 'https://textrefs.org',
 		licenses: [
