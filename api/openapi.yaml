@@ -588,6 +588,10 @@ components:
         `://` in the key marks the second kind.
       type: object
       additionalProperties: { $ref: '#/components/schemas/Iri' }
+    # Referenced by no response, and published on purpose: it names the union
+    # that every `/dump/` line and every `@graph` member belongs to, so a
+    # client can validate a record without knowing its type first. It mirrors
+    # the `RegistryObject` union in `standard/schema/index.ts`.
     RegistryObject:
       oneOf:
         - { $ref: '#/components/schemas/Work' }
