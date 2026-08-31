@@ -35,7 +35,11 @@ info:
     payload. A record or collection `.json` body is JSON-LD by content and
     arrives as `application/json`. The two alias artifacts are plain JSON
     and arrive the same way. A `.jsonl` body is newline-delimited JSON by
-    content and arrives as `application/octet-stream`. Parse by documented
+    content and arrives as `application/octet-stream`. This contract is
+    published at
+    [`/api/openapi.yaml`](https://textrefs.org/api/openapi.yaml), byte for
+    byte as it is written, and arrives as `text/yaml`. A miss carries no JSON
+    at all: the host serves the site's HTML 404 page. Parse by documented
     shape, not by response header.
   license:
     name: AGPL-3.0-or-later
@@ -331,10 +335,16 @@ components:
         pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
   responses:
     NotFound:
-      description: No registry object found at this identifier.
+      description: |
+        No registry object found at this identifier. The site is static, so the
+        host cannot build a per-path error body. It serves the site's own 404
+        page instead: `text/html`, with the same navigation as every other
+        page. A client detects the miss from the status code, not from the body.
       content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
+        text/html:
+          schema:
+            type: string
+            description: The site's HTML 404 page.
   schemas:
     FlatKey:
       type: string
@@ -578,6 +588,10 @@ components:
         `://` in the key marks the second kind.
       type: object
       additionalProperties: { $ref: '#/components/schemas/Iri' }
+    # Referenced by no response, and published on purpose: it names the union
+    # that every `/dump/` line and every `@graph` member belongs to, so a
+    # client can validate a record without knowing its type first. It mirrors
+    # the `RegistryObject` union in `standard/schema/index.ts`.
     RegistryObject:
       oneOf:
         - { $ref: '#/components/schemas/Work' }
@@ -591,6 +605,11 @@ components:
           CitationSystem: '#/components/schemas/CitationSystem'
           CanonicalReference: '#/components/schemas/CanonicalReference'
           MappingAssertion: '#/components/schemas/MappingAssertion'
+    # Reserved, and deliberately unreferenced. No response uses this shape
+    # today, because a static host serves an HTML 404 page and nothing else.
+    # It describes the error body of the dynamic resolver that `info.description`
+    # announces — the `Accept-Language` / `edition` 303 on `/id/ref/{uuid}` —
+    # and it stays here so that contract and implementation land together.
     Error:
       type: object
       required: [message]
