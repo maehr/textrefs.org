@@ -120,12 +120,13 @@ const PARSE_HINTS: Record<string, string> = {
 		}
 		<a href="/dump/datapackage.json">
 			<code>datapackage.json</code>
-		</a> records for that file:
+		</a> records for that file. The descriptor writes it as <code>sha256:</code> and
+		the hex digest:
 	</p>
 
 	<pre><code>curl -sO https://textrefs.org/dump/references.jsonl
 shasum -a 256 references.jsonl
-curl -s https://textrefs.org/dump/datapackage.json | grep -A2 references.jsonl</code></pre>
+curl -s https://textrefs.org/dump/datapackage.json | jq -r '.resources[] | select(.path == "references.jsonl") | .hash'</code></pre>
 
 	<p>
 		The six files above are registry data, and carry the{' '}
