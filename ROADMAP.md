@@ -25,7 +25,7 @@ Status legend: done · in progress · planned · blocked.
 ## Next
 
 - done: Publish the Standard draft v0.1.0 as the first citable baseline (release `v0.1.0`).
-- planned: Serve the generated JSON Schema at a stable `/schemas/` path or update the specification if the publication path changes.
+- done: Serve the generated JSON Schema at `/schemas/v1/textrefs.schema.json`, the path the specification names. The document is generated from the Zod schemas on every build.
 - planned: Add `Accept-Language` / `edition`-based 303 redirect on `/id/ref/{uuid}` to a matching `resolver_targets` entry.
 - planned: Publish regular registry exports from the compiled data bundle.
 - planned: Grow the registry with more canonical examples across theology, classics, philosophy, law, and other citation traditions.

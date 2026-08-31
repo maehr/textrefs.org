@@ -27,7 +27,19 @@ export const WorkBase = AdminMetadata.extend({
 	// alternative label; the compiler does not treat that as an error. Omit the
 	// field rather than publishing an empty array; the entries are checked for
 	// uniqueness below.
-	alternative_labels: z.array(z.string().min(1)).min(1).optional(),
+	alternative_labels: z
+		.array(z.string().min(1))
+		.min(1)
+		// The metadata reaches the published JSON Schema
+		// (`standard/schema/json-schema.ts`). `uniqueItems` is the half of the §6
+		// rule that JSON Schema can express; the `superRefine` below enforces
+		// both halves, and the description states the half that no keyword covers.
+		.meta({
+			uniqueItems: true,
+			description:
+				'Additional names for the work: abbreviations, translated titles, and established short forms. Each entry MUST be unique within the work, and no entry MUST repeat preferred_label (specification §6). The second rule compares two members and has no JSON Schema keyword; the compiler enforces it on every published record.',
+		})
+		.optional(),
 	// The citation system this work is cited under by default (ADR-0005). It
 	// governs the bare `/cite/{work}/{locator}` alias and default presentation
 	// only — it is identity-neutral and never affects how a fully qualified
