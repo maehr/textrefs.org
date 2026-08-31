@@ -11,6 +11,15 @@ function registry(): CompiledRegistry {
 	return cached;
 }
 
+/**
+ * The whole compiled registry. A page that needs one record set uses the
+ * narrow loaders below; `/dump/` describes every set at once, so it takes the
+ * bundle and stays fixture-aware like every other page.
+ */
+export function loadRegistry(): CompiledRegistry {
+	return registry();
+}
+
 export function loadWorks() {
 	return registry().works;
 }

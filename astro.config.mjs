@@ -106,6 +106,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Find a reference', link: '/find/' },
 						{ label: 'Browse', link: '/reg/' },
+						{ label: 'Bulk downloads', link: '/dump/' },
 					],
 				},
 				...openAPISidebarGroups,
