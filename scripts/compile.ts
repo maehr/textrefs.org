@@ -754,7 +754,7 @@ function enforceRegistryInvariants(reg: {
 	return 0;
 }
 
-function readPackageVersion(): string {
+export function readPackageVersion(): string {
 	const pkgPath = join(projectRoot, 'package.json');
 	const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version: string };
 	return pkg.version;
@@ -772,7 +772,7 @@ type ResourceSpec = {
 	body: string;
 };
 
-interface ResourceDescriptor {
+export interface ResourceDescriptor {
 	name: string;
 	path: string;
 	profile: 'data-resource';
@@ -856,21 +856,26 @@ export function describeResource(spec: ResourceSpec): ResourceDescriptor {
 	};
 }
 
-function writeDump(registry: CompiledRegistry, version: string): void {
-	const dumpDir = join(distRoot, 'dump');
-	mkdirSync(dumpDir, { recursive: true });
-
-	const resources = dumpResources(registry).map((spec) => {
-		writeFileSync(join(dumpDir, spec.filename), spec.body);
-		return describeResource(spec);
-	});
-
-	const datapackage = {
+/**
+ * The Frictionless data package that describes the whole `/dump/` directory.
+ * Pure, so that `/dump/index.html` can render the same descriptor that
+ * `/dump/datapackage.json` publishes, from the same registry, and neither can
+ * drift from the other.
+ *
+ * `created` is a parameter rather than a `new Date()` call, because a caller
+ * that only reads the descriptor must not depend on the clock.
+ */
+export function datapackageDescriptor(
+	resources: ReadonlyArray<ResourceDescriptor>,
+	version: string,
+	created: string,
+) {
+	return {
 		profile: 'data-package',
 		name: 'textrefs-registry',
 		title: 'TextRefs Registry',
 		version: version.replace(/^v/, ''),
-		created: new Date().toISOString(),
+		created,
 		homepage: 'https://textrefs.org',
 		licenses: [
 			{
@@ -881,10 +886,27 @@ function writeDump(registry: CompiledRegistry, version: string): void {
 		],
 		resources,
 	};
+}
+
+/** The filename of the descriptor itself, which no resource entry describes. */
+export const DATAPACKAGE_FILENAME = 'datapackage.json';
+
+function writeDump(registry: CompiledRegistry, version: string): void {
+	const dumpDir = join(distRoot, 'dump');
+	mkdirSync(dumpDir, { recursive: true });
+
+	const resources = dumpResources(registry).map((spec) => {
+		writeFileSync(join(dumpDir, spec.filename), spec.body);
+		return describeResource(spec);
+	});
 
 	writeFileSync(
-		join(dumpDir, 'datapackage.json'),
-		JSON.stringify(datapackage, null, 2) + '\n',
+		join(dumpDir, DATAPACKAGE_FILENAME),
+		JSON.stringify(
+			datapackageDescriptor(resources, version, new Date().toISOString()),
+			null,
+			2,
+		) + '\n',
 	);
 }
 
