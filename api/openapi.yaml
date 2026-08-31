@@ -35,7 +35,10 @@ info:
     payload. A record or collection `.json` body is JSON-LD by content and
     arrives as `application/json`. The two alias artifacts are plain JSON
     and arrive the same way. A `.jsonl` body is newline-delimited JSON by
-    content and arrives as `application/octet-stream`. A miss carries no JSON
+    content and arrives as `application/octet-stream`. This contract is
+    published at
+    [`/api/openapi.yaml`](https://textrefs.org/api/openapi.yaml), byte for
+    byte as it is written, and arrives as `text/yaml`. A miss carries no JSON
     at all: the host serves the site's HTML 404 page. Parse by documented
     shape, not by response header.
   license:
