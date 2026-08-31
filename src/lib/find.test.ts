@@ -344,6 +344,52 @@ test('a near miss is found by fuzzy matching', () => {
 	assert.equal(matches[0].work.key, 'plato.republic');
 });
 
+// Tier 6 compared the query against one joined string, so `includes` accepted
+// any fragment of any name. `ant` sits inside `Dante`, and `interpret` then
+// carried that fragment all the way to locator resolution.
+test('a fragment inside a name is not a token match', () => {
+	const withDante = [
+		...works,
+		work(
+			'dante.commedia',
+			'Divine Comedy',
+			'dante-cantica-canto-verse',
+			person('Alighieri', 'Dante'),
+		),
+	];
+	assert.deepEqual(rankWorks('ant', withDante), []);
+	assert.deepEqual(rankWorks('lato', works), []);
+
+	// The whole token still matches, at the tier it always did.
+	const whole = rankWorks('Dante', withDante);
+	assert.equal(whole.length, 1);
+	assert.equal(whole[0].work.key, 'dante.commedia');
+	assert.equal(whole[0].tier, TIER.TOKEN);
+});
+
+// A fuzzy hit is a spelling guess. `/find/` promises that nothing is guessed,
+// so a near miss offers candidates and never resolves to a passage by itself.
+test('a single fuzzy match asks instead of resolving', () => {
+	const bare = find('Republik');
+	assert.equal(bare.kind, 'work-matches');
+	assert.equal(
+		bare.kind === 'work-matches' && bare.matches[0].tier,
+		TIER.FUZZY,
+	);
+
+	const withLocator = find('Republik 514a');
+	assert.equal(withLocator.kind, 'work-matches');
+	assert.equal(
+		withLocator.kind === 'work-matches' && withLocator.matches[0].work.key,
+		'plato.republic',
+	);
+});
+
+test('an exact match still resolves without asking', () => {
+	assert.equal(find('Republic 514a').kind, 'resolvable');
+	assert.equal(find('Republic').kind, 'work-selected');
+});
+
 test('fuzzy matching never outranks an exact hit', () => {
 	// "Odyssey" is an exact label and within edit distance of nothing else, but
 	// the guarantee is structural: the leading tier is a single tier.

@@ -1,27 +1,27 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import {
-	dumpResources,
-	describeResource,
-	datapackageDescriptor,
+	DUMP_MANIFEST,
+	packageVersion,
 	readPackageVersion,
 	DATAPACKAGE_FILENAME,
 } from '../../../scripts/compile.ts';
-import { loadRegistry } from '../../lib/registry.ts';
 import { UNSTABLE_BANNER } from '../../lib/banner.ts';
 
+// This page lists the files and links to `datapackage.json` for the exact byte
+// counts and hashes. It deliberately does not repeat them.
+//
 // `npm run build` runs `astro build` first and `scripts/compile.ts` second, so
-// this page cannot read `dist/dump/datapackage.json` — the file does not exist
-// yet. It calls the same two pure functions the compiler calls instead, over
-// the same registry, so every number here is the number the descriptor
-// publishes. Under `TEXTREFS_REGISTRY_FIXTURE=1` both sides read the fixture,
-// and `build:fast` writes this page while `dist/dump/` stays empty. That build
-// is a local fixture build and is never deployed.
-const resources = dumpResources(loadRegistry()).map(describeResource);
-// The descriptor normalises the version string, so read it from there rather
-// than from `package.json` twice. `created` belongs to the written file alone,
-// and the page never shows it.
-const { version } = datapackageDescriptor(resources, readPackageVersion(), '');
+// the page cannot read `dist/dump/datapackage.json` — the file does not exist
+// yet. Recomputing the numbers here instead meant serialising and hashing every
+// dump body twice per build, ~90 MB each time, to render figures that the
+// descriptor already publishes as machine-readable data. `DUMP_MANIFEST` gives
+// the file list with no body at all, so the two sides still cannot disagree
+// about which files exist.
+const resources = DUMP_MANIFEST;
+// The same normalisation the descriptor applies, so the version this page
+// shows and the version `datapackage.json` carries cannot differ.
+const version = packageVersion(readPackageVersion());
 
 const DESCRIPTIONS: Record<string, string> = {
 	works: 'One Work record per line: the texts that get cited.',
@@ -39,12 +39,6 @@ const PARSE_HINTS: Record<string, string> = {
 	jsonl: 'Read line by line. Each line is one JSON object.',
 	json: 'Read as one JSON document.',
 };
-
-function humanSize(bytes: number): string {
-	if (bytes < 1024) return `${bytes} B`;
-	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 ---
 
 <StarlightPage
@@ -64,7 +58,9 @@ function humanSize(bytes: number): string {
 		<a href="/dump/datapackage.json">
 			<code>datapackage.json</code>
 		</a>, a <a href="https://datapackage.org/">Frictionless</a> descriptor that names
-		every file with its byte count and its <code>sha256</code> hash.
+		every file with its byte count and its <code>sha256</code> hash. Read the sizes
+		and the hashes there: this page lists the files, and the descriptor is their machine-readable
+		record.
 	</p>
 
 	<p>
@@ -83,8 +79,6 @@ function humanSize(bytes: number): string {
 				<tr>
 					<th scope="col">File</th>
 					<th scope="col">Contents</th>
-					<th scope="col">Size</th>
-					<th scope="col">sha256</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -92,22 +86,12 @@ function humanSize(bytes: number): string {
 					resources.map((resource) => (
 						<tr>
 							<th scope="row">
-								<a href={`/dump/${resource.path}`}>
-									<code>{resource.path}</code>
+								<a href={`/dump/${resource.filename}`}>
+									<code>{resource.filename}</code>
 								</a>
 							</th>
 							<td>
 								{DESCRIPTIONS[resource.name]} {PARSE_HINTS[resource.format]}
-							</td>
-							<td>
-								{humanSize(resource.bytes)}
-								<br />
-								<span class="dump-exact">{resource.bytes} bytes</span>
-							</td>
-							<td>
-								<code class="dump-hash">
-									{resource.hash.replace(/^sha256:/, '')}
-								</code>
 							</td>
 						</tr>
 					))
@@ -119,16 +103,9 @@ function humanSize(bytes: number): string {
 						</a>
 					</th>
 					<td>
-						The manifest for the five files above: the same sizes and hashes,
-						plus the registry version and the licence. Read as one JSON
-						document.
-					</td>
-					<td colspan="2">
-						<span class="dump-exact">
-							Self-describing. It carries no size or hash of its own, because a
-							hash cannot contain itself, and its <code>created</code> field changes
-							on every build.
-						</span>
+						The manifest for the five files above: the byte count and the{' '}
+						<code>sha256</code> hash of each, plus the registry version and the licence.
+						Read as one JSON document.
 					</td>
 				</tr>
 			</tbody>
@@ -137,10 +114,19 @@ function humanSize(bytes: number): string {
 
 	<h2>Verify a download</h2>
 
-	<p>Recompute the hash and compare it with the descriptor:</p>
+	<p>
+		Recompute the hash, then compare it with the <code>hash</code> field that{
+			' '
+		}
+		<a href="/dump/datapackage.json">
+			<code>datapackage.json</code>
+		</a> records for that file. The descriptor writes it as <code>sha256:</code> and
+		the hex digest:
+	</p>
 
 	<pre><code>curl -sO https://textrefs.org/dump/references.jsonl
-shasum -a 256 references.jsonl</code></pre>
+shasum -a 256 references.jsonl
+curl -s https://textrefs.org/dump/datapackage.json | jq -r '.resources[] | select(.path == "references.jsonl") | .hash'</code></pre>
 
 	<p>
 		The six files above are registry data, and carry the{' '}
@@ -156,17 +142,9 @@ shasum -a 256 references.jsonl</code></pre>
 </StarlightPage>
 
 <style>
-	/* Hashes and the reference dump make this table wider than the prose column
-	   on a narrow screen. Scroll the table, never the page. */
+	/* The contents column can still exceed the prose column on a narrow screen.
+	   Scroll the table, never the page. */
 	.dump-table-wrap {
 		overflow-x: auto;
-	}
-	.dump-hash {
-		font-size: 0.75em;
-		word-break: break-all;
-	}
-	.dump-exact {
-		font-size: 0.8em;
-		color: var(--sl-color-gray-3);
 	}
 </style>

@@ -15,6 +15,8 @@ import {
 	compileRegistry,
 	dumpResources,
 	describeResource,
+	DUMP_MANIFEST,
+	packageVersion,
 	type CompiledRegistry,
 } from './compile.js';
 import { LanguageTag } from '../standard/schema/common.js';
@@ -913,6 +915,27 @@ test('every descriptor carries the Frictionless fields', () => {
 		assert.equal(d.path, spec.filename);
 		assert.equal(d.name, spec.name);
 	}
+});
+
+// `/dump/index.astro` renders DUMP_MANIFEST so that building the page costs no
+// serialisation. That is only safe while the manifest names exactly what
+// `dumpResources` produces, in the same order.
+test('DUMP_MANIFEST matches what dumpResources produces', () => {
+	const specs = dumpResources(compileFixture(workWithMappings()));
+	assert.deepEqual(
+		specs.map(({ name, filename, format }) => ({ name, filename, format })),
+		DUMP_MANIFEST.map(({ name, filename, format }) => ({
+			name,
+			filename,
+			format,
+		})),
+	);
+});
+
+test('packageVersion drops a leading v and leaves the rest alone', () => {
+	assert.equal(packageVersion('v0.1.0'), '0.1.0');
+	assert.equal(packageVersion('0.1.0'), '0.1.0');
+	assert.equal(packageVersion('v1.2.3-rc.1'), '1.2.3-rc.1');
 });
 
 test('the JSONL bodies are unchanged by the alias-resource refactor', () => {

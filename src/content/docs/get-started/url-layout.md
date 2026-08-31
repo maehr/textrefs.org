@@ -9,9 +9,9 @@ TextRefs uses four URL prefixes, each with one job. Together they make every reg
 
 | Prefix   | Role           | What lives there                                                                                                                                                                                                                                                         |
 | -------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/id/`   | **Identifier** | The canonical, persistent URL of every record. Each record is published twice: `/id/.../` (HTML) and a sibling `/id/....json` (JSON-LD).                                                                                                                                 |
+| `/id/`   | **Identifier** | The canonical URL of every record, persistent once the record is `active`. Each record is published twice: `/id/.../` (HTML) and a sibling `/id/....json` (JSON-LD).                                                                                                     |
 | `/reg/`  | **Browse**     | The human registry browser: filter works and citation systems, then browse paginated reference lists from work pages. Links into `/id/`. Also serves two JSON-LD collections and one locator index for each work, so a client can find a record without a key or a UUID. |
-| `/cite/` | **Cite**       | Short, memorable URLs (`/cite/{work}/{system}/{locator}` always, and bare `/cite/{work}/{locator}` for the work's preferred system) that redirect to the canonical `/id/` URL. Convenience only. Bare aliases MAY be retargeted. `/id/` is permanent.                    |
+| `/cite/` | **Cite**       | Short, memorable URLs (`/cite/{work}/{system}/{locator}` always, and bare `/cite/{work}/{locator}` for the work's preferred system) that redirect to the canonical `/id/` URL. Convenience only. Bare aliases MAY be retargeted. An `active` `/id/` URL is permanent.    |
 | `/api/`  | **API docs**   | The OpenAPI document that describes the `/id/` URL contract, plus the JSON-LD `@context` at `/contexts/`.                                                                                                                                                                |
 
 In one line:
@@ -136,7 +136,7 @@ The largest index is about 1.2 MB, and most are smaller than 70 KB. Use `/dump/a
 
 Persistent-identifier systems separate concerns. DOI and ORCID each have a canonical resolver URL that _is_ the API. Their documentation lives at a stable but distinct path. W3ID and PURL add short-alias redirects on top. TextRefs follows the same pattern:
 
-- The identifier (`/id/`) is the contract. It must be persistent and stable across editions, providers, and resolver implementations.
+- The identifier (`/id/`) is the contract. It must be stable across editions, providers, and resolver implementations, and persistent once the record is `active`.
 - The browser (`/reg/`) is the discovery surface. It can change shape and add features, and citations do not break.
 - The alias (`/cite/`) is convenience. Short URLs resolve back to the canonical identifier via `<link rel="canonical">`. The qualified form (`/cite/{work}/{system}/{locator}`) exists for every reference. The bare form (`/cite/{work}/{locator}`) exists only for a work's preferred system and MAY be retargeted if that preference changes. `/id/` is never retargeted.
 - The docs (`/api/`) describe the contract for anyone who integrates against `/id/`.

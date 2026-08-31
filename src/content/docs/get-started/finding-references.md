@@ -7,7 +7,7 @@ sidebar:
 
 You know the citation. TextRefs finds the reference.
 
-The finder at [`/find/`](/find/) takes the string a scholar already writes — "Plato Republic 514a" — and returns the canonical reference for that passage: a permanent link, the editions that carry the passage, and a citation to copy.
+The finder at [`/find/`](/find/) takes the string a scholar already writes — "Plato Republic 514a" — and returns the canonical reference for that passage: a canonical link, the editions that carry the passage, and a citation to copy.
 
 It runs entirely in your browser against the public registry files. There is no search server, and the finder reads nothing that a client cannot read for itself. See [URL layout](/get-started/url-layout/#find-a-reference-by-its-locator) for the same lookup done from code.
 
@@ -59,12 +59,12 @@ A resolved reference shows, in this order:
 
 - **the work and the passage**, in words — never a UUID as the label;
 - **where to read it**: the registered editions, with their language and whether access is open;
-- **how to cite it**: a formatted citation, and the permanent link;
+- **how to cite it**: a formatted citation, and the canonical link;
 - **the registry record** itself, folded away until you ask for it — work key, citation system, status, and the HTML and JSON-LD records.
 
-The permanent link names the passage, not one edition of it. It keeps working when the editions behind it change. That is the whole point of the reference layer, and [how it works](/get-started/how-it-works/) explains the model underneath.
+The canonical link names the passage, not one edition of it. It keeps working when the editions behind it change. That is the whole point of the reference layer, and [how it works](/get-started/how-it-works/) explains the model underneath.
 
-A record still marked `draft` is flagged where you would otherwise copy the citation. Draft records may change or be withdrawn, so do not rely on one in published work yet.
+A record still marked `draft` is flagged where you would otherwise copy the citation. A draft identifier carries no persistence promise: the record may be corrected, which mints a different identifier, or retracted without a tombstone. Its link can then stop resolving. Only an `active` record is permanent.
 
 ## When a passage is missing
 

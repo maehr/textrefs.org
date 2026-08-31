@@ -83,15 +83,25 @@ function tokens(value: string): string[] {
 	return normalized.length === 0 ? [] : normalized.split(' ');
 }
 
-/** Every name a work answers to, plus its key, as one normalized haystack. */
-function haystack(work: FindWork): string {
-	return normalizeLabel(
-		[
-			work.preferred_label,
-			...(work.alternative_labels ?? []),
-			work.key,
-			...creatorNames(work),
-		].join(' '),
+/**
+ * Every name a work answers to, plus its key, as a set of normalized tokens.
+ *
+ * A set rather than one joined string, because tier 6 asks whether the reader
+ * typed a word this work answers to. Substring containment over a joined string
+ * answers a different question: it accepts `ant` for Dante and `art` for
+ * Descartes, and `interpret` would then carry that fragment through to locator
+ * resolution. A three-letter fragment must not select a work.
+ */
+function haystack(work: FindWork): Set<string> {
+	return new Set(
+		tokens(
+			[
+				work.preferred_label,
+				...(work.alternative_labels ?? []),
+				work.key,
+				...creatorNames(work),
+			].join(' '),
+		),
 	);
 }
 
@@ -269,7 +279,7 @@ function tierOf(query: string, work: FindWork): WorkMatch | null {
 	}
 
 	const hay = haystack(work);
-	if (queryTokens.every((token) => hay.includes(token))) {
+	if (queryTokens.length > 0 && queryTokens.every((token) => hay.has(token))) {
 		return { work, tier: TIER.TOKEN, matchedOn: work.preferred_label };
 	}
 
@@ -319,6 +329,11 @@ export function leadingTier(matches: readonly WorkMatch[]): WorkMatch[] {
 	if (matches.length === 0) return [];
 	const best = matches[0].tier;
 	return matches.filter((m) => m.tier === best);
+}
+
+/** True when a leading tier was reached by spelling distance alone. */
+export function isFuzzy(matches: readonly WorkMatch[]): boolean {
+	return matches.length > 0 && matches[0].tier === TIER.FUZZY;
 }
 
 // ---------------------------------------------------------------------------
@@ -390,14 +405,19 @@ export function interpret(
 	if (matches.length === 0 && parsed.locator !== null) {
 		const whole = leadingTier(rankWorks(query, works));
 		if (whole.length > 0) {
-			return whole.length === 1
+			return whole.length === 1 && !isFuzzy(whole)
 				? { kind: 'work-selected', match: whole[0] }
 				: { kind: 'work-matches', matches: whole, locator: null };
 		}
 	}
 
 	if (matches.length === 0) return { kind: 'no-match', query: query.trim() };
-	if (matches.length > 1) {
+	// A fuzzy hit is a spelling guess, so it offers and never decides — even
+	// when it is the only one. The page promises that nothing is guessed, and
+	// resolving an edit-distance hit straight to a passage would break that
+	// promise silently. `work-matches` is already the "never resolved further"
+	// answer, so the caller renders it as a question.
+	if (matches.length > 1 || isFuzzy(matches)) {
 		return { kind: 'work-matches', matches, locator: parsed.locator };
 	}
 

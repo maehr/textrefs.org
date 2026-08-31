@@ -31,7 +31,7 @@ For a citation such as "Plato, _Republic_ 514a", a registry contributor or parse
 3. Normalize the locator according to that citation system: `514a`.
 4. Mint the `CanonicalReference` ID from the tuple `work_key`, `citation_system_key`, and `locator`.
 
-The result is a persistent TextRefs URI for the cited point itself. That URI stays stable even when:
+The result is a TextRefs URI for the cited point itself. Once the record is `active`, that URI stays stable even when:
 
 - a website changes its URLs;
 - a library adds a new scan;

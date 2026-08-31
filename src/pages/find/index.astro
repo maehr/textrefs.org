@@ -20,7 +20,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 	<h1>Find a reference</h1>
 
 	<p class="find-lede">
-		Type a text and a passage — <em>Plato Republic 514a</em> — to get a permanent
+		Type a text and a passage — <em>Plato Republic 514a</em> — to get a canonical
 		link to that passage, the editions that carry it, and a citation you can paste.
 	</p>
 
@@ -90,8 +90,10 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		<h2 class="find-subheading">What you get back</h2>
 		<ul class="reg-list">
 			<li>
-				<strong>A permanent link</strong> to that passage. It names the passage itself,
-				not one edition of it, so it keeps working when editions come and go.
+				<strong>A canonical link</strong> to that passage. It names the passage itself,
+				not one edition of it, so it keeps working when editions come and go. Only
+				an
+				<code>active</code> record carries a persistence promise.
 			</li>
 			<li>
 				<strong>Editions</strong> that carry the passage, where any are known.
@@ -117,6 +119,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 <script>
 	import {
 		interpret,
+		isFuzzy,
 		resolveInIndex,
 		referenceIri,
 		type FindSystem,
@@ -444,7 +447,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 				el('p', { class: 'find-warn' }, [
 					el('strong', { text: `Not final (${ref.status}). ` }),
 					el('span', {
-						text: 'This record may still change or be withdrawn. The link is safe to keep, but do not rely on it in published work yet.',
+						text: 'This record carries no persistence promise yet. It may be corrected, which mints a different identifier, or retracted without a tombstone, and this link can then stop resolving. Do not cite it as stable.',
 					}),
 				]),
 			);
@@ -529,7 +532,10 @@ import RecordPage from '../../layouts/RecordPage.astro';
 					}),
 					el('p', { class: 'reg-sub' }, [
 						el('span', {
-							text: 'The registry holds twelve works so far, so a text you expect may simply not be in it yet. ',
+							// Counted from the collection the finder already loaded, never
+							// written out: a hard-coded number goes stale on the next work
+							// the registry gains.
+							text: `The registry holds ${works.length} work${works.length === 1 ? '' : 's'} so far, so a text you expect may simply not be in it yet. `,
 						}),
 						el('a', { text: 'See what is registered', href: '/reg/' }),
 						el('span', { text: '.' }),
@@ -537,16 +543,25 @@ import RecordPage from '../../layouts/RecordPage.astro';
 				);
 				break;
 
-			case 'work-matches':
+			case 'work-matches': {
+				// A fuzzy leading tier is a spelling guess, so it is offered and
+				// never applied. Saying "more than one text is called that" would
+				// be wrong for a single near miss, and applying it silently would
+				// break the promise that nothing is guessed.
+				const guessed = isFuzzy(result.matches);
+				const lead = guessed
+					? result.locator
+						? `Nothing is spelled exactly that way. Did you mean one of these, with ${result.locator}?`
+						: 'Nothing is spelled exactly that way. Did you mean one of these?'
+					: result.locator
+						? `More than one text is called that. Choose the one you mean, and TextRefs will look up ${result.locator} in it.`
+						: 'More than one text is called that. Choose the one you mean.';
 				show(
-					el('p', {
-						text: result.locator
-							? `More than one text is called that. Choose the one you mean, and TextRefs will look up ${result.locator} in it.`
-							: 'More than one text is called that. Choose the one you mean.',
-					}),
+					el('p', { text: lead }),
 					candidateList(result.matches, result.locator),
 				);
 				break;
+			}
 
 			case 'work-selected': {
 				const selected = result.match.work;

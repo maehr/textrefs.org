@@ -12,7 +12,7 @@
     "astro": "astro",
     "check": "astro check",
     "check:fast": "TEXTREFS_REGISTRY_FIXTURE=1 astro check",
-    "test": "tsx --test scripts/*.test.ts src/lib/*.test.ts standard/schema/*.test.ts",
+    "test": "tsx --test api/*.test.ts scripts/*.test.ts src/lib/*.test.ts standard/schema/*.test.ts",
     "compile:data": "tsx scripts/compile.ts",
     "build:data": "npm run compile:data && npm run validate:data",
     "validate:data": "tsx scripts/validate-data.ts",
