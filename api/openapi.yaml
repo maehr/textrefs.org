@@ -63,7 +63,11 @@ tags:
       Whole-registry artifacts under `/dump/`, rebuilt on every deploy. The
       `.jsonl` bodies are newline-delimited JSON, and the host serves them
       as `application/octet-stream`. The `.json` bodies are single JSON
-      objects, and the host serves them as `application/json`.
+      objects, and the host serves them as `application/json`. The site runs
+      on GitHub Pages and inherits its soft limits. A bulk consumer therefore
+      reads these artifacts, and does not crawl the record pages one by one.
+      [`/dump/`](https://textrefs.org/dump/) lists them with their sizes and
+      hashes.
 paths:
   /id/work/{key}/:
     get:
