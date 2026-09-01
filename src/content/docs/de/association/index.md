@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**TextRefs** ist ein gemeinnütziger, offener und nicht-kommerzieller, in Gründung befindlicher Verein mit Sitz in Zürich. Er baut, pflegt und veröffentlicht ein offenes, persistentes und maschinenlesbares Register für kanonische Textreferenzen.
+**TextRefs** ist ein gemeinnütziger, offener und nicht-kommerzieller Verein mit Sitz in Zürich. Er baut, pflegt und veröffentlicht ein offenes, persistentes und maschinenlesbares Register für kanonische Textreferenzen.
 
 Diese Seiten enthalten die rechtlich verbindlichen Dokumente in der ursprünglichen deutschen Fassung:
 

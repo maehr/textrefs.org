@@ -193,12 +193,12 @@ The assets remaining after dissolution of the association shall be transferred t
 
 ## Art. 22 Entry into force
 
-These statutes were adopted at the founding meeting of [date] and enter into force immediately.
+These statutes were adopted at the founding meeting of 2 September 2026 and enter into force immediately.
 
-Place, date: Zürich, [date]
+Place, date: Zürich, 2 September 2026
 
 For the founding meeting:
 
-President: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+President, Moritz Mähr: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 Recording officer: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_

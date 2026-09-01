@@ -5,10 +5,6 @@ sidebar:
   order: 5
 ---
 
-:::note[Arbeitsentwurf]
-Dies ist eine Arbeitsfassung vom 2. September 2026. Sie steht unter rechtlichem Vorbehalt bis zur Annahme durch die Gründungsversammlung.
-:::
-
 ## 1. Grundsatz
 
 Die Tätigkeit im Vorstand erfolgt ehrenamtlich. Der Verein ersetzt effektive, notwendige und belegte Spesen, die im Interesse des Vereinszwecks entstanden sind.

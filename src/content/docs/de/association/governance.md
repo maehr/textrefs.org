@@ -5,10 +5,6 @@ sidebar:
   order: 4
 ---
 
-:::note[Arbeitsentwurf]
-Dies ist eine Arbeitsfassung vom 2. September 2026. Sie steht unter rechtlichem Vorbehalt bis zur Annahme durch die Gründungsversammlung.
-:::
-
 ## 1. Zweck des Reglements
 
 Dieses Reglement konkretisiert die Organisation, Verantwortlichkeiten und Entscheidungsprozesse von TextRefs. Es soll sicherstellen, dass der Verein gemeinnützig, transparent, offen, wissenschaftlich nachvollziehbar und rechtssicher geführt wird.

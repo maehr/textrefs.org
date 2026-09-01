@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-**TextRefs** is a non-profit, open, and non-commercial association (_Verein_) in formation, based in Zürich, Switzerland. It builds, maintains, and publishes an open, persistent, and machine-readable registry for canonical text references.
+**TextRefs** is a non-profit, open, and non-commercial association (_Verein_) based in Zürich, Switzerland. It builds, maintains, and publishes an open, persistent, and machine-readable registry for canonical text references.
 
 These pages contain the founding documents:
 
