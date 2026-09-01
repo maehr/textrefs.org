@@ -143,11 +143,7 @@ Resolutions are recorded in minutes.
 
 ## Art. 15 Volunteer service, expenses, and compensation
 
-Members of the Board serve on a volunteer basis and are, as a matter of principle, only entitled to reimbursement of their effective expenses and out-of-pocket costs. Reasonable compensation may be granted to individual Board members for special services.
-
-Compensation for special services is granted only where it serves the association's purpose, is at market rate and proportionate, is budgeted or expressly resolved by the Board, is documented transparently, and does not result in hidden profit distribution or self-dealing.
-
-Affected persons recuse themselves from decisions concerning their own compensation or the compensation of persons close to them.
+The members of the Board serve in an honorary capacity and are entitled only to reimbursement of their actual expenses and cash outlays. Compensation for special or operational services is excluded.
 
 Details are governed by an expense and compensation regulation.
 
