@@ -86,6 +86,7 @@ export default defineConfig({
 				baseUrl: 'https://github.com/textrefs/textrefs.org/edit/main/',
 			},
 			components: {
+				DraftContentNotice: './src/components/DraftContentNotice.astro',
 				Footer: './src/components/Footer.astro',
 				PageTitle: './src/components/PageTitle.astro',
 			},
