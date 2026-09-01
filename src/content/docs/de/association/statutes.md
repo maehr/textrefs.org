@@ -195,6 +195,6 @@ Ort, Datum: Zürich, 2. September 2026
 
 Für die Gründungsversammlung:
 
-Präsidentin/Präsident, Moritz Mähr: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+Präsident, Moritz Mähr: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
-Protokollführerin/Protokollführer: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+Protokollführer, Luz Christopher Seiberth: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
