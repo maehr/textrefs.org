@@ -17,5 +17,5 @@ Diese Seiten enthalten die rechtlich verbindlichen Dokumente in der ursprünglic
 Die englischen Fassungen sind unverbindliche Übersetzungen.
 
 :::note[Status Steuerbefreiung]
-Das Kantonale Steueramt Zürich hat dem Verein am 27. August 2026 die Steuerbefreiung wegen Gemeinnützigkeit zugesichert. Die Zusicherung gilt, wenn der Verein wie dargelegt gegründet wird. Der Verein reicht die unterzeichneten Statuten und das Gründungsprotokoll nach der Gründung ein. Spenden sind erst nach rechtskräftiger Verfügung des Kantonalen Steueramts steuerlich abzugsfähig.
+Das Kantonale Steueramt Zürich hat dem Verein am 27. August 2026 die Steuerbefreiung wegen Gemeinnützigkeit zugesichert. Der Verein wurde am 2. September 2026 wie dargelegt gegründet. Der Verein hat die unterzeichneten Statuten und das Gründungsprotokoll eingereicht. Spenden sind erst nach rechtskräftiger Verfügung des Kantonalen Steueramts steuerlich abzugsfähig.
 :::

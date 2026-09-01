@@ -18,5 +18,5 @@ These pages contain the founding documents:
 For the mission, statutes, governance regulation, and expense regulation, the English versions are convenience translations. The legally binding texts are the [German originals](/de/association/).
 
 :::note[Tax-exemption status]
-On 27 August 2026 the Cantonal Tax Office of Zürich assured the association of tax exemption on grounds of public benefit. The assurance holds if the association is founded as presented. The association submits the signed statutes and the founding minutes after incorporation. Donations only become tax-deductible once the cantonal tax office has issued a legally binding decision.
+On 27 August 2026 the Cantonal Tax Office of Zürich assured the association of tax exemption on grounds of public benefit. The association was founded as presented on 2 September 2026. The association submitted the signed statutes and the founding minutes. Donations only become tax-deductible once the cantonal tax office has issued a legally binding decision.
 :::
