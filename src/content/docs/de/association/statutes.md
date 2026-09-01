@@ -6,7 +6,7 @@ sidebar:
 ---
 
 :::note[Arbeitsentwurf]
-Dies ist eine Arbeitsfassung vom 1. September 2026. Sie steht unter rechtlichem Vorbehalt bis zur Annahme durch die Gründungsversammlung.
+Dies ist eine Arbeitsfassung vom 2. September 2026. Sie steht unter rechtlichem Vorbehalt bis zur Annahme durch die Gründungsversammlung.
 :::
 
 ## Art. 1 Name und Sitz
