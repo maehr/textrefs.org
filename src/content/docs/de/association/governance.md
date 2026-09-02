@@ -5,10 +5,6 @@ sidebar:
   order: 4
 ---
 
-:::note[Arbeitsentwurf]
-Dies ist eine Arbeitsfassung vom 27. Mai 2026. Sie steht unter rechtlichem Vorbehalt bis zur Annahme durch die Gründungsversammlung.
-:::
-
 ## 1. Zweck des Reglements
 
 Dieses Reglement konkretisiert die Organisation, Verantwortlichkeiten und Entscheidungsprozesse von TextRefs. Es soll sicherstellen, dass der Verein gemeinnützig, transparent, offen, wissenschaftlich nachvollziehbar und rechtssicher geführt wird.
@@ -301,11 +297,11 @@ CanonicalReference-, Work- und CitationSystem-IDs sollen nicht gelöscht werden,
 ## 10. Finanz- und Vergütungsgrundsätze
 
 1. Vereinsmittel dürfen nur für den gemeinnützigen Zweck verwendet werden.
-2. Der Vorstand arbeitet grundsätzlich ehrenamtlich.
+2. Der Vorstand arbeitet ehrenamtlich.
 3. Effektive, notwendige und belegte Spesen werden ersetzt.
-4. Besondere Leistungen können angemessen entschädigt werden, wenn sie zweckbezogen, budgetiert, dokumentiert und verhältnismässig sind.
-5. Betroffene Personen treten bei Beschlüssen über eigene Entschädigungen in den Ausstand.
-6. Aufträge an Vorstandsmitglieder oder nahestehende Personen sind nur zulässig, wenn sie dem Vereinszweck dienen, marktüblich sind und transparent beschlossen werden.
+4. Eine Entschädigung für besondere oder operative Leistungen ist ausgeschlossen.
+5. Betroffene Personen treten bei Beschlüssen über eigene Spesen in den Ausstand.
+6. Aufträge an Vorstandsmitglieder oder an ihnen nahestehende Personen sind ausgeschlossen.
 7. Spenden und Fördermittel werden zweckgemäss verwendet.
 8. Zweckgebundene Mittel werden separat nachvollziehbar dokumentiert.
 

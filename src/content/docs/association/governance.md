@@ -301,11 +301,11 @@ CanonicalReference, Work, and CitationSystem IDs shall not be deleted merely bec
 ## 10. Financial and compensation principles
 
 1. The association's funds may be used only for the non-profit purpose.
-2. The Board serves on a volunteer basis as a matter of principle.
+2. The Board serves in an honorary capacity.
 3. Effective, necessary, and documented expenses are reimbursed.
-4. Special services may be compensated appropriately where they are purpose-bound, budgeted, documented, and proportionate.
-5. Affected persons recuse themselves from decisions on their own compensation.
-6. Engagements for Board members or persons close to them are permitted only where they serve the association's purpose, are at market rate, and are resolved transparently.
+4. Compensation for special or operational services is excluded.
+5. Affected persons recuse themselves from decisions on their own expenses.
+6. Engagements of Board members or of persons close to them are excluded.
 7. Donations and grants are used in accordance with their purpose.
 8. Purpose-bound funds are documented separately in a traceable manner.
 
