@@ -79,22 +79,10 @@ const jsonLd = JSON.stringify(ontology).replace(/</g, '\\u003c');
 		<li><code>key</code> expands to <code>dcterms:identifier</code>.</li>
 		<li><code>locator</code> expands to <code>skos:notation</code>.</li>
 		<li>
-			A <code>MappingAssertion</code> expands to an <code>rdf:Statement</code>{
-				' '
-			}
-			whose <code>subject</code>, <code>relation</code>, and <code>target</code
-			>{' '}
-			expand to <code>rdf:subject</code>, <code>rdf:predicate</code>, and{' '}
-			<code>rdf:object</code>.
+			The two mapping relations expand to <code>prov:alternateOf</code> and{' '}
+			<code>dcterms:isReferencedBy</code> (ADR-0006).
 		</li>
 	</ul>
-	<p>
-		Reifying a mapping records the assertion and its metadata; it does not
-		assert the mapped relation. Eligible mappings are asserted separately by the
-		direct{' '}
-		<code>alternateOf</code> and <code>isReferencedBy</code> properties projected
-		onto Work records.
-	</p>
 </RecordPage>
 
 <style>

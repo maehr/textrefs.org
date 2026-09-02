@@ -1,100 +1,94 @@
 {
-	"@context": {
-		"@version": 1.1,
-		"tr": "https://textrefs.org/ontology#",
-		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-		"skos": "http://www.w3.org/2004/02/skos/core#",
-		"dcterms": "http://purl.org/dc/terms/",
-		"prov": "http://www.w3.org/ns/prov#",
-		"schema": "https://schema.org/",
-		"xsd": "http://www.w3.org/2001/XMLSchema#",
-		"id": "@id",
-		"type": "@type",
-		"Work": "tr:Work",
-		"CitationSystem": "tr:CitationSystem",
-		"CanonicalReference": "tr:CanonicalReference",
-		"MappingAssertion": "rdf:Statement",
-		"key": "dcterms:identifier",
-		"preferred_label": "skos:prefLabel",
-		"alternative_labels": {
-			"@id": "skos:altLabel",
-			"@container": "@set"
-		},
-		"description": "dcterms:description",
-		"creators": "schema:creator",
-		"kind": "tr:creatorKind",
-		"family": "schema:familyName",
-		"given": "schema:givenName",
-		"name": "schema:name",
-		"inScheme": {
-			"@id": "skos:inScheme",
-			"@type": "@id"
-		},
-		"work_key": "tr:workKey",
-		"citation_system_key": "tr:citationSystemKey",
-		"preferred_citation_system_key": "tr:preferredCitationSystemKey",
-		"locator": "skos:notation",
-		"status": "tr:status",
-		"source": "dcterms:source",
-		"created": {
-			"@id": "dcterms:created",
-			"@type": "xsd:date"
-		},
-		"modified": {
-			"@id": "dcterms:modified",
-			"@type": "xsd:date"
-		},
-		"relation": {
-			"@id": "rdf:predicate",
-			"@type": "@vocab"
-		},
-		"alternateOf": {
-			"@id": "prov:alternateOf",
-			"@type": "@id"
-		},
-		"isReferencedBy": {
-			"@id": "dcterms:isReferencedBy",
-			"@type": "@id"
-		},
-		"subject": {
-			"@id": "rdf:subject",
-			"@type": "@id"
-		},
-		"target": {
-			"@id": "rdf:object",
-			"@context": {
-				"identifier": "@id"
-			}
-		},
-		"conforms_to": {
-			"@id": "dcterms:conformsTo",
-			"@type": "@id"
-		},
-		"resolver_targets": "tr:resolverTargets",
-		"provider": "schema:provider",
-		"url": {
-			"@id": "schema:url",
-			"@type": "@id"
-		},
-		"language": "dcterms:language",
-		"edition": "schema:bookEdition",
-		"access": "tr:access",
-		"license": {
-			"@id": "dcterms:license",
-			"@type": "@id"
-		},
-		"license_url": {
-			"@id": "dcterms:license",
-			"@type": "@id"
-		},
-		"superseded_by": {
-			"@id": "dcterms:isReplacedBy",
-			"@type": "@id"
-		},
-		"last_checked": {
-			"@id": "tr:lastChecked",
-			"@type": "xsd:date"
-		},
-		"locator_regex": "tr:locatorRegex"
-	}
+  "@context": {
+    "tr": "https://textrefs.org/ontology#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "id": "@id",
+    "type": "@type",
+    "Work": "tr:Work",
+    "CitationSystem": "tr:CitationSystem",
+    "CanonicalReference": "tr:CanonicalReference",
+    "MappingAssertion": "tr:MappingAssertion",
+    "key": "dcterms:identifier",
+    "preferred_label": "skos:prefLabel",
+    "alternative_labels": {
+      "@id": "skos:altLabel",
+      "@container": "@set"
+    },
+    "description": "dcterms:description",
+    "creators": "schema:creator",
+    "kind": "tr:creatorKind",
+    "family": "schema:familyName",
+    "given": "schema:givenName",
+    "name": "schema:name",
+    "inScheme": {
+      "@id": "skos:inScheme",
+      "@type": "@id"
+    },
+    "work_key": "tr:workKey",
+    "citation_system_key": "tr:citationSystemKey",
+    "preferred_citation_system_key": "tr:preferredCitationSystemKey",
+    "locator": "skos:notation",
+    "status": "tr:status",
+    "source": "dcterms:source",
+    "created": {
+      "@id": "dcterms:created",
+      "@type": "xsd:date"
+    },
+    "modified": {
+      "@id": "dcterms:modified",
+      "@type": "xsd:date"
+    },
+    "relation": "tr:relation",
+    "alternateOf": {
+      "@id": "prov:alternateOf",
+      "@type": "@id"
+    },
+    "isReferencedBy": {
+      "@id": "dcterms:isReferencedBy",
+      "@type": "@id"
+    },
+    "subject": {
+      "@id": "tr:subject",
+      "@type": "@id"
+    },
+    "target": "tr:target",
+    "identifier": {
+      "@id": "tr:identifier",
+      "@type": "@id"
+    },
+    "conforms_to": {
+      "@id": "dcterms:conformsTo",
+      "@type": "@id"
+    },
+    "resolver_targets": "tr:resolverTargets",
+    "provider": "schema:provider",
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    "language": "dcterms:language",
+    "edition": "schema:bookEdition",
+    "access": "tr:access",
+    "license": {
+      "@id": "dcterms:license",
+      "@type": "@id"
+    },
+    "license_url": {
+      "@id": "dcterms:license",
+      "@type": "@id"
+    },
+    "superseded_by": {
+      "@id": "dcterms:isReplacedBy",
+      "@type": "@id"
+    },
+    "last_checked": {
+      "@id": "tr:lastChecked",
+      "@type": "xsd:date"
+    },
+    "locator_regex": "tr:locatorRegex"
+  }
 }

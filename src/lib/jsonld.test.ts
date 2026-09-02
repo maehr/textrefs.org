@@ -6,7 +6,6 @@ import jsonld from 'jsonld';
 import type { ContextDefinition, JsonLdDocument } from 'jsonld';
 
 import { fixtureRegistry } from './registry.fixture.ts';
-import { MappingAssertion } from '../../standard/schema/mapping-assertion.js';
 import {
 	ONTOLOGY_IRI,
 	ONTOLOGY_NAMESPACE,
@@ -22,10 +21,10 @@ const contextDocument = JSON.parse(
 const context = contextDocument['@context'];
 
 const RDF = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+const OWL = 'http://www.w3.org/2002/07/owl#';
 const DCTERMS = 'http://purl.org/dc/terms/';
 const PROV = 'http://www.w3.org/ns/prov#';
 const SKOS = 'http://www.w3.org/2004/02/skos/core#';
-const OWL = 'http://www.w3.org/2002/07/owl#';
 
 async function expand(record: object) {
 	// The context comes from parsed JSON, whose broad runtime types cannot carry
@@ -39,58 +38,19 @@ async function expand(record: object) {
 	return nodes[0] as Record<string, unknown>;
 }
 
-test('MappingAssertion expands as RDF reification without asserting its relation', async () => {
-	for (const [relation, predicate] of [
-		['alternateOf', `${PROV}alternateOf`],
-		['isReferencedBy', `${DCTERMS}isReferencedBy`],
-	] as const) {
-		const mapping = structuredClone(fixtureRegistry.mappings[0]);
-		mapping.relation = relation;
-		const node = await expand(mapping);
-
-		assert.deepEqual(node['@type'], [`${RDF}Statement`]);
-		assert.deepEqual(node[`${RDF}subject`], [{ '@id': mapping.subject }]);
-		assert.deepEqual(node[`${RDF}predicate`], [{ '@id': predicate }]);
-		assert.deepEqual(node[`${RDF}object`], [
-			{ '@id': mapping.target.identifier },
-		]);
-
-		// RDF reification describes the triple but does not assert it. The direct
-		// edge is emitted only by the Work projection for eligible mappings.
-		assert.equal(node[predicate], undefined);
+test('the v1 context stays within JSON-LD 1.0', () => {
+	// A 1.1-only feature makes a 1.0 processor reject the whole context, so the
+	// published v1 keeps to what every processor can read.
+	assert.equal(context['@version'], undefined);
+	for (const [term, definition] of Object.entries(context)) {
+		if (definition && typeof definition === 'object') {
+			assert.equal(
+				(definition as { '@context'?: unknown })['@context'],
+				undefined,
+				`${term} carries a term-scoped context, which is JSON-LD 1.1 only`,
+			);
+		}
 	}
-});
-
-// `relation` is `@type: "@vocab"`, so a value the context does not define does
-// not fail: it expands to a relative IRI resolved against the record URL, and
-// the mapping then publishes a predicate in the TextRefs namespace that means
-// nothing. The schema enum and the context have to stay in step.
-test('every relation the schema allows expands to an absolute IRI', async () => {
-	for (const relation of MappingAssertion.shape.relation.options) {
-		const mapping = structuredClone(fixtureRegistry.mappings[0]);
-		mapping.relation = relation;
-		const node = await expand(mapping);
-		const predicate = (node[`${RDF}predicate`] as { '@id': string }[])[0]?.[
-			'@id'
-		];
-		assert.match(
-			predicate ?? '',
-			/^https?:\/\//,
-			`relation "${relation}" has no term in the v1 context`,
-		);
-	}
-});
-
-test('Work projections still expand as direct mapping relations', async () => {
-	const work = fixtureRegistry.works[0];
-	const node = await expand(work);
-
-	assert.deepEqual(node[`${PROV}alternateOf`], [
-		{ '@id': work.alternateOf?.[0] },
-	]);
-	assert.deepEqual(node[`${DCTERMS}isReferencedBy`], [
-		{ '@id': work.isReferencedBy?.[0] },
-	]);
 });
 
 test('generic identifiers and scheme-specific locators reuse established terms', async () => {
@@ -107,31 +67,34 @@ test('generic identifiers and scheme-specific locators reuse established terms',
 	]);
 });
 
-test('the ontology defines every TextRefs term retained by the context', () => {
-	const retainedTerms = new Set<string>();
-	// Scoped contexts can carry `tr:` terms too, so the scan follows them.
-	function collect(scope: Record<string, unknown>): void {
-		for (const definition of Object.values(scope)) {
-			if (typeof definition === 'string') {
-				if (definition.startsWith('tr:'))
-					retainedTerms.add(definition.slice('tr:'.length));
-				continue;
-			}
-			if (!definition || typeof definition !== 'object') continue;
-			const { '@id': id, '@context': scoped } = definition as {
-				'@id'?: unknown;
-				'@context'?: unknown;
-			};
-			if (typeof id === 'string' && id.startsWith('tr:'))
-				retainedTerms.add(id.slice('tr:'.length));
-			if (scoped && typeof scoped === 'object')
-				collect(scoped as Record<string, unknown>);
+test('Work projections expand as the ADR-0006 mapping relations', async () => {
+	const work = fixtureRegistry.works[0];
+	const node = await expand(work);
+
+	assert.deepEqual(node[`${PROV}alternateOf`], [
+		{ '@id': work.alternateOf?.[0] },
+	]);
+	assert.deepEqual(node[`${DCTERMS}isReferencedBy`], [
+		{ '@id': work.isReferencedBy?.[0] },
+	]);
+});
+
+test('the ontology defines every TextRefs term the context uses', () => {
+	const usedTerms = new Set<string>();
+	for (const definition of Object.values(context)) {
+		const id =
+			typeof definition === 'string'
+				? definition
+				: definition && typeof definition === 'object'
+					? (definition as { '@id'?: unknown })['@id']
+					: undefined;
+		if (typeof id === 'string' && id.startsWith('tr:')) {
+			usedTerms.add(id.slice('tr:'.length));
 		}
 	}
-	collect(context);
 
 	assert.deepEqual(
-		[...retainedTerms].sort(),
+		[...usedTerms].sort(),
 		ONTOLOGY_TERMS.map((term) => term.localName).sort(),
 	);
 });
@@ -144,6 +107,7 @@ test('every ontology term is typed in the default graph', async () => {
 		ontologyJsonLd() as unknown as JsonLdDocument,
 		{ format: 'application/n-quads' },
 	)) as unknown as string;
+
 	// A quad in a named graph would carry the graph IRI as a fourth term, so a
 	// line that ends right after the object proves the triple is in the default
 	// graph.

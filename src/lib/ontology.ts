@@ -43,6 +43,13 @@ export const ONTOLOGY_TERMS: OntologyTerm[] = [
 		subClassOf: ['http://www.w3.org/2004/02/skos/core#Concept'],
 	},
 	{
+		localName: 'MappingAssertion',
+		kind: 'Class',
+		label: 'Mapping assertion',
+		comment:
+			'A curated, sourced statement that relates a TextRefs Work to an identifier in another system.',
+	},
+	{
 		localName: 'creatorKind',
 		kind: 'DatatypeProperty',
 		label: 'creator kind',
@@ -84,6 +91,38 @@ export const ONTOLOGY_TERMS: OntologyTerm[] = [
 		comment:
 			'The TextRefs lifecycle status of a record: draft, active, deprecated, withdrawn, or blocked.',
 		range: ['http://www.w3.org/2000/01/rdf-schema#Literal'],
+	},
+	{
+		localName: 'relation',
+		kind: 'DatatypeProperty',
+		label: 'relation',
+		comment:
+			'The TextRefs relation a mapping assertion records: alternateOf or isReferencedBy (ADR-0006).',
+		domain: [`${ONTOLOGY_NAMESPACE}MappingAssertion`],
+		range: ['http://www.w3.org/2000/01/rdf-schema#Literal'],
+	},
+	{
+		localName: 'subject',
+		kind: 'ObjectProperty',
+		label: 'subject',
+		comment: 'The Work a mapping assertion is about.',
+		domain: [`${ONTOLOGY_NAMESPACE}MappingAssertion`],
+		range: [`${ONTOLOGY_NAMESPACE}Work`],
+	},
+	{
+		localName: 'target',
+		kind: 'ObjectProperty',
+		label: 'target',
+		comment:
+			'The embedded description of the external entity a mapping assertion points at.',
+		domain: [`${ONTOLOGY_NAMESPACE}MappingAssertion`],
+	},
+	{
+		localName: 'identifier',
+		kind: 'ObjectProperty',
+		label: 'identifier',
+		comment:
+			'The IRI of the external entity a mapping target names. It identifies a textual resource.',
 	},
 	{
 		localName: 'resolverTargets',

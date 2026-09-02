@@ -263,8 +263,6 @@ A `MappingAssertion` records a curated relation between a TextRefs `Work` and an
 
 Required: `id`, `type` (`MappingAssertion`), `subject`, `relation`, `target`, `source`, plus administrative metadata.
 
-In JSON-LD, a `MappingAssertion` is an `rdf:Statement`: `subject` expands to `rdf:subject`, `relation` to the IRI-valued `rdf:predicate`, and `target.identifier` to the `@id` of `rdf:object`. Reification records the triple and its metadata but does not assert the triple. Eligible mappings are asserted separately by the compiler-derived `alternateOf` and `isReferencedBy` projections on `Work` records ([§6](#6-work)).
-
 - `subject` MUST be a `Work` IRI of the form `https://textrefs.org/id/work/{work_key}`. Per-passage external identifiers (e.g. the CTS URN of a single verse) are derived from work-level mappings combined with the reference locator at resolve time; they MUST NOT be stored as separate `MappingAssertion` records.
 - `target.identifier` MUST be an IRI ([RFC 3987](https://www.rfc-editor.org/rfc/rfc3987)) that identifies a **textual resource**: a work, edition, manuscript, citation system, or another TextRefs `Work`.
 - `target.conforms_to` is OPTIONAL. When present, it MUST be a dereferenceable IRI — or an array of such IRIs — identifying the specification or identifier scheme to which `target.identifier` conforms (e.g. the home page of the CTS specification, the Wikidata project, or a DOI handbook section). It is informative: validators MUST NOT key behaviour off it; the IRI in `identifier` is authoritative. See [Appendix B](#appendix-b-well-known-external-identifier-schemes-informative) for non-normative examples.
@@ -424,7 +422,6 @@ This standard relies on the following external standards. Each is normative wher
 | Regular expression dialect           | [ECMA-262](https://262.ecma-international.org/) §22.2                                                |
 | Versioning                           | [SemVer 2.0.0](https://semver.org/spec/v2.0.0.html)                                                  |
 | Linked-data serialization            | [JSON-LD 1.1](https://www.w3.org/TR/json-ld11/)                                                      |
-| Reified mapping statements           | [RDF 1.1 Schema](https://www.w3.org/TR/rdf-schema/)                                                  |
 | Labels and concept schemes           | [SKOS](https://www.w3.org/TR/skos-reference/)                                                        |
 | Alternate-presentation relations     | [PROV-O](https://www.w3.org/TR/prov-o/)                                                              |
 | Dates, provenance, language, licence | [Dublin Core Terms](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/)               |
