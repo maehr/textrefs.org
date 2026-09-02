@@ -78,7 +78,7 @@
       "@type": "@id"
     },
     "license_url": {
-      "@id": "dcterms:license",
+      "@id": "dcterms:rights",
       "@type": "@id"
     },
     "superseded_by": {

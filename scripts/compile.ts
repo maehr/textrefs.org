@@ -281,7 +281,7 @@ function buildResolverEntry(
 			// parse time. Kept so a future caller that skips the parser cannot
 			// drop a licence statement silently.
 			throw new Error(
-				`license "${resolver.license}" is not an SPDX id (use license_url for non-SPDX terms)`,
+				`license "${resolver.license}" is not an SPDX id (record the provider's rights statement in license_url)`,
 			);
 		}
 		// Emit the canonical SPDX IRI so dcterms:license has a single

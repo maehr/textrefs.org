@@ -54,7 +54,8 @@ export const ResolverEntrySource = z
 			.string()
 			.min(1)
 			.refine((id) => SPDX_IDS.has(id), {
-				message: 'not an SPDX license id (use license_url for non-SPDX terms)',
+				message:
+					"not an SPDX license id (record the provider's rights statement in license_url)",
 			})
 			.optional(),
 		license_url: z.string().min(1).optional(),
