@@ -1,5 +1,7 @@
 export const ONTOLOGY_IRI = 'https://textrefs.org/ontology';
 export const ONTOLOGY_NAMESPACE = `${ONTOLOGY_IRI}#`;
+/** Kept in lockstep with `package.json`; asserted by `jsonld.test.ts`. */
+export const ONTOLOGY_VERSION = '0.1.0';
 
 export interface OntologyTerm {
 	localName: string;
@@ -124,27 +126,38 @@ function iriReferences(values: string[] | undefined) {
 export function ontologyJsonLd() {
 	return {
 		'@context': {
-			'@version': 1.1,
 			dcterms: 'http://purl.org/dc/terms/',
 			owl: 'http://www.w3.org/2002/07/owl#',
 			rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
 		},
-		'@id': ONTOLOGY_IRI,
-		'@type': 'owl:Ontology',
-		'dcterms:title': 'TextRefs ontology',
-		'dcterms:description':
-			'The small application vocabulary used by the TextRefs JSON-LD context where established vocabularies are not precise enough.',
-		'owl:versionInfo': '0.1.0',
-		'@graph': ONTOLOGY_TERMS.map((term) => ({
-			'@id': `${ONTOLOGY_NAMESPACE}${term.localName}`,
-			'@type': `owl:${term.kind}`,
-			'rdfs:label': term.label,
-			'rdfs:comment': term.comment,
-			...(term.subClassOf
-				? { 'rdfs:subClassOf': iriReferences(term.subClassOf) }
-				: {}),
-			...(term.domain ? { 'rdfs:domain': iriReferences(term.domain) } : {}),
-			...(term.range ? { 'rdfs:range': iriReferences(term.range) } : {}),
-		})),
+		// `@graph` without an `@id` sibling keeps every triple in the default
+		// graph, as the registry collections do. A node object carrying both
+		// would declare a *named* graph, and a consumer that parses the document
+		// into a single graph would then find the ontology empty.
+		'@graph': [
+			{
+				'@id': ONTOLOGY_IRI,
+				'@type': 'owl:Ontology',
+				'dcterms:title': 'TextRefs ontology',
+				'dcterms:description':
+					'The small application vocabulary used by the TextRefs JSON-LD context where established vocabularies are not precise enough.',
+				'dcterms:license': {
+					'@id': 'https://creativecommons.org/licenses/by-sa/4.0/',
+				},
+				'owl:versionInfo': ONTOLOGY_VERSION,
+			},
+			...ONTOLOGY_TERMS.map((term) => ({
+				'@id': `${ONTOLOGY_NAMESPACE}${term.localName}`,
+				'@type': `owl:${term.kind}`,
+				'rdfs:isDefinedBy': { '@id': ONTOLOGY_IRI },
+				'rdfs:label': term.label,
+				'rdfs:comment': term.comment,
+				...(term.subClassOf
+					? { 'rdfs:subClassOf': iriReferences(term.subClassOf) }
+					: {}),
+				...(term.domain ? { 'rdfs:domain': iriReferences(term.domain) } : {}),
+				...(term.range ? { 'rdfs:range': iriReferences(term.range) } : {}),
+			})),
+		],
 	};
 }

@@ -14,6 +14,7 @@ const jsonLd = JSON.stringify(ontology).replace(/</g, '\\u003c');
 <RecordPage
 	title="TextRefs ontology"
 	description="Definitions of the TextRefs-specific classes and properties used by the v1 JSON-LD context."
+	jsonHref="/ontology.json"
 >
 	<script is:inline type="application/ld+json" set:html={jsonLd} />
 	<h1>TextRefs ontology</h1>
@@ -27,6 +28,9 @@ const jsonLd = JSON.stringify(ontology).replace(/</g, '\\u003c');
 		Ontology IRI: <a href={ONTOLOGY_IRI}><code>{ONTOLOGY_IRI}</code></a><br />
 		JSON-LD context: <a href="/contexts/v1.jsonld"
 			><code>https://textrefs.org/contexts/v1.jsonld</code></a
+		><br />
+		This document as JSON-LD: <a href="/ontology.json"
+			><code>/ontology.json</code></a
 		>
 	</p>
 
@@ -44,16 +48,25 @@ const jsonLd = JSON.stringify(ontology).replace(/</g, '\\u003c');
 						<p>
 							<code>{ONTOLOGY_NAMESPACE + term.localName}</code>
 						</p>
-						{term.subClassOf && (
-							<p>
-								Subclass of:{' '}
-								{term.subClassOf.map((iri, index) => (
-									<Fragment>
-										{index > 0 && ', '}
-										<a href={iri}>{iri}</a>
-									</Fragment>
-								))}
-							</p>
+						{(
+							[
+								['Subclass of', term.subClassOf],
+								['Domain', term.domain],
+								['Range', term.range],
+							] as const
+						).map(
+							([label, iris]) =>
+								iris && (
+									<p>
+										{label}:{' '}
+										{iris.map((iri, index) => (
+											<Fragment>
+												{index > 0 && ', '}
+												<a href={iri}>{iri}</a>
+											</Fragment>
+										))}
+									</p>
+								),
 						)}
 					</dd>
 				</Fragment>

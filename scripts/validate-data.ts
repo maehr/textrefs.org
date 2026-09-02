@@ -85,41 +85,55 @@ const contextPath = join(projectRoot, 'public', 'contexts', 'v1.jsonld');
 const contextDoc = JSON.parse(readFileSync(contextPath, 'utf8')) as {
 	'@context': Record<string, unknown>;
 };
-const mappedKeys = new Set<string>();
-function collectContextTerms(context: Record<string, unknown>): void {
-	for (const [term, definition] of Object.entries(context)) {
-		if (!term.startsWith('@')) mappedKeys.add(term);
-		if (
-			definition &&
-			typeof definition === 'object' &&
-			!Array.isArray(definition)
-		) {
-			const scoped = (definition as { '@context'?: unknown })['@context'];
-			if (scoped && typeof scoped === 'object' && !Array.isArray(scoped)) {
-				collectContextTerms(scoped as Record<string, unknown>);
-			}
-		}
-	}
+function termNames(context: Record<string, unknown>): string[] {
+	return Object.keys(context).filter((term) => !term.startsWith('@'));
 }
-collectContextTerms(contextDoc['@context']);
+
+function scopedContextOf(
+	definition: unknown,
+): Record<string, unknown> | undefined {
+	if (
+		!definition ||
+		typeof definition !== 'object' ||
+		Array.isArray(definition)
+	)
+		return undefined;
+	const scoped = (definition as { '@context'?: unknown })['@context'];
+	if (!scoped || typeof scoped !== 'object' || Array.isArray(scoped))
+		return undefined;
+	return scoped as Record<string, unknown>;
+}
+
+// A term-scoped context defines its terms only under the term that owns it, so
+// the check has to follow that scope. Flattening every scoped term into one set
+// would accept `identifier` on a Work, where the context no longer defines it
+// and expansion would silently drop the value.
+const rootTerms = new Set(termNames(contextDoc['@context']));
+const scopedTerms = new Map<string, Set<string>>();
+for (const [term, definition] of Object.entries(contextDoc['@context'])) {
+	const scoped = scopedContextOf(definition);
+	if (scoped) scopedTerms.set(term, new Set(termNames(scoped)));
+}
 
 const unmapped = new Set<string>();
-function walk(node: unknown): void {
+function walk(node: unknown, inScope: Set<string>): void {
 	if (Array.isArray(node)) {
-		for (const item of node) walk(item);
+		for (const item of node) walk(item, inScope);
 		return;
 	}
 	if (node === null || typeof node !== 'object') return;
 	for (const [k, v] of Object.entries(node)) {
-		if (!mappedKeys.has(k)) unmapped.add(k);
-		walk(v);
+		if (!inScope.has(k)) unmapped.add(k);
+		// A property-scoped context propagates to the nodes below it.
+		const scoped = scopedTerms.get(k);
+		walk(v, scoped ? new Set([...inScope, ...scoped]) : inScope);
 	}
 }
 
-for (const r of registry.works) walk(r);
-for (const r of registry.systems) walk(r);
-for (const r of registry.references) walk(r);
-for (const r of registry.mappings) walk(r);
+for (const r of registry.works) walk(r, rootTerms);
+for (const r of registry.systems) walk(r, rootTerms);
+for (const r of registry.references) walk(r, rootTerms);
+for (const r of registry.mappings) walk(r, rootTerms);
 
 if (unmapped.size > 0) {
 	console.error(
