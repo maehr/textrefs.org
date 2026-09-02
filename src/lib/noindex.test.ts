@@ -7,7 +7,7 @@ process.env.TEXTREFS_REGISTRY_FIXTURE = '1';
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildNoindexPredicate } from './noindex.js';
+import { buildNoindexPredicate, draftRecordIris } from './noindex.js';
 
 const isNoindex = buildNoindexPredicate();
 
@@ -37,4 +37,27 @@ test('documentation pages are kept', () => {
 test('paginated reference browsers follow their work', () => {
 	// fixture.work is active, so its browser pages stay in the sitemap.
 	assert.equal(isNoindex('/reg/work/fixture.work/refs/1/'), false);
+});
+
+test('cite aliases follow the record they redirect to', () => {
+	// The alternate system is draft, so its qualified alias is excluded.
+	assert.equal(isNoindex('/cite/fixture.work/fixture-alternate/1/'), true);
+	// The preferred system is active, so both of its aliases stay.
+	assert.equal(isNoindex('/cite/fixture.work/fixture-section/1/'), false);
+	assert.equal(isNoindex('/cite/fixture.work/1/'), false);
+});
+
+test('an alias holding an external IRI renders no page and gets no entry', () => {
+	assert.equal(isNoindex('/cite/https://example.org/fixture-work/'), false);
+});
+
+test('draft record IRIs are collected across every record type', () => {
+	const draft = draftRecordIris();
+	assert.ok(draft.has('https://textrefs.org/id/system/fixture-alternate'));
+	assert.ok(
+		draft.has(
+			'https://textrefs.org/id/ref/00000000-0000-5000-8000-000000000003',
+		),
+	);
+	assert.ok(!draft.has('https://textrefs.org/id/work/fixture.work'));
 });

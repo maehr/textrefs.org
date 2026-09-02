@@ -11,12 +11,32 @@ import {
 	loadSystems,
 	loadReferences,
 	loadMappings,
+	loadAliases,
 	iriToLocal,
 	workKeyOf,
 } from './registry.js';
 
 function isDraft(record: { status: string }): boolean {
 	return record.status === 'draft';
+}
+
+/**
+ * The IRIs of every record still at `draft`.
+ *
+ * Shared with `/cite/`, whose alias pages carry no status of their own: an
+ * alias is `draft` exactly when the record it redirects to is.
+ */
+export function draftRecordIris(): Set<string> {
+	const iris = new Set<string>();
+	for (const record of [
+		...loadWorks(),
+		...loadSystems(),
+		...loadReferences(),
+		...loadMappings(),
+	]) {
+		if (isDraft(record)) iris.add(record.id);
+	}
+	return iris;
 }
 
 /**
@@ -28,14 +48,16 @@ function isDraft(record: { status: string }): boolean {
  * test over the handful of works rather than an enumeration of page numbers.
  */
 export function buildNoindexPredicate(): (pathname: string) => boolean {
+	const draftIris = draftRecordIris();
 	const paths = new Set<string>();
-	for (const record of [
-		...loadWorks(),
-		...loadSystems(),
-		...loadReferences(),
-		...loadMappings(),
-	]) {
-		if (isDraft(record)) paths.add(iriToLocal(record.id));
+	for (const iri of draftIris) paths.add(iriToLocal(iri));
+
+	// A `/cite/` alias renders one redirect page per alias, so a draft record
+	// reaches the sitemap through its aliases as well as through its own page.
+	// An alias holding an external IRI renders no page and needs no entry.
+	for (const [alias, target] of Object.entries(loadAliases())) {
+		if (alias.includes('://')) continue;
+		if (draftIris.has(target)) paths.add(`/cite/${alias}/`);
 	}
 
 	const draftWorkPrefixes = loadWorks()
