@@ -8,6 +8,7 @@ import {
 	uuidOf,
 } from '../../../../lib/registry.ts';
 import { toCSL, formatChicago, toCOinS } from '../../../../lib/citation.ts';
+import { spdxLicenseLabel } from '../../../../lib/license.ts';
 
 export async function getStaticPaths() {
 	const refs = loadReferences();
@@ -223,7 +224,16 @@ const isTombstone =
 									</a>{' '}
 									{t.edition && <span class="reg-tag">{t.edition}</span>}{' '}
 									<span class="reg-tag">{t.access}</span>{' '}
-									{t.license && <span class="reg-tag">{t.license}</span>}
+									{t.license && (
+										<a
+											class="reg-tag"
+											href={t.license}
+											target="_blank"
+											rel="noopener noreferrer license"
+										>
+											{spdxLicenseLabel(t.license)}
+										</a>
+									)}
 									<br />
 									<code class="reg-iri">{t.url}</code>
 								</li>

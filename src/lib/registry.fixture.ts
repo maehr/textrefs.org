@@ -64,6 +64,10 @@ export const fixtureRegistry: CompiledRegistry = {
 					url: 'https://example.org/fixture-work/1',
 					language: 'en',
 					provider: 'Example',
+					// The compiler publishes `license` as the canonical SPDX IRI
+					// (specification §9), so the fixture carries one too. Without it no
+					// fixture-backed build renders the licence chip on a record page.
+					license: 'https://spdx.org/licenses/CC-BY-SA-3.0',
 					access: 'open',
 				},
 			],

@@ -27,6 +27,12 @@ import {
 	type SystemBlockSource,
 } from './source-schema.js';
 
+// Specification §9: a published `license` is the canonical SPDX IRI, and the
+// authored SPDX id is the part after this prefix. `spdxLicenseLabel` in
+// `src/lib/license.ts` reverses this to render the id, so both sides import the
+// one constant rather than repeating the string.
+export const SPDX_LICENSE_BASE = 'https://spdx.org/licenses/';
+
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
 
@@ -286,7 +292,7 @@ function buildResolverEntry(
 		}
 		// Emit the canonical SPDX IRI so dcterms:license has a single
 		// IRI-typed range in the JSON-LD output.
-		entry.license = `https://spdx.org/licenses/${resolver.license}`;
+		entry.license = `${SPDX_LICENSE_BASE}${resolver.license}`;
 	}
 	if (resolver.license_url !== undefined)
 		entry.license_url = resolver.license_url;
