@@ -209,6 +209,56 @@ test('two works sharing an alternative label are ambiguous (ADR-0007)', () => {
 	);
 });
 
+test('a label that ends in a locator-shaped token is not split apart', () => {
+	// Nietzsche's registered labels include `MA`, `MA I`, `MA II/1` and
+	// `MA II/2`. Splitting `MA II/1` leaves `MA`, which is a different work's
+	// label, so the query used to land on that work with `II/1` reported as an
+	// invalid passage. The whole query is an exact label, so it wins.
+	const nietzsche: FindWork[] = [
+		work(
+			'n.mensch',
+			'Menschliches, Allzumenschliches',
+			'integer-section',
+			person('Nietzsche'),
+			['MA', 'MA I'],
+		),
+		work(
+			'n.vermischte',
+			'Vermischte Meinungen und Sprüche',
+			'integer-section',
+			person('Nietzsche'),
+			['MA II/1'],
+		),
+	];
+
+	const result = interpret('MA II/1', nietzsche, systems);
+	assert.equal(result.kind, 'work-selected');
+	if (result.kind !== 'work-selected') return;
+	assert.equal(result.match.work.key, 'n.vermischte');
+	assert.equal(result.match.tier, TIER.EXACT_ALTERNATIVE_LABEL);
+
+	// The shorter label still reaches its own work.
+	const shorter = interpret('MA', nietzsche, systems);
+	assert.equal(shorter.kind, 'work-selected');
+	if (shorter.kind !== 'work-selected') return;
+	assert.equal(shorter.match.work.key, 'n.mensch');
+});
+
+test('a better split match is not displaced by a weaker whole-query match', () => {
+	// The whole query wins only at an equal or better tier. Here the split finds
+	// an exact preferred label, which outranks the alternative label that the
+	// whole query would match, so the locator survives.
+	const rival: FindWork[] = [
+		work('a.book', 'Book', 'integer-section', person('Author')),
+		work('b.other', 'Other', 'integer-section', person('Author'), ['Book 1']),
+	];
+	const result = interpret('Book 1', rival, systems);
+	assert.equal(result.kind, 'resolvable');
+	if (result.kind !== 'resolvable') return;
+	assert.equal(result.match.work.key, 'a.book');
+	assert.equal(result.locator, '1');
+});
+
 test('an exact preferred label outranks another work’s alternative label', () => {
 	// The spec's ladder puts tier 2 above tier 3, so this is decided rather than
 	// ambiguous. Recorded here because it is the one homonym shape that does not
