@@ -86,6 +86,11 @@ export const fixtureRegistry: CompiledRegistry = {
 					url: 'https://example.org/fixture-work/alt/1',
 					language: 'en',
 					provider: 'Example',
+					// No SPDX `license`, only the provider's rights statement. This is
+					// the shape of 54,380 real targets — two providers whose terms are
+					// not SPDX-expressible — and the reference page rendered nothing at
+					// all for it before the Rights chip.
+					license_url: 'https://example.org/terms',
 					access: 'open',
 				},
 			],

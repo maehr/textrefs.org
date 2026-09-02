@@ -233,6 +233,17 @@ const isTombstone =
 										>
 											{spdxLicenseLabel(t.license)}
 										</a>
+									)}{' '}
+									{t.license_url && (
+										<a
+											class="reg-tag"
+											href={t.license_url}
+											target="_blank"
+											rel="noopener noreferrer"
+											aria-label={`Rights statement for ${t.provider ?? t.url}`}
+										>
+											Rights
+										</a>
 									)}
 									<br />
 									<code class="reg-iri">{t.url}</code>
