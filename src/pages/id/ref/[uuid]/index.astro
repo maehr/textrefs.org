@@ -83,10 +83,13 @@ const chicagoHtml = escapeHtml(chicago).replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
 // ADR-0004 and specification.md §12 make `deprecated`, `withdrawn` and `blocked`
 // one tombstone category, and the compiler agrees (`RETIRED_STATUSES` in
-// scripts/compile.ts). The three differ in reach, not in kind: a `deprecated`
-// record is retained and still resolves, while a `withdrawn` or `blocked` record
-// is additionally excluded from `Work` mapping projections. The banner therefore
-// stays one presentation, and the copy below states which of the three applies.
+// scripts/compile.ts). The three differ in reach, not in kind. All three leave
+// the `Work` mapping projections; `scripts/compile.test.ts` asserts this for
+// `deprecated` as well as for the other two. A `deprecated` record is otherwise
+// retained and still resolves. A `withdrawn` or `blocked` record additionally
+// may not be depended on by a live record (`TOMBSTONE_STATUSES`). The banner
+// therefore stays one presentation, and the copy below states which of the
+// three applies.
 // Kept in step with src/components/Tombstone.astro by hand until #100 lands.
 const isDraft = ref.status === 'draft';
 const isTombstone =
