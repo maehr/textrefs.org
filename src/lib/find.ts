@@ -400,11 +400,21 @@ export function interpret(
 
 	const matches = leadingTier(rankWorks(parsed.workQuery, works));
 
-	// A title that ends in a digit would have lost its last token above. Retry
-	// on the whole query before giving up, so the split can never hide a work.
-	if (matches.length === 0 && parsed.locator !== null) {
+	// A title that ends in something a reader would type as a locator loses its
+	// last token above — `MA II/1` is one of Nietzsche's registered labels, and
+	// the split leaves `MA`, which is a different work's label. So rank the whole
+	// query as well and let it win when it is at least as good: a match that
+	// explains the entire input beats one that had to discard a token.
+	//
+	// A spelling guess never displaces a real hit. It is offered only when the
+	// split found nothing at all, where any candidate beats none.
+	if (parsed.locator !== null) {
 		const whole = leadingTier(rankWorks(query, works));
-		if (whole.length > 0) {
+		const wholeWins =
+			whole.length > 0 &&
+			(matches.length === 0 ||
+				(!isFuzzy(whole) && whole[0].tier <= matches[0].tier));
+		if (wholeWins) {
 			return whole.length === 1 && !isFuzzy(whole)
 				? { kind: 'work-selected', match: whole[0] }
 				: { kind: 'work-matches', matches: whole, locator: null };
