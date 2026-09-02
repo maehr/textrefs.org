@@ -1,17 +1,20 @@
 ---
 import { loadAliases, iriToLocal } from '../../lib/registry.ts';
+import { draftRecordIris } from '../../lib/sitemap.ts';
 
 export async function getStaticPaths() {
 	const aliases = loadAliases();
+	// ADR-0003: an alias of a draft record is `noindex` like the record itself.
+	const draft = draftRecordIris();
 	return Object.entries(aliases)
 		.filter(([key]) => !key.includes('://'))
 		.map(([key, target]) => ({
 			params: { alias: key },
-			props: { target: iriToLocal(target) },
+			props: { target: iriToLocal(target), noindex: draft.has(target) },
 		}));
 }
 
-const { target } = Astro.props;
+const { target, noindex } = Astro.props;
 ---
 
 <!doctype html>
@@ -21,6 +24,7 @@ const { target } = Astro.props;
 		<meta http-equiv="refresh" content={`0; url=${target}`} />
 		<title>Redirecting…</title>
 		<link rel="canonical" href={target} />
+		{noindex && <meta name="robots" content="noindex" />}
 	</head>
 	<body>
 		<p>Redirecting to <a href={target}>{target}</a>.</p>
