@@ -29,34 +29,37 @@
     "*.{astro,ts,js,mjs,cjs,css,md,mdx,json,yml,yaml}": "prettier --write"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.3",
-    "@astrojs/starlight": "^0.41.4",
-    "astro": "^7.1.3",
+    "@astrojs/sitemap": "^3.7.4",
+    "@astrojs/starlight": "^0.42.0",
+    "astro": "^7.2.10",
     "astro-mermaid": "^2.1.0",
     "mermaid": "^11.15.0",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.4",
     "spdx-license-ids": "^3.0.23",
-    "starlight-blog": "^0.28.0",
+    "starlight-blog": "^0.29.0",
     "uuid": "^14.0.0",
     "yaml": "^2.9.0",
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.0.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "git-cliff": "^2.13.1",
     "husky": "^9.1.7",
-    "lint-staged": "^17.2.0",
+    "lint-staged": "^17.4.1",
     "pagefind": "^1.5.2",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
-    "starlight-links-validator": "^0.25.2",
+    "starlight-links-validator": "^0.26.0",
     "starlight-llms-txt": "^0.11.0",
-    "starlight-openapi": "^0.26.0",
-    "tsx": "^4.23.1",
+    "starlight-openapi": "^0.26.1",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "form-data": "^4.0.6"
   }
 }
