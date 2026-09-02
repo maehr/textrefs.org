@@ -11,6 +11,7 @@ Astro + Starlight site for textrefs.org. See [`README.md`](./README.md) for the 
 - `npm run check` — `astro check`
 - `npm run verify:fast` — fast local verification: format:check + fixture-backed check + tests + fixture-backed build
 - `npm run verify` — format:check + check + tests + build (the CI gate)
+- `npm run check:links` — build the site, then check every link with lychee (the `linkcheck` CI gate)
 - `npm run validate:data` / `compile:data` / `build:data` — registry-data gates; see [`data/AGENTS.md`](./data/AGENTS.md)
 
 Use `npm run verify:fast` by default for local validation and agent work. Only use the full `npm run verify` and/or `npm run validate:data` when changes affect registry data, release artifacts, production build behavior, or CI parity.
@@ -18,6 +19,18 @@ Use `npm run verify:fast` by default for local validation and agent work. Only u
 Use Node 24, matching CI.
 
 Husky installs on `npm install`: Prettier runs on staged files, `commitlint` enforces Conventional Commits.
+
+## GitHub workflow
+
+- Sign every commit. The `main` ruleset sets `required_signatures`, so an unsigned commit blocks the merge.
+- Branch from `staging` for content, documentation, and copy.
+- Branch from `main` for CI, build tooling, and release work.
+- Open every pull request from the `maehr` fork against the branch you started from.
+- Merge with a squash merge only. `staging` reaches `main` as one conventional commit, so `git-cliff` stays clean.
+
+Do not use the GitHub Update-branch button, and do not enable `--allow-update-branch`. Both produce an unsigned commit. Rebase on the target branch locally instead.
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full branching model and the release checklist.
 
 ## Layout
 
@@ -56,3 +69,4 @@ Husky installs on `npm install`: Prettier runs on staged files, `commitlint` enf
 - Cross-PR decisions — [`decisions/`](./decisions/) (MADR format; template at `ADR-TEMPLATE.md`).
 - Public roadmap — [`ROADMAP.md`](./ROADMAP.md).
 - Issue / PR templates — `.github/`.
+- Contribution workflow, branching model, release checklist — [`CONTRIBUTING.md`](./CONTRIBUTING.md).
