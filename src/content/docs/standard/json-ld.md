@@ -6,7 +6,7 @@ sidebar:
   order: 5
 ---
 
-TextRefs records are plain JSON that becomes linked data through a published JSON-LD context. The context maps TextRefs terms onto a small TextRefs ontology namespace (`tr:`) plus established vocabularies — SKOS for labels and schemes, PROV-O and Dublin Core Terms for mapping relations, Dublin Core Terms also for dates and provenance, schema.org for URLs and providers, and XSD for date typing.
+TextRefs records are plain JSON that becomes linked data through a published JSON-LD context. The context stays within JSON-LD 1.0, so every processor can read it. It maps TextRefs terms onto a small TextRefs ontology namespace (`tr:`) — defined term by term in the [TextRefs ontology](/ontology/) — plus established vocabularies — SKOS for labels and schemes, PROV-O and Dublin Core Terms for mapping relations, Dublin Core Terms also for dates and provenance, schema.org for URLs and providers, and XSD for date typing.
 
 The `v1` context is served at:
 
@@ -16,14 +16,14 @@ https://textrefs.org/contexts/v1.jsonld
 
 ## Vocabularies
 
-| Prefix    | Namespace                              | Used for                                                                                                                                              |
-| --------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tr`      | `https://textrefs.org/ontology#`       | TextRefs object types, keys, and TextRefs-specific metadata                                                                                           |
-| `skos`    | `http://www.w3.org/2004/02/skos/core#` | Labels and schemes (`inScheme`)                                                                                                                       |
-| `dcterms` | `http://purl.org/dc/terms/`            | `created`, `modified`, `source`, `language`, `license`, `conformsTo`, `description`, `isReferencedBy` mapping relation, `isReplacedBy` successor link |
-| `prov`    | `http://www.w3.org/ns/prov#`           | Work ↔ same-entity mapping relation (`alternateOf`)                                                                                                   |
-| `schema`  | `https://schema.org/`                  | `url`, `provider`, `edition`, `creator`, `familyName`, `givenName`, `name`                                                                            |
-| `xsd`     | `http://www.w3.org/2001/XMLSchema#`    | `xsd:date` typing for `created` / `modified` / `last_checked`                                                                                         |
+| Prefix    | Namespace                              | Used for                                                                                                                                                            |
+| --------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tr`      | `https://textrefs.org/ontology#`       | TextRefs object types and TextRefs-specific metadata, defined at [`/ontology/`](/ontology/)                                                                         |
+| `skos`    | `http://www.w3.org/2004/02/skos/core#` | Labels, schemes (`inScheme`), and locator notations                                                                                                                 |
+| `dcterms` | `http://purl.org/dc/terms/`            | `identifier`, `created`, `modified`, `source`, `language`, `license`, `conformsTo`, `description`, `isReferencedBy` mapping relation, `isReplacedBy` successor link |
+| `prov`    | `http://www.w3.org/ns/prov#`           | Work ↔ same-entity mapping relation (`alternateOf`)                                                                                                                 |
+| `schema`  | `https://schema.org/`                  | `url`, `provider`, `edition`, `creator`, `familyName`, `givenName`, `name`                                                                                          |
+| `xsd`     | `http://www.w3.org/2001/XMLSchema#`    | `xsd:date` typing for `created` / `modified` / `last_checked`                                                                                                       |
 
 ## Mapping relations
 
@@ -53,7 +53,7 @@ Choose `alternateOf` when the target identifies the same work from a different p
     "CitationSystem": "tr:CitationSystem",
     "CanonicalReference": "tr:CanonicalReference",
     "MappingAssertion": "tr:MappingAssertion",
-    "key": "tr:key",
+    "key": "dcterms:identifier",
     "preferred_label": "skos:prefLabel",
     "alternative_labels": { "@id": "skos:altLabel", "@container": "@set" },
     "description": "dcterms:description",
@@ -66,7 +66,7 @@ Choose `alternateOf` when the target identifies the same work from a different p
     "work_key": "tr:workKey",
     "citation_system_key": "tr:citationSystemKey",
     "preferred_citation_system_key": "tr:preferredCitationSystemKey",
-    "locator": "tr:locator",
+    "locator": "skos:notation",
     "status": "tr:status",
     "source": "dcterms:source",
     "created": { "@id": "dcterms:created", "@type": "xsd:date" },
@@ -93,4 +93,4 @@ Choose `alternateOf` when the target identifies the same work from a different p
 }
 ```
 
-`key`, `work_key`, `citation_system_key`, and `preferred_citation_system_key` are plain strings in the core JSON format. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries the canonical SPDX licence IRI (`https://spdx.org/licenses/{id}`, derived from the authored SPDX identifier at compile time); `license_url` (optional fallback for non-SPDX terms) carries an IRI. Both map to an IRI-typed `dcterms:license`. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.
+`key`, `work_key`, `citation_system_key`, and `preferred_citation_system_key` are plain strings in the core JSON format. In RDF, `key` is a `dcterms:identifier` and `locator` is a `skos:notation`; the three relationship keys stay TextRefs terms, because treating them as identifiers of the record itself would be false. Rich bibliographic and authority data — catalogue records, edition histories, subject classifications — belongs in external systems and is connected to TextRefs records through `MappingAssertion`s. The one in-record exception is the optional `Work.creators` array, which carries minimal authorship for citation rendering (see [Specification §6](/standard/specification/#6-work)). The `license` term carries the canonical SPDX licence IRI (`https://spdx.org/licenses/{id}`, derived from the authored SPDX identifier at compile time); `license_url` (optional fallback for non-SPDX terms) carries an IRI. Both map to an IRI-typed `dcterms:license`. `MappingAssertion.source` is a plain string in v0.1 — a structured **W3C PROV-O** mapping (`prov:wasDerivedFrom`) is reserved for a later context version.

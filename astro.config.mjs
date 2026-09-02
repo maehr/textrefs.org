@@ -40,7 +40,14 @@ export default defineConfig({
 				}),
 				starlightLinksValidator({
 					errorOnFallbackPages: false,
-					exclude: ['/id/**', '/reg/**', '/cite/**', '/api/**', '/find/**'],
+					exclude: [
+						'/id/**',
+						'/reg/**',
+						'/cite/**',
+						'/api/**',
+						'/find/**',
+						'/ontology/**',
+					],
 				}),
 				starlightOpenAPI([
 					{

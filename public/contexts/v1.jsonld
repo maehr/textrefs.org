@@ -12,7 +12,7 @@
     "CitationSystem": "tr:CitationSystem",
     "CanonicalReference": "tr:CanonicalReference",
     "MappingAssertion": "tr:MappingAssertion",
-    "key": "tr:key",
+    "key": "dcterms:identifier",
     "preferred_label": "skos:prefLabel",
     "alternative_labels": {
       "@id": "skos:altLabel",
@@ -31,7 +31,7 @@
     "work_key": "tr:workKey",
     "citation_system_key": "tr:citationSystemKey",
     "preferred_citation_system_key": "tr:preferredCitationSystemKey",
-    "locator": "tr:locator",
+    "locator": "skos:notation",
     "status": "tr:status",
     "source": "dcterms:source",
     "created": {
