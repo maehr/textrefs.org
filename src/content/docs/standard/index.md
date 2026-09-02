@@ -30,7 +30,7 @@ flowchart LR
 - **[Specification](/standard/specification/)** — the normative document: object model, conformance, validation, and the conformance boundary.
 - **[Identifier syntax](/standard/identifier-syntax/)** — deterministic UUID v5 generation, namespace, and serialization rules.
 - **[Citation-system profiles](/standard/system-profiles/)** — how citation systems constrain locators, with the seed Bekker and Stephanus profiles.
-- **[JSON-LD context](/standard/json-ld/)** — the context mapping TextRefs records onto SKOS, PROV-O, Dublin Core, and schema.org.
+- **[JSON-LD context](/standard/json-ld/)** — the context mapping TextRefs records onto RDF, SKOS, PROV-O, Dublin Core, and schema.org, plus the dereferenceable [TextRefs ontology](/ontology/) for domain-specific terms.
 - **[Versioning & data packaging](/standard/versioning/)** — how the spec and the monthly registry exports are versioned and packaged.
 
 ## Cite this spec

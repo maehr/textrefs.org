@@ -85,7 +85,23 @@ const contextPath = join(projectRoot, 'public', 'contexts', 'v1.jsonld');
 const contextDoc = JSON.parse(readFileSync(contextPath, 'utf8')) as {
 	'@context': Record<string, unknown>;
 };
-const mappedKeys = new Set(Object.keys(contextDoc['@context']));
+const mappedKeys = new Set<string>();
+function collectContextTerms(context: Record<string, unknown>): void {
+	for (const [term, definition] of Object.entries(context)) {
+		if (!term.startsWith('@')) mappedKeys.add(term);
+		if (
+			definition &&
+			typeof definition === 'object' &&
+			!Array.isArray(definition)
+		) {
+			const scoped = (definition as { '@context'?: unknown })['@context'];
+			if (scoped && typeof scoped === 'object' && !Array.isArray(scoped)) {
+				collectContextTerms(scoped as Record<string, unknown>);
+			}
+		}
+	}
+}
+collectContextTerms(contextDoc['@context']);
 
 const unmapped = new Set<string>();
 function walk(node: unknown): void {
