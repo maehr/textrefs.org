@@ -17,7 +17,14 @@ import {
 	MappingAssertion,
 } from '../standard/schema/index.js';
 import type { ResolverTargetEntry } from '../standard/schema/canonical-reference.js';
-import { workIri, systemIri, refIri, mappingIri } from '../standard/iri.js';
+import {
+	workIri,
+	systemIri,
+	refIri,
+	mappingIri,
+	iriToLocal,
+} from '../standard/iri.js';
+import { isDraft } from '../src/lib/record-status.js';
 import {
 	parseSource,
 	SystemSource,
@@ -1058,6 +1065,83 @@ export function datapackageDescriptor(
 /** The filename of the descriptor itself, which no resource entry describes. */
 export const DATAPACKAGE_FILENAME = 'datapackage.json';
 
+/**
+ * One `/cite/` redirect page.
+ *
+ * Byte-for-byte what `src/pages/cite/[...alias].astro` rendered before the
+ * route moved here, minus the module script Astro injects into every page: a
+ * page that leaves before it paints has no use for the prefetch runtime.
+ *
+ * `target` is always a site path that `iriToLocal` produced, so it holds a
+ * record type and a flat key or a UUID and needs no escaping.
+ *
+ * ADR-0003: an alias of a draft record is `noindex`, exactly like the record it
+ * redirects to.
+ */
+export function citeRedirectHtml(target: string, noindex: boolean): string {
+	return (
+		'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
+		`<meta http-equiv="refresh" content="0; url=${target}">` +
+		'<title>Redirecting\u2026</title>' +
+		`<link rel="canonical" href="${target}">` +
+		(noindex ? '<meta name="robots" content="noindex">' : '') +
+		'</head><body><p>Redirecting to ' +
+		`<a href="${target}">${target}</a>.</p></body></html>`
+	);
+}
+
+/**
+ * Write `dist/cite/{alias}/index.html` for every alias the compiler minted.
+ *
+ * These pages are output, not routes. Astro rendered 172,794 of them through
+ * the full route pipeline to produce four tags each, and Pagefind then opened
+ * every one of them to find no `data-pagefind-body`. Writing them here, after
+ * `astro build`, costs a `writeFileSync` per alias and hides them from both.
+ * `/dump/` already works this way.
+ *
+ * The alias table mixes two key kinds: a `/cite/` alias path, and an external
+ * mapping identifier. Only the first is a route, and an identifier is an IRI,
+ * so the `://` test that the Astro route applied still separates them.
+ *
+ * A draft target is `noindex`. The rule matches `draftRecordIris` in
+ * `src/lib/sitemap.ts`, which keeps the same pages out of the sitemap.
+ *
+ * Returns the number of pages written. `citeRootOverride` exists for the tests,
+ * like `dataRootOverride` on `compileRegistry`.
+ */
+export function writeCiteRedirects(
+	registry: CompiledRegistry,
+	citeRootOverride?: string,
+): number {
+	const draft = new Set<string>();
+	for (const record of [
+		...registry.works,
+		...registry.systems,
+		...registry.references,
+		...registry.mappings,
+	]) {
+		if (isDraft(record.status)) draft.add(record.id);
+	}
+
+	const citeDir = citeRootOverride ?? join(distRoot, 'cite');
+	let written = 0;
+	for (const [alias, target] of Object.entries(registry.aliases)) {
+		if (alias.includes('://')) continue;
+		// An alias needs a directory of its own, because the URL it serves ends
+		// in a slash. `recursive` is what makes the call idempotent: the parent
+		// exists after the first sibling, and a bare alias may reuse a directory
+		// a qualified one already created.
+		const dir = join(citeDir, alias);
+		mkdirSync(dir, { recursive: true });
+		writeFileSync(
+			join(dir, 'index.html'),
+			citeRedirectHtml(iriToLocal(target), draft.has(target)),
+		);
+		written++;
+	}
+	return written;
+}
+
 function writeDump(registry: CompiledRegistry, version: string): void {
 	const dumpDir = join(distRoot, 'dump');
 	mkdirSync(dumpDir, { recursive: true });
@@ -1085,13 +1169,14 @@ if (isCliEntry) {
 	const registry = compileRegistry();
 	const version = readPackageVersion();
 	writeDump(registry, version);
+	const redirects = writeCiteRedirects(registry);
 	const totalRecords =
 		registry.works.length +
 		registry.systems.length +
 		registry.references.length +
 		registry.mappings.length;
 	console.log(
-		`✓ compiled ${registry.systems.length} system(s), ${registry.works.length} work(s), ${registry.references.length} reference(s), ${registry.mappings.length} mapping(s); ${Object.keys(registry.aliases).length} alias(es); ${totalRecords} records in dump`,
+		`✓ compiled ${registry.systems.length} system(s), ${registry.works.length} work(s), ${registry.references.length} reference(s), ${registry.mappings.length} mapping(s); ${Object.keys(registry.aliases).length} alias(es), ${redirects} /cite/ redirect(s); ${totalRecords} records in dump`,
 	);
 	if (registry.warnings > 0) {
 		console.warn(
