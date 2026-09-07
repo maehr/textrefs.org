@@ -307,6 +307,8 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		locator: string;
 		work_key: string;
 		citation_system_key: string;
+		/** The successor IRI of a retired record (specification §12). */
+		superseded_by?: string;
 		resolver_targets?: {
 			url: string;
 			provider?: string;
@@ -439,18 +441,67 @@ import RecordPage from '../../layouts/RecordPage.astro';
 			}),
 		);
 
-		// ADR-0004: a draft record may move or be withdrawn. The warning belongs
-		// here rather than at the top, because it is advice about citing, and it
-		// is the citation directly above that a reader would otherwise paste.
-		if (ref.status !== 'active') {
+		// ADR-0004: the notice belongs here rather than at the top, because it is
+		// advice about citing, and it is the citation directly above that a reader
+		// would otherwise paste. Only a draft carries no persistence promise
+		// (specification §11). A deprecated, withdrawn or blocked record keeps the
+		// promise it got at promotion: its identifier stays as a tombstone, and
+		// `superseded_by` names the successor (§12).
+		// Kept in step with src/components/Tombstone.astro and
+		// src/pages/id/ref/[uuid]/index.astro by hand until #100 lands.
+		if (ref.status === 'draft') {
 			card.appendChild(
 				el('p', { class: 'find-warn' }, [
-					el('strong', { text: `Not final (${ref.status}). ` }),
+					el('strong', { text: 'Not final (draft). ' }),
 					el('span', {
 						text: 'This record carries no persistence promise yet. It may be corrected, which mints a different identifier, or retracted without a tombstone, and this link can then stop resolving. Do not cite it as stable.',
 					}),
 				]),
 			);
+		} else if (
+			ref.status === 'deprecated' ||
+			ref.status === 'withdrawn' ||
+			ref.status === 'blocked'
+		) {
+			const warn = el('p', { class: 'find-warn' }, [
+				el('strong', {
+					text:
+						ref.status === 'blocked'
+							? 'This record is blocked by a rights, trust, or policy dispute. '
+							: ref.status === 'deprecated'
+								? 'This record is deprecated. '
+								: 'This record has been withdrawn. ',
+				}),
+			]);
+			if (ref.status === 'deprecated') {
+				warn.appendChild(
+					el('span', {
+						text: 'It is retained and it still resolves, but it is no longer recommended. ',
+					}),
+				);
+			}
+			warn.appendChild(
+				el('span', {
+					text: 'The link above remains as a tombstone, so a citation you have already published keeps resolving. ',
+				}),
+			);
+			// A successor IRI is registry data, so it is checked the way a resolver
+			// target is before it becomes a link.
+			const successor = ref.superseded_by;
+			if (successor && /^https?:\/\//i.test(successor)) {
+				warn.appendChild(el('span', { text: 'Superseded by ' }));
+				warn.appendChild(el('a', { text: successor, href: successor }));
+				warn.appendChild(el('span', { text: '.' }));
+			} else {
+				warn.appendChild(
+					el('span', {
+						text: successor
+							? `Superseded by ${successor}.`
+							: 'No successor record exists.',
+					}),
+				);
+			}
+			card.appendChild(warn);
 		}
 
 		// --- The record ----------------------------------------------------

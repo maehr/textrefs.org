@@ -7,6 +7,11 @@ const fixtureRefIri =
 // ADR-0005 exists for. Distinct identity, distinct IRI, no bare alias.
 const fixtureAltRefIri =
 	'https://textrefs.org/id/ref/00000000-0000-5000-8000-000000000003';
+// A retired reference, superseded by the active one. Specification §12 keeps
+// its identifier resolving as a tombstone, so `/find/` and the record page both
+// have a tombstone branch to render under `build:fast` (#149).
+const fixtureRetiredRefIri =
+	'https://textrefs.org/id/ref/00000000-0000-5000-8000-000000000005';
 
 export const fixtureRegistry: CompiledRegistry = {
 	works: [
@@ -109,6 +114,26 @@ export const fixtureRegistry: CompiledRegistry = {
 			created: '2026-01-01',
 			modified: '2026-01-01',
 		},
+		{
+			id: fixtureRetiredRefIri,
+			type: 'CanonicalReference',
+			work_key: 'fixture.work',
+			citation_system_key: 'fixture-section',
+			locator: '2',
+			resolver_targets: [
+				{
+					url: 'https://example.org/fixture-work/2',
+					language: 'en',
+					provider: 'Example',
+					license: 'https://spdx.org/licenses/CC-BY-SA-3.0',
+					access: 'open',
+				},
+			],
+			status: 'deprecated',
+			superseded_by: fixtureRefIri,
+			created: '2026-01-01',
+			modified: '2026-01-01',
+		},
 	],
 	mappings: [
 		{
@@ -145,6 +170,10 @@ export const fixtureRegistry: CompiledRegistry = {
 		'fixture.work/fixture-section/1': fixtureRefIri,
 		'fixture.work/1': fixtureRefIri,
 		'fixture.work/fixture-alternate/1': fixtureAltRefIri,
+		// The compiler mints both aliases for a preferred-system block at any
+		// status, so a retired reference keeps them.
+		'fixture.work/fixture-section/2': fixtureRetiredRefIri,
+		'fixture.work/2': fixtureRetiredRefIri,
 		'https://example.org/fixture-work': fixtureWorkIri,
 		'https://example.org/about-fixture-work': fixtureWorkIri,
 	},
