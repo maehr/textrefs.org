@@ -1044,16 +1044,27 @@ test('the JSONL bodies are unchanged by the alias-resource refactor', () => {
 // (see `writeCiteRedirects`), so `npm run build:fast` never exercises them and
 // these tests are the only cover the writer has.
 
-test('a redirect page states the target three times and nothing else', () => {
+test('a redirect page carries the target, a title, a lang and nothing else', () => {
 	const html = citeRedirectHtml('/id/ref/uuid/', false);
 	assert.equal(
 		html,
-		'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
-			'<meta http-equiv="refresh" content="0; url=/id/ref/uuid/">' +
-			'<title>Redirecting\u2026</title>' +
+		'<!doctype html><html lang="en"><meta charset="utf-8">' +
+			'<title>Redirecting</title>' +
+			'<meta http-equiv="refresh" content="0;url=/id/ref/uuid/">' +
 			'<link rel="canonical" href="/id/ref/uuid/">' +
-			'</head><body><p>Redirecting to ' +
-			'<a href="/id/ref/uuid/">/id/ref/uuid/</a>.</p></body></html>',
+			'<p>Redirecting to <a href="/id/ref/uuid/">the record</a>.',
+	);
+});
+
+test('the redirect page stays small, because there are 172,794 of them', () => {
+	// A UUID target is the longest form the compiler writes.
+	const html = citeRedirectHtml(
+		'/id/ref/dc799d4b-9b17-5d76-85aa-dfd001c5321d/',
+		true,
+	);
+	assert.ok(
+		Buffer.byteLength(html) <= 410,
+		`redirect page grew to ${Buffer.byteLength(html)} bytes`,
 	);
 });
 
@@ -1087,7 +1098,7 @@ additional_systems:
 			readFileSync(join(root, alias, 'index.html'), 'utf-8');
 		const primary = reg.aliases['test.work/primary-section/5'];
 		assert.equal(page('test.work/5'), page('test.work/primary-section/5'));
-		assert.ok(page('test.work/5').includes(`content="0; url=/id/ref/`));
+		assert.ok(page('test.work/5').includes(`content="0;url=/id/ref/`));
 		assert.ok(page('test.work/5').includes(primary.split('/').pop() ?? ''));
 		assert.notEqual(
 			page('test.work/fallback-section/5'),

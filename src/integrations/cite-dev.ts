@@ -21,9 +21,8 @@ export default function citeDev(): AstroIntegration {
 		name: 'textrefs:cite-dev',
 		hooks: {
 			'astro:server:setup': ({ server }) => {
-				// Both are derived from the whole registry, so they are built on
-				// the first `/cite/` request and kept for the life of the server —
-				// the same lifetime the compiled registry itself has.
+				// Kept for the life of the server, the same lifetime the compiled
+				// registry itself has.
 				let aliases: Record<string, string> | undefined;
 				let draft: Set<string> | undefined;
 
@@ -31,13 +30,22 @@ export default function citeDev(): AstroIntegration {
 					const path = (req.url ?? '/').split('?')[0];
 					if (!path.startsWith(PREFIX)) return next();
 
+					// `decodeURIComponent` throws on a malformed escape, and the URL
+					// belongs to whoever typed it. A request that cannot be decoded
+					// names no alias, so it takes the same path as an unknown one.
+					let alias: string;
+					try {
+						alias = decodeURIComponent(path.slice(PREFIX.length));
+					} catch {
+						return next();
+					}
+					alias = alias.replace(/\/$/, '');
+
+					// Both are derived from the whole registry, so the first
+					// `/cite/` request pays for them and the rest do not.
 					aliases ??= loadAliases();
 					draft ??= draftRecordIris();
 
-					const alias = decodeURIComponent(path.slice(PREFIX.length)).replace(
-						/\/$/,
-						'',
-					);
 					const target = aliases[alias];
 					// Unknown alias, or an external identifier that never had a page:
 					// hand it back to Astro so the 404 looks like every other one.

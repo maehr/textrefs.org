@@ -1066,27 +1066,33 @@ export function datapackageDescriptor(
 export const DATAPACKAGE_FILENAME = 'datapackage.json';
 
 /**
- * One `/cite/` redirect page.
+ * One `/cite/` redirect page, in 370 bytes.
  *
- * Byte-for-byte what `src/pages/cite/[...alias].astro` rendered before the
- * route moved here, minus the module script Astro injects into every page: a
- * page that leaves before it paints has no use for the prefetch runtime.
+ * Four things earn their place, and nothing else does. The refresh performs the
+ * redirect, because GitHub Pages serves no `Location` header. The canonical
+ * link states the target for a client that ignores the refresh. The title and
+ * the `lang` attribute keep the page at the WCAG 2.2 AA baseline the site
+ * holds everywhere else (SC 2.4.2 and SC 3.1.1). The paragraph gives a person
+ * a link to follow when nothing redirects them.
+ *
+ * `<html>`, `<head>` and `<body>` are implied and left out. The target is
+ * spelled twice, not three times: as the link text it added 44 bytes a page,
+ * and the reader already has it in the address bar.
  *
  * `target` is always a site path that `iriToLocal` produced, so it holds a
- * record type and a flat key or a UUID and needs no escaping.
+ * record type and a flat key or a UUID, and it needs no escaping.
  *
  * ADR-0003: an alias of a draft record is `noindex`, exactly like the record it
  * redirects to.
  */
 export function citeRedirectHtml(target: string, noindex: boolean): string {
 	return (
-		'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
-		`<meta http-equiv="refresh" content="0; url=${target}">` +
-		'<title>Redirecting\u2026</title>' +
+		'<!doctype html><html lang="en"><meta charset="utf-8">' +
+		'<title>Redirecting</title>' +
+		`<meta http-equiv="refresh" content="0;url=${target}">` +
 		`<link rel="canonical" href="${target}">` +
 		(noindex ? '<meta name="robots" content="noindex">' : '') +
-		'</head><body><p>Redirecting to ' +
-		`<a href="${target}">${target}</a>.</p></body></html>`
+		`<p>Redirecting to <a href="${target}">the record</a>.`
 	);
 }
 
