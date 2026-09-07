@@ -128,6 +128,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		type WorkMatch,
 	} from '../../lib/find.ts';
 	import { toCSL, formatChicago } from '../../lib/citation.ts';
+	import { findNotice } from '../../lib/find-notice.ts';
 	import type { WorkAliasIndex } from '../../lib/alias-index.ts';
 
 	const form = document.getElementById('find-form') as HTMLFormElement | null;
@@ -307,6 +308,8 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		locator: string;
 		work_key: string;
 		citation_system_key: string;
+		/** The successor IRI of a retired record (specification §12). */
+		superseded_by?: string;
 		resolver_targets?: {
 			url: string;
 			provider?: string;
@@ -439,17 +442,24 @@ import RecordPage from '../../layouts/RecordPage.astro';
 			}),
 		);
 
-		// ADR-0004: a draft record may move or be withdrawn. The warning belongs
-		// here rather than at the top, because it is advice about citing, and it
-		// is the citation directly above that a reader would otherwise paste.
-		if (ref.status !== 'active') {
+		// ADR-0004: the notice belongs here rather than at the top, because it is
+		// advice about citing, and it is the citation directly above that a reader
+		// would otherwise paste. Which sentences a status earns is decided and
+		// tested in `src/lib/find-notice.ts`; this maps them onto nodes.
+		const notice = findNotice(ref.status, ref.superseded_by);
+		if (notice) {
 			card.appendChild(
-				el('p', { class: 'find-warn' }, [
-					el('strong', { text: `Not final (${ref.status}). ` }),
-					el('span', {
-						text: 'This record carries no persistence promise yet. It may be corrected, which mints a different identifier, or retracted without a tombstone, and this link can then stop resolving. Do not cite it as stable.',
-					}),
-				]),
+				el(
+					'p',
+					{ class: 'find-warn' },
+					notice.map((part) =>
+						part.kind === 'lead'
+							? el('strong', { text: part.text })
+							: part.kind === 'link'
+								? el('a', { text: part.text, href: part.href })
+								: el('span', { text: part.text }),
+					),
+				),
 			);
 		}
 

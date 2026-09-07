@@ -16,6 +16,7 @@
 //    carries `<html lang="de">` over an English body. Advertising it offers a
 //    crawler mislabelled duplicate content.
 import { readdirSync } from 'node:fs';
+import { isDraft } from './record-status.js';
 import {
 	loadWorks,
 	loadSystems,
@@ -24,10 +25,6 @@ import {
 	iriToLocal,
 	workKeyOf,
 } from './registry.js';
-
-function isDraft(record: { status: string }): boolean {
-	return record.status === 'draft';
-}
 
 /**
  * The IRIs of every record still at `draft`.
@@ -43,7 +40,7 @@ export function draftRecordIris(): Set<string> {
 		...loadReferences(),
 		...loadMappings(),
 	]) {
-		if (isDraft(record)) iris.add(record.id);
+		if (isDraft(record.status)) iris.add(record.id);
 	}
 	return iris;
 }
@@ -85,7 +82,7 @@ export function buildSitemapExclusion(): (pathname: string) => boolean {
 	for (const iri of draftRecordIris()) paths.add(iriToLocal(iri));
 
 	const draftWorkPrefixes = loadWorks()
-		.filter(isDraft)
+		.filter((work) => isDraft(work.status))
 		.map((work) => `/reg/work/${workKeyOf(work.id)}/`);
 
 	const translated = translatedPaths();
