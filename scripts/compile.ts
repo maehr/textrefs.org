@@ -717,6 +717,10 @@ function enforceRegistryInvariants(reg: {
 			continue;
 		}
 		const preferredIri = `https://textrefs.org/id/system/${key}`;
+		if (!TOMBSTONE_STATUSES.has(work.status) && tombstoneIris.has(preferredIri))
+			errors.push(
+				`${work.id}: live work points at tombstoned preferred citation system ${preferredIri}`,
+			);
 		const preferredStatus = statusByIri.get(preferredIri);
 		if (work.status === 'active' && preferredStatus !== 'active')
 			errors.push(
