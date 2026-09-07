@@ -9,12 +9,15 @@ import { join, basename, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { v5 as uuidv5 } from 'uuid';
 import { parse as parseYaml } from 'yaml';
+import type { z, ZodType } from 'zod';
 import {
 	Work,
 	CitationSystem,
 	CanonicalReference,
 	MappingAssertion,
 } from '../standard/schema/index.js';
+import type { ResolverTargetEntry } from '../standard/schema/canonical-reference.js';
+import { workIri, systemIri, refIri, mappingIri } from '../standard/iri.js';
 import {
 	parseSource,
 	SystemSource,
@@ -260,7 +263,7 @@ function applyResolverVars(
 function buildResolverEntry(
 	resolver: ResolverEntry,
 	locatorVars: Record<string, string>,
-): Record<string, unknown> | null {
+): ResolverTargetEntry | null {
 	const vars = applyResolverVars(resolver, locatorVars);
 	if (!vars) return null;
 	let url: string | null = null;
@@ -276,29 +279,48 @@ function buildResolverEntry(
 		url = Object.hasOwn(byMap, key) ? (byMap[key] ?? null) : null;
 	}
 	if (!url) return null;
-	const entry: Record<string, unknown> = { url };
+	if (resolver.license !== undefined && !SPDX_IDS.has(resolver.license)) {
+		// Unreachable via authored YAML — ResolverEntrySource rejects it at
+		// parse time. Kept so a future caller that skips the parser cannot
+		// drop a licence statement silently.
+		throw new Error(
+			`license "${resolver.license}" is not an SPDX id (record the provider's rights statement in license_url)`,
+		);
+	}
+	// TypeScript checks every field name and value below, rather than deferring
+	// a typo to `safeParse`. The assignment order is the published key order,
+	// and therefore the byte order of the JSONL dump: do not reorder these
+	// lines.
+	//
+	// Assignment rather than one object literal of conditional spreads. The
+	// literal reads better, but each `...(cond && { k: v })` allocates a
+	// throwaway object, and this runs 172k times per compile — measured at 3x
+	// the cost of the assignments for no gain, since the type below checks
+	// these just as well.
+	//
+	// `Pick<…, 'url'>` keeps `url` required, so dropping it from the initialiser
+	// is a compile error. `access` cannot be covered the same way: it is
+	// required too, but it is assigned fifth to hold the key order, and
+	// TypeScript does not let a narrowed property satisfy a required one — no
+	// arrangement of guards makes the object assignable without the cast. So
+	// the cast asserts exactly one thing, that `access` was assigned. It is
+	// assigned unconditionally three lines down, and `CanonicalReference`
+	// rejects the record on the first reference if that ever stops being true.
+	const entry: Pick<ResolverTargetEntry, 'url'> & Partial<ResolverTargetEntry> =
+		{ url };
 	if (resolver.language !== undefined) entry.language = resolver.language;
 	if (resolver.edition !== undefined) entry.edition = resolver.edition;
 	if (resolver.provider !== undefined) entry.provider = resolver.provider;
 	entry.access = resolver.access ?? 'unknown';
-	if (resolver.license !== undefined) {
-		if (!SPDX_IDS.has(resolver.license)) {
-			// Unreachable via authored YAML — ResolverEntrySource rejects it at
-			// parse time. Kept so a future caller that skips the parser cannot
-			// drop a licence statement silently.
-			throw new Error(
-				`license "${resolver.license}" is not an SPDX id (record the provider's rights statement in license_url)`,
-			);
-		}
-		// Emit the canonical SPDX IRI so dcterms:license has a single
-		// IRI-typed range in the JSON-LD output.
+	// Emit the canonical SPDX IRI so dcterms:license has a single IRI-typed
+	// range in the JSON-LD output.
+	if (resolver.license !== undefined)
 		entry.license = `${SPDX_LICENSE_BASE}${resolver.license}`;
-	}
 	if (resolver.license_url !== undefined)
 		entry.license_url = resolver.license_url;
 	if (resolver.last_checked !== undefined)
 		entry.last_checked = resolver.last_checked;
-	return entry;
+	return entry as ResolverTargetEntry;
 }
 
 function referenceUuid(
@@ -317,6 +339,47 @@ function mappingUuid(
 ): string {
 	const seed = [subject, relation, identifier].join('\n');
 	return uuidv5(seed, MAPPING_NS);
+}
+
+/**
+ * Print the indented issue lines of a failed `safeParse`, in the one form both
+ * registry gates use.
+ *
+ * Only the issue lines are shared. The header above them, and what happens
+ * after, differ by caller and must: the compiler names the record and throws,
+ * because a malformed record must never reach the dump, while
+ * `scripts/validate-data.ts` counts the failure and continues, so that one run
+ * reports every bad record instead of only the first.
+ */
+export function printIssues(
+	issues: readonly { path: readonly PropertyKey[]; message: string }[],
+): void {
+	for (const issue of issues) {
+		const path = issue.path.map((p) => String(p)).join('.');
+		console.error(`    ${path || '(root)'}: ${issue.message}`);
+	}
+}
+
+/**
+ * Validate one compiled record against its canonical schema, or fail the build.
+ *
+ * Every record type ran this same block before: report the path and message of
+ * each issue, then throw. `prefix` names the record the way its IRI does
+ * (`ref`, `system`, `work`, `mapping`); `kind` names it the way the thrown
+ * error reads. The two differ only for a reference, whose IRI says `ref`.
+ */
+function parseRecord<S extends ZodType>(
+	schema: S,
+	record: unknown,
+	kind: string,
+	prefix: string,
+	id: string,
+): z.infer<S> {
+	const parsed = schema.safeParse(record);
+	if (parsed.success) return parsed.data;
+	console.error(`✗ ${prefix}/${id}: invalid`);
+	printIssues(parsed.error.issues);
+	throw new Error(`invalid ${kind}: ${id}`);
 }
 
 function setAlias(
@@ -373,7 +436,15 @@ function emitBlockReferences(opts: {
 		const extraResolvers =
 			typeof refSrc === 'string' ? [] : (refSrc.extra_resolvers ?? []);
 		const vars = deriveLocatorVars(locator, system);
-		const targets: Record<string, unknown>[] = [];
+		// The block's resolvers first, then this reference's own extras. A
+		// skipped entry warns whichever list it came from: only the first loop
+		// counted before, so a hole in a per-reference `extra_resolvers` map
+		// stayed silent — the one outcome `applyResolverVars` exists to prevent.
+		//
+		// Two loops rather than one over a concatenation. Joining the lists
+		// reads better and allocates an array per reference, 86k of them, to
+		// save four lines. The duplication is the cheaper half of that trade.
+		const targets: ResolverTargetEntry[] = [];
 		for (const resolver of block.resolvers ?? []) {
 			const entry = buildResolverEntry(resolver, vars);
 			if (entry) targets.push(entry);
@@ -382,10 +453,11 @@ function emitBlockReferences(opts: {
 		for (const resolver of extraResolvers) {
 			const entry = buildResolverEntry(resolver, vars);
 			if (entry) targets.push(entry);
+			else warnings++;
 		}
 		const uuid = referenceUuid(workKey, systemKey, locator);
 		const record = {
-			id: `https://textrefs.org/id/ref/${uuid}`,
+			id: refIri(uuid),
 			type: 'CanonicalReference' as const,
 			work_key: workKey,
 			citation_system_key: systemKey,
@@ -395,17 +467,15 @@ function emitBlockReferences(opts: {
 			created: opts.created,
 			modified: opts.modified,
 		};
-		const parsed = CanonicalReference.safeParse(record);
-		if (!parsed.success) {
-			console.error(`✗ ref/${workKey}/${systemKey}/${locator}: invalid`);
-			for (const issue of parsed.error.issues) {
-				console.error(
-					`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
-				);
-			}
-			throw new Error(`invalid reference: ${workKey}/${systemKey}/${locator}`);
-		}
-		outReferences.push(parsed.data);
+		outReferences.push(
+			parseRecord(
+				CanonicalReference,
+				record,
+				'reference',
+				'ref',
+				`${workKey}/${systemKey}/${locator}`,
+			),
+		);
 		// Qualified alias: always. Keyed by the same tuple that seeds the UUID,
 		// so it can never collide.
 		setAlias(aliases, `${workKey}/${systemKey}/${locator}`, record.id);
@@ -415,6 +485,76 @@ function emitBlockReferences(opts: {
 	}
 
 	return warnings;
+}
+
+/**
+ * Emit one work's reified `MappingAssertion` records, and the lookup alias each
+ * one earns.
+ *
+ * Separate from the `alternateOf` / `isReferencedBy` projection onto the Work:
+ * that projection drops retired assertions (#45), because an edge carries no
+ * status and would advertise a mapping the registry has taken out of use. A
+ * record keeps its own status, so every assertion becomes one, retired or not.
+ */
+function emitMappings(
+	src: WorkSource,
+	thisWorkIri: string,
+	outMappings: MappingAssertion[],
+	aliases: Record<string, string>,
+): void {
+	for (const mapping of src.mappings ?? []) {
+		const uuid = mappingUuid(thisWorkIri, mapping.relation, mapping.identifier);
+		const record = {
+			id: mappingIri(uuid),
+			type: 'MappingAssertion' as const,
+			subject: thisWorkIri,
+			relation: mapping.relation,
+			target: {
+				identifier: mapping.identifier,
+				...(mapping.conforms_to !== undefined && {
+					conforms_to: mapping.conforms_to,
+				}),
+			},
+			source: mapping.source,
+			status: mapping.status,
+			created: mapping.created,
+			modified: mapping.modified,
+		};
+		outMappings.push(
+			parseRecord(MappingAssertion, record, 'mapping', 'mapping', uuid),
+		);
+		// Deliberate under ADR-0006: an `isReferencedBy` target (a page
+		// *about* the work) stays a lookup alias for it. The alias table is
+		// a lookup convenience, not an identity claim.
+		setAlias(aliases, mapping.identifier, thisWorkIri);
+	}
+}
+
+/**
+ * A work's citation system blocks: the preferred one first, then any fallback
+ * systems. Each block is emitted against its own citation system, resolvers,
+ * and status, and only the first mints the bare `/cite/{work}/{locator}` alias
+ * (ADR-0005).
+ */
+function systemBlocksOf(
+	src: WorkSource,
+): Array<{ block: SystemBlockSource; isPreferred: boolean }> {
+	return [
+		{
+			block: {
+				citation_system: src.citation_system,
+				reference_status: src.reference_status,
+				resolvers: src.resolvers,
+				references: src.references,
+				references_range: src.references_range,
+			},
+			isPreferred: true,
+		},
+		...(src.additional_systems ?? []).map((block) => ({
+			block,
+			isPreferred: false,
+		})),
+	];
 }
 
 export interface CompiledRegistry {
@@ -429,12 +569,23 @@ export interface CompiledRegistry {
 export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 	const root = dataRootOverride ?? dataRoot;
 	const systems = new Map<string, SystemSource>();
+	// A key is the whole identity of a citation system, so two files claiming
+	// one is an authoring error, not a merge. `Map.set` would keep the last file
+	// read and drop the other without a word.
+	const systemFileByKey = new Map<string, string>();
 	for (const f of listYaml(join(root, 'systems'))) {
 		const src = parseSource(
 			SystemSource,
 			parseYaml(readFileSync(f, 'utf8')),
 			basename(f),
 		);
+		const firstFile = systemFileByKey.get(src.key);
+		if (firstFile !== undefined) {
+			throw new Error(
+				`citation system key "${src.key}" is declared twice: ${firstFile} and ${basename(f)}`,
+			);
+		}
+		systemFileByKey.set(src.key, basename(f));
 		systems.set(src.key, src);
 	}
 
@@ -451,7 +602,7 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 		a.localeCompare(b),
 	)) {
 		const record = {
-			id: `https://textrefs.org/id/system/${key}`,
+			id: systemIri(key),
 			key,
 			type: 'CitationSystem' as const,
 			preferred_label: src.preferred_label,
@@ -462,18 +613,17 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 			modified: src.modified,
 			...(src.superseded_by ? { superseded_by: src.superseded_by } : {}),
 		};
-		const parsed = CitationSystem.safeParse(record);
-		if (!parsed.success) {
-			console.error(`✗ system/${key}: invalid`);
-			for (const issue of parsed.error.issues) {
-				console.error(
-					`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
-				);
-			}
-			throw new Error(`invalid system: ${key}`);
-		}
-		outSystems.push(parsed.data);
+		outSystems.push(
+			parseRecord(CitationSystem, record, 'system', 'system', key),
+		);
 	}
+
+	// Two work files claiming one key is never a merge. ADR-0002 seeds every
+	// reference UUID on `(work_key, citation_system_key, locator)`, so the
+	// second file would not just duplicate the Work record — it would mint the
+	// same reference identifiers as the first, and `setAlias` cannot see it
+	// because both files produce the same alias target.
+	const workFileByKey = new Map<string, string>();
 
 	for (const file of workFiles) {
 		const src = parseSource(
@@ -482,7 +632,14 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 			basename(file),
 		);
 		const workKey = src.work.key;
-		const workIri = `https://textrefs.org/id/work/${workKey}`;
+		const firstWorkFile = workFileByKey.get(workKey);
+		if (firstWorkFile !== undefined) {
+			throw new Error(
+				`work key "${workKey}" is declared twice: ${firstWorkFile} and ${basename(file)}`,
+			);
+		}
+		workFileByKey.set(workKey, basename(file));
+		const thisWorkIri = workIri(workKey);
 		const systemKey = src.citation_system;
 
 		// Direct mapping edges (prov:alternateOf / dcterms:isReferencedBy via
@@ -501,7 +658,7 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 		}
 
 		const workRecord = {
-			id: workIri,
+			id: thisWorkIri,
 			key: workKey,
 			type: 'Work' as const,
 			preferred_label: src.work.preferred_label,
@@ -522,73 +679,11 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 				Object.entries(mappingEdges).filter(([, targets]) => targets.length),
 			),
 		};
-		const workParsed = Work.safeParse(workRecord);
-		if (!workParsed.success) {
-			console.error(`✗ work/${workKey}: invalid`);
-			for (const issue of workParsed.error.issues) {
-				console.error(
-					`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
-				);
-			}
-			throw new Error(`invalid work: ${workKey}`);
-		}
-		outWorks.push(workParsed.data);
+		outWorks.push(parseRecord(Work, workRecord, 'work', 'work', workKey));
 
-		for (const mapping of src.mappings ?? []) {
-			const uuid = mappingUuid(workIri, mapping.relation, mapping.identifier);
-			const record = {
-				id: `https://textrefs.org/id/mapping/${uuid}`,
-				type: 'MappingAssertion' as const,
-				subject: workIri,
-				relation: mapping.relation,
-				target: {
-					identifier: mapping.identifier,
-					...(mapping.conforms_to !== undefined && {
-						conforms_to: mapping.conforms_to,
-					}),
-				},
-				source: mapping.source,
-				status: mapping.status,
-				created: mapping.created,
-				modified: mapping.modified,
-			};
-			const parsed = MappingAssertion.safeParse(record);
-			if (!parsed.success) {
-				console.error(`✗ mapping/${uuid}: invalid`);
-				for (const issue of parsed.error.issues) {
-					console.error(
-						`    ${issue.path.join('.') || '(root)'}: ${issue.message}`,
-					);
-				}
-				throw new Error(`invalid mapping: ${uuid}`);
-			}
-			outMappings.push(parsed.data);
-			// Deliberate under ADR-0006: an `isReferencedBy` target (a page
-			// *about* the work) stays a lookup alias for it. The alias table is
-			// a lookup convenience, not an identity claim.
-			setAlias(aliases, mapping.identifier, workIri);
-		}
+		emitMappings(src, thisWorkIri, outMappings, aliases);
 
-		// The preferred block first, then any fallback systems. Each block is
-		// emitted against its own citation system, resolvers, and status.
-		const blocks: Array<{ block: SystemBlockSource; isPreferred: boolean }> = [
-			{
-				block: {
-					citation_system: systemKey,
-					reference_status: src.reference_status,
-					resolvers: src.resolvers,
-					references: src.references,
-					references_range: src.references_range,
-				},
-				isPreferred: true,
-			},
-			...(src.additional_systems ?? []).map((block) => ({
-				block,
-				isPreferred: false,
-			})),
-		];
-
-		for (const { block, isPreferred } of blocks) {
+		for (const { block, isPreferred } of systemBlocksOf(src)) {
 			const system = systems.get(block.citation_system);
 			if (!system) {
 				throw new Error(
@@ -618,7 +713,7 @@ export function compileRegistry(dataRootOverride?: string): CompiledRegistry {
 	outReferences.sort((a, b) => a.id.localeCompare(b.id));
 	outMappings.sort((a, b) => a.id.localeCompare(b.id));
 
-	warnings += enforceRegistryInvariants({
+	enforceRegistryInvariants({
 		works: outWorks,
 		systems: outSystems,
 		references: outReferences,
@@ -651,7 +746,7 @@ function enforceRegistryInvariants(reg: {
 	systems: CitationSystem[];
 	references: CanonicalReference[];
 	mappings: MappingAssertion[];
-}): number {
+}): void {
 	const all: StatusRecord[] = [
 		...reg.works,
 		...reg.systems,
@@ -682,15 +777,15 @@ function enforceRegistryInvariants(reg: {
 	// not by MappingAssertions, which are reserved for work-level equivalence.
 	for (const ref of reg.references) {
 		if (TOMBSTONE_STATUSES.has(ref.status)) continue;
-		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
-		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
-		if (tombstoneIris.has(workIri))
+		const refWorkIri = workIri(ref.work_key);
+		const refSystemIri = systemIri(ref.citation_system_key);
+		if (tombstoneIris.has(refWorkIri))
 			errors.push(
-				`${ref.id}: live reference points at tombstoned work ${workIri}`,
+				`${ref.id}: live reference points at tombstoned work ${refWorkIri}`,
 			);
-		if (tombstoneIris.has(systemIri))
+		if (tombstoneIris.has(refSystemIri))
 			errors.push(
-				`${ref.id}: live reference points at tombstoned system ${systemIri}`,
+				`${ref.id}: live reference points at tombstoned system ${refSystemIri}`,
 			);
 	}
 
@@ -716,7 +811,7 @@ function enforceRegistryInvariants(reg: {
 			);
 			continue;
 		}
-		const preferredIri = `https://textrefs.org/id/system/${key}`;
+		const preferredIri = systemIri(key);
 		if (!TOMBSTONE_STATUSES.has(work.status) && tombstoneIris.has(preferredIri))
 			errors.push(
 				`${work.id}: live work points at tombstoned preferred citation system ${preferredIri}`,
@@ -730,17 +825,17 @@ function enforceRegistryInvariants(reg: {
 
 	for (const ref of reg.references) {
 		if (ref.status !== 'active') continue;
-		const workIri = `https://textrefs.org/id/work/${ref.work_key}`;
-		const systemIri = `https://textrefs.org/id/system/${ref.citation_system_key}`;
-		const workStatus = statusByIri.get(workIri);
-		const systemStatus = statusByIri.get(systemIri);
+		const refWorkIri = workIri(ref.work_key);
+		const refSystemIri = systemIri(ref.citation_system_key);
+		const workStatus = statusByIri.get(refWorkIri);
+		const systemStatus = statusByIri.get(refSystemIri);
 		if (workStatus !== 'active')
 			errors.push(
-				`${ref.id}: active reference requires an active work, but ${workIri} is ${workStatus ?? 'missing'}`,
+				`${ref.id}: active reference requires an active work, but ${refWorkIri} is ${workStatus ?? 'missing'}`,
 			);
 		if (systemStatus !== 'active')
 			errors.push(
-				`${ref.id}: active reference requires an active citation system, but ${systemIri} is ${systemStatus ?? 'missing'}`,
+				`${ref.id}: active reference requires an active citation system, but ${refSystemIri} is ${systemStatus ?? 'missing'}`,
 			);
 	}
 
@@ -761,7 +856,6 @@ function enforceRegistryInvariants(reg: {
 				.join('\n')}`,
 		);
 	}
-	return 0;
 }
 
 export function readPackageVersion(): string {
@@ -809,24 +903,93 @@ function jsonlBody(records: ReadonlyArray<unknown>): string {
 }
 
 /**
- * What `/dump/` publishes, without any body.
+ * The complete alias table (#84). Two kinds of entry share it: a `/cite/` alias
+ * targeting a reference IRI, and an external mapping identifier targeting a
+ * work IRI. Values stay full IRIs so a consumer can tell the two apart; a `://`
+ * in the key marks the second kind.
  *
- * Split out so a caller that only needs the file list pays nothing for it.
- * `/dump/index.astro` renders this during `astro build`; calling
- * `dumpResources` there instead would serialise and hash ~90 MB that
- * `scripts/compile.ts` then serialises and hashes again.
+ * Keys are sorted by code unit, so the body — and therefore its sha256 —
+ * depends on the registry content alone, never on the order the compiler
+ * happened to visit the work files in. No indentation: the body is ~17 MB.
  */
-export const DUMP_MANIFEST = [
-	{ name: 'works', filename: 'works.jsonl', format: 'jsonl' },
+function aliasBody(registry: CompiledRegistry): string {
+	return (
+		JSON.stringify(
+			Object.fromEntries(
+				Object.entries(registry.aliases).sort(([a], [b]) =>
+					a < b ? -1 : a > b ? 1 : 0,
+				),
+			),
+		) + '\n'
+	);
+}
+
+/**
+ * The five `/dump/` resources, declared once, in descriptor order.
+ *
+ * `body` is a thunk rather than a string because the two consumers need
+ * different halves of this list. `DUMP_MANIFEST` below is the file list alone,
+ * which `/dump/index.astro` renders during `astro build`; forcing the bodies
+ * there would serialise and hash ~90 MB that `scripts/compile.ts` then
+ * serialises and hashes again. `dumpResources` is the same list with every
+ * thunk called.
+ *
+ * Declaring the set twice is what this replaces: the manifest and the resource
+ * builder each listed all five, and only a test kept them in step.
+ */
+const DUMP_SPECS: ReadonlyArray<{
+	name: string;
+	filename: string;
+	format: string;
+	mediatype: string;
+	body: (registry: CompiledRegistry) => string;
+}> = [
+	{
+		name: 'works',
+		filename: 'works.jsonl',
+		format: 'jsonl',
+		mediatype: 'application/x-ndjson',
+		body: (r) => jsonlBody(r.works),
+	},
 	{
 		name: 'citation-systems',
 		filename: 'citation-systems.jsonl',
 		format: 'jsonl',
+		mediatype: 'application/x-ndjson',
+		body: (r) => jsonlBody(r.systems),
 	},
-	{ name: 'references', filename: 'references.jsonl', format: 'jsonl' },
-	{ name: 'mappings', filename: 'mappings.jsonl', format: 'jsonl' },
-	{ name: 'aliases', filename: 'aliases.json', format: 'json' },
-] as const;
+	{
+		name: 'references',
+		filename: 'references.jsonl',
+		format: 'jsonl',
+		mediatype: 'application/x-ndjson',
+		body: (r) => jsonlBody(r.references),
+	},
+	{
+		name: 'mappings',
+		filename: 'mappings.jsonl',
+		format: 'jsonl',
+		mediatype: 'application/x-ndjson',
+		body: (r) => jsonlBody(r.mappings),
+	},
+	{
+		name: 'aliases',
+		filename: 'aliases.json',
+		format: 'json',
+		mediatype: 'application/json',
+		body: aliasBody,
+	},
+];
+
+/**
+ * What `/dump/` publishes, without any body. Derived from `DUMP_SPECS`, so it
+ * cannot drift from what `dumpResources` actually writes.
+ */
+export const DUMP_MANIFEST = DUMP_SPECS.map(({ name, filename, format }) => ({
+	name,
+	filename,
+	format,
+}));
 
 /**
  * Every `/dump/` resource body, in descriptor order. Pure — `writeDump` does
@@ -834,48 +997,13 @@ export const DUMP_MANIFEST = [
  * without a filesystem.
  */
 export function dumpResources(registry: CompiledRegistry): ResourceSpec[] {
-	const jsonl = (
-		name: string,
-		filename: string,
-		records: ReadonlyArray<unknown>,
-	): ResourceSpec => ({
-		name,
-		filename,
-		format: 'jsonl',
-		mediatype: 'application/x-ndjson',
-		body: jsonlBody(records),
-	});
-
-	// The complete alias table (#84). Two kinds of entry share it: a `/cite/`
-	// alias targeting a reference IRI, and an external mapping identifier
-	// targeting a work IRI. Values stay full IRIs so a consumer can tell the two
-	// apart; a `://` in the key marks the second kind.
-	//
-	// Keys are sorted by code unit, so the body — and therefore its sha256 —
-	// depends on the registry content alone, never on the order the compiler
-	// happened to visit the work files in. No indentation: the body is ~13 MB.
-	const aliasBody =
-		JSON.stringify(
-			Object.fromEntries(
-				Object.entries(registry.aliases).sort(([a], [b]) =>
-					a < b ? -1 : a > b ? 1 : 0,
-				),
-			),
-		) + '\n';
-
-	return [
-		jsonl('works', 'works.jsonl', registry.works),
-		jsonl('citation-systems', 'citation-systems.jsonl', registry.systems),
-		jsonl('references', 'references.jsonl', registry.references),
-		jsonl('mappings', 'mappings.jsonl', registry.mappings),
-		{
-			name: 'aliases',
-			filename: 'aliases.json',
-			format: 'json',
-			mediatype: 'application/json',
-			body: aliasBody,
-		},
-	];
+	return DUMP_SPECS.map((spec) => ({
+		name: spec.name,
+		filename: spec.filename,
+		format: spec.format,
+		mediatype: spec.mediatype,
+		body: spec.body(registry),
+	}));
 }
 
 /**

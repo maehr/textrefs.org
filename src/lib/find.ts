@@ -29,6 +29,9 @@
 
 import type { WorkAliasIndex } from './alias-index.js';
 import { byKey } from './collection.js';
+// `standard/iri.js` is dependency-free by design, so importing it here does not
+// breach the rule stated above about what may travel into the browser bundle.
+import { refIri } from '../../standard/iri.js';
 
 export type FindCreator =
 	| { kind: 'person'; family: string; given?: string }
@@ -518,5 +521,5 @@ export function resolveInIndex(
 
 /** The canonical TextRefs URI of a reference. */
 export function referenceIri(uuid: string): string {
-	return `https://textrefs.org/id/ref/${uuid}`;
+	return refIri(uuid);
 }

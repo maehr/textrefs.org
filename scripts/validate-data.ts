@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { v5 as uuidv5 } from 'uuid';
-import { compileRegistry } from './compile.js';
+import { compileRegistry, printIssues } from './compile.js';
+import { refIri, mappingIri } from '../standard/iri.js';
 import {
 	Work,
 	CitationSystem,
@@ -12,6 +13,15 @@ import {
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// The namespaces and the seed strings below are deliberately a second,
+// independent implementation of what `scripts/compile.ts` does. Do not "fix"
+// this by importing `referenceUuid` and `mappingUuid` from the compiler.
+//
+// This gate exists to prove the compiler's identifiers are deterministic from
+// the ADR-0002 tuple. Calling the compiler's own function to compute the
+// expected value would make every assertion below a tautology that passes
+// whatever the compiler does — including silently re-minting all 86k
+// identifiers. Two implementations that must agree is the whole check.
 const REFERENCE_NS = 'b1a3670e-2ac7-544c-a1b9-396e0dc193f7';
 const MAPPING_NS = 'f16bb214-4241-549d-ad41-7b011f02befb';
 
@@ -25,10 +35,7 @@ function reportIssue(
 	issues: readonly { path: readonly PropertyKey[]; message: string }[],
 ): void {
 	console.error(`✗ ${label}:`);
-	for (const issue of issues) {
-		const path = issue.path.map((p) => String(p)).join('.');
-		console.error(`    ${path || '(root)'}: ${issue.message}`);
-	}
+	printIssues(issues);
 	failed++;
 }
 
@@ -52,7 +59,7 @@ for (const ref of registry.references) {
 		continue;
 	}
 	const seed = [ref.work_key, ref.citation_system_key, ref.locator].join('\n');
-	const expected = `https://textrefs.org/id/ref/${uuidv5(seed, REFERENCE_NS)}`;
+	const expected = refIri(uuidv5(seed, REFERENCE_NS));
 	if (ref.id !== expected) {
 		console.error(
 			`✗ ref/${ref.work_key}/${ref.locator}: UUID not deterministic from seed (got ${ref.id}, expected ${expected})`,
@@ -69,7 +76,7 @@ for (const m of registry.mappings) {
 		continue;
 	}
 	const seed = [m.subject, m.relation, m.target.identifier].join('\n');
-	const expected = `https://textrefs.org/id/mapping/${uuidv5(seed, MAPPING_NS)}`;
+	const expected = mappingIri(uuidv5(seed, MAPPING_NS));
 	if (m.id !== expected) {
 		console.error(
 			`✗ mapping/${m.id}: UUID not deterministic from seed (expected ${expected})`,
