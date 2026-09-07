@@ -1,4 +1,14 @@
 ---
+import {
+	DEPRECATED_DETAIL,
+	DRAFT_BODY_HTML,
+	DRAFT_TITLE,
+	NO_SUCCESSOR,
+	isDraft,
+	isTombstone,
+	tombstoneTitle,
+} from '../lib/record-status.js';
+
 interface Props {
 	status: string;
 	supersededBy?: string;
@@ -6,59 +16,35 @@ interface Props {
 
 const { status, supersededBy } = Astro.props;
 
-// ADR-0004 and specification.md §12 make `deprecated`, `withdrawn` and `blocked`
-// one tombstone category, and the compiler agrees (`RETIRED_STATUSES` in
-// scripts/compile.ts). The three differ in reach, not in kind. All three leave
-// the `Work` mapping projections; `scripts/compile.test.ts` asserts this for
-// `deprecated` as well as for the other two. A `deprecated` record is otherwise
-// retained and still resolves. A `withdrawn` or `blocked` record additionally
-// may not be depended on by a live record (`TOMBSTONE_STATUSES`). The banner
-// therefore stays one presentation, and the copy below states which of the
-// three applies.
-const isDraft = status === 'draft';
-const isTombstone =
-	status === 'deprecated' || status === 'withdrawn' || status === 'blocked';
+// The copy and the two derivations live in `src/lib/record-status.ts`, with the
+// ADR-0004 reasoning behind them. `src/pages/id/ref/[uuid]/index.astro` renders
+// the same words in its own markup, and reads them from the same module (#100).
 ---
 
 {
-	isDraft && (
+	isDraft(status) && (
 		<aside class="reg-draft" role="note">
 			<p class="reg-draft-title">
-				<strong>Draft record.</strong>
+				<strong>{DRAFT_TITLE}</strong>
 			</p>
-			<p>
-				This record has not been promoted to <code>active</code> by expert
-				review. Its identifier carries no persistence promise yet: the record
-				may be corrected (which mints a different identifier) or retracted
-				without a tombstone. Do not cite it as stable.
-			</p>
+			<p set:html={DRAFT_BODY_HTML} />
 		</aside>
 	)
 }
 
 {
-	isTombstone && (
+	isTombstone(status) && (
 		<aside class="reg-tombstone" role="note">
 			<p class="reg-tombstone-title">
-				<strong>
-					{status === 'blocked'
-						? 'This record is blocked by a rights, trust, or policy dispute.'
-						: status === 'deprecated'
-							? 'This record is deprecated.'
-							: 'This record has been withdrawn.'}
-				</strong>
+				<strong>{tombstoneTitle(status)}</strong>
 			</p>
-			{status === 'deprecated' && (
-				<p>
-					It is retained and it still resolves, but it is no longer recommended.
-				</p>
-			)}
+			{status === 'deprecated' && <p>{DEPRECATED_DETAIL}</p>}
 			{supersededBy ? (
 				<p>
 					Superseded by <a href={supersededBy}>{supersededBy}</a>.
 				</p>
 			) : (
-				<p>No successor record exists.</p>
+				<p>{NO_SUCCESSOR}</p>
 			)}
 		</aside>
 	)

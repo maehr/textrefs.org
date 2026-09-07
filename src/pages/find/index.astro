@@ -128,6 +128,13 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		type WorkMatch,
 	} from '../../lib/find.ts';
 	import { toCSL, formatChicago } from '../../lib/citation.ts';
+	import {
+		DEPRECATED_DETAIL,
+		NO_SUCCESSOR,
+		isDraft,
+		isTombstone,
+		tombstoneTitle,
+	} from '../../lib/record-status.ts';
 	import type { WorkAliasIndex } from '../../lib/alias-index.ts';
 
 	const form = document.getElementById('find-form') as HTMLFormElement | null;
@@ -447,9 +454,12 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		// (specification §11). A deprecated, withdrawn or blocked record keeps the
 		// promise it got at promotion: its identifier stays as a tombstone, and
 		// `superseded_by` names the successor (§12).
-		// Kept in step with src/components/Tombstone.astro and
-		// src/pages/id/ref/[uuid]/index.astro by hand until #100 lands.
-		if (ref.status === 'draft') {
+		//
+		// The titles and the two shared sentences come from
+		// `src/lib/record-status.ts`, which the record pages read as well. The two
+		// sentences below stay here: they address a reader about to paste a
+		// citation, and a record page has no citation to warn about.
+		if (isDraft(ref.status)) {
 			card.appendChild(
 				el('p', { class: 'find-warn' }, [
 					el('strong', { text: 'Not final (draft). ' }),
@@ -458,27 +468,12 @@ import RecordPage from '../../layouts/RecordPage.astro';
 					}),
 				]),
 			);
-		} else if (
-			ref.status === 'deprecated' ||
-			ref.status === 'withdrawn' ||
-			ref.status === 'blocked'
-		) {
+		} else if (isTombstone(ref.status)) {
 			const warn = el('p', { class: 'find-warn' }, [
-				el('strong', {
-					text:
-						ref.status === 'blocked'
-							? 'This record is blocked by a rights, trust, or policy dispute. '
-							: ref.status === 'deprecated'
-								? 'This record is deprecated. '
-								: 'This record has been withdrawn. ',
-				}),
+				el('strong', { text: `${tombstoneTitle(ref.status)} ` }),
 			]);
 			if (ref.status === 'deprecated') {
-				warn.appendChild(
-					el('span', {
-						text: 'It is retained and it still resolves, but it is no longer recommended. ',
-					}),
-				);
+				warn.appendChild(el('span', { text: `${DEPRECATED_DETAIL} ` }));
 			}
 			warn.appendChild(
 				el('span', {
@@ -495,9 +490,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 			} else {
 				warn.appendChild(
 					el('span', {
-						text: successor
-							? `Superseded by ${successor}.`
-							: 'No successor record exists.',
+						text: successor ? `Superseded by ${successor}.` : NO_SUCCESSOR,
 					}),
 				);
 			}
