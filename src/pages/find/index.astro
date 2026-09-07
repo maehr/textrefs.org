@@ -128,13 +128,7 @@ import RecordPage from '../../layouts/RecordPage.astro';
 		type WorkMatch,
 	} from '../../lib/find.ts';
 	import { toCSL, formatChicago } from '../../lib/citation.ts';
-	import {
-		DEPRECATED_DETAIL,
-		NO_SUCCESSOR,
-		isDraft,
-		isTombstone,
-		tombstoneTitle,
-	} from '../../lib/record-status.ts';
+	import { findNotice } from '../../lib/find-notice.ts';
 	import type { WorkAliasIndex } from '../../lib/alias-index.ts';
 
 	const form = document.getElementById('find-form') as HTMLFormElement | null;
@@ -450,51 +444,23 @@ import RecordPage from '../../layouts/RecordPage.astro';
 
 		// ADR-0004: the notice belongs here rather than at the top, because it is
 		// advice about citing, and it is the citation directly above that a reader
-		// would otherwise paste. Only a draft carries no persistence promise
-		// (specification §11). A deprecated, withdrawn or blocked record keeps the
-		// promise it got at promotion: its identifier stays as a tombstone, and
-		// `superseded_by` names the successor (§12).
-		//
-		// The titles and the two shared sentences come from
-		// `src/lib/record-status.ts`, which the record pages read as well. The two
-		// sentences below stay here: they address a reader about to paste a
-		// citation, and a record page has no citation to warn about.
-		if (isDraft(ref.status)) {
+		// would otherwise paste. Which sentences a status earns is decided and
+		// tested in `src/lib/find-notice.ts`; this maps them onto nodes.
+		const notice = findNotice(ref.status, ref.superseded_by);
+		if (notice) {
 			card.appendChild(
-				el('p', { class: 'find-warn' }, [
-					el('strong', { text: 'Not final (draft). ' }),
-					el('span', {
-						text: 'This record carries no persistence promise yet. It may be corrected, which mints a different identifier, or retracted without a tombstone, and this link can then stop resolving. Do not cite it as stable.',
-					}),
-				]),
+				el(
+					'p',
+					{ class: 'find-warn' },
+					notice.map((part) =>
+						part.kind === 'lead'
+							? el('strong', { text: part.text })
+							: part.kind === 'link'
+								? el('a', { text: part.text, href: part.href })
+								: el('span', { text: part.text }),
+					),
+				),
 			);
-		} else if (isTombstone(ref.status)) {
-			const warn = el('p', { class: 'find-warn' }, [
-				el('strong', { text: `${tombstoneTitle(ref.status)} ` }),
-			]);
-			if (ref.status === 'deprecated') {
-				warn.appendChild(el('span', { text: `${DEPRECATED_DETAIL} ` }));
-			}
-			warn.appendChild(
-				el('span', {
-					text: 'The link above remains as a tombstone, so a citation you have already published keeps resolving. ',
-				}),
-			);
-			// A successor IRI is registry data, so it is checked the way a resolver
-			// target is before it becomes a link.
-			const successor = ref.superseded_by;
-			if (successor && /^https?:\/\//i.test(successor)) {
-				warn.appendChild(el('span', { text: 'Superseded by ' }));
-				warn.appendChild(el('a', { text: successor, href: successor }));
-				warn.appendChild(el('span', { text: '.' }));
-			} else {
-				warn.appendChild(
-					el('span', {
-						text: successor ? `Superseded by ${successor}.` : NO_SUCCESSOR,
-					}),
-				);
-			}
-			card.appendChild(warn);
 		}
 
 		// --- The record ----------------------------------------------------
