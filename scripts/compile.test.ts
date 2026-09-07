@@ -190,20 +190,52 @@ additional_systems:
 	assert.match(message, /active reference requires an active citation system/);
 });
 
-test('an active work whose preferred citation system is draft is rejected', (t) => {
-	const message = expectCompileError(t, {
-		systems: { 'primary-section': system('primary-section', 'draft') },
-		works: {
-			'test.work': `${workHeader()}
+for (const workStatus of [
+	'draft',
+	'active',
+	'deprecated',
+	'withdrawn',
+	'blocked',
+]) {
+	for (const systemStatus of [
+		'draft',
+		'active',
+		'deprecated',
+		'withdrawn',
+		'blocked',
+	]) {
+		test(`an empty ${workStatus} work with a ${systemStatus} preferred system obeys dependency rules`, (t) => {
+			const files = {
+				systems: { 'primary-section': system('primary-section', systemStatus) },
+				works: {
+					'test.work': `${workHeader(workStatus)}
 citation_system: primary-section
 `,
-		},
-	});
-	assert.match(
-		message,
-		/active work requires an active preferred citation system/,
-	);
-});
+				},
+			};
+			if (
+				!['withdrawn', 'blocked'].includes(workStatus) &&
+				['withdrawn', 'blocked'].includes(systemStatus)
+			) {
+				assert.ok(
+					expectCompileError(t, files).includes(
+						'https://textrefs.org/id/work/test.work: live work points at tombstoned preferred citation system https://textrefs.org/id/system/primary-section',
+					),
+				);
+			} else if (workStatus === 'active' && systemStatus !== 'active') {
+				assert.match(
+					expectCompileError(t, files),
+					/active work requires an active preferred citation system/,
+				);
+			} else {
+				const reg = compileFixture(files);
+				assert.equal(reg.works[0].status, workStatus);
+				assert.equal(reg.systems[0].status, systemStatus);
+				assert.equal(reg.references.length, 0);
+			}
+		});
+	}
+}
 
 test('a draft fallback system does not downgrade an active work', () => {
 	const reg = compileFixture({
