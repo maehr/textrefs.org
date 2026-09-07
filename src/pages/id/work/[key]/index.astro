@@ -118,7 +118,9 @@ const alternativeLabels = work.alternative_labels ?? [];
 					title: 'Locator index',
 				},
 			},
-			// Draft records are excluded from search indexing (ADR-0003).
+			// A draft record stays out of external search engines (ADR-0003) and
+			// out of the sitemap. It stays in the site's own Pagefind index, where
+			// the status tag below identifies it as a draft.
 			...(work.status === 'draft'
 				? [
 						{
@@ -132,7 +134,7 @@ const alternativeLabels = work.alternative_labels ?? [];
 >
 	<p class="reg-sub">
 		<span class="reg-tag">Work</span>{' '}
-		<span class="reg-tag">{work.status}</span>{' '}
+		<span class="reg-tag" data-pagefind-meta="status">{work.status}</span>{' '}
 		<code class="reg-iri">{work.id}</code>{' '}
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>

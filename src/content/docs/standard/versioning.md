@@ -82,7 +82,7 @@ Records do **not** carry their own SemVer. The registry is append-only from prom
 
 Records at status `draft` have not been promoted and carry no persistence promise ([Specification §11](/standard/specification/#11-identifier-policy)). A draft MAY be corrected — changing an identity field mints a different id, and the previous IRI ceases to resolve — or retracted, meaning the record is deleted outright. Retraction MUST NOT create a tombstone. Because identifiers are deterministic, a retracted tuple that is later re-proposed regains the same UUID; a reappearing id does not imply continuity of curation history.
 
-Draft records appear in exports inside the same `.jsonl` files as their type, with `status` as the signal — the same convention tombstones use. Consumers MUST NOT rely on a draft record persisting across releases and SHOULD filter on `status` when they need only promoted records. Rendered draft pages SHOULD be clearly flagged and excluded from search indexing.
+Draft records appear in exports inside the same `.jsonl` files as their type, with `status` as the signal — the same convention tombstones use. Consumers MUST NOT rely on a draft record persisting across releases and SHOULD filter on `status` when they need only promoted records. Rendered draft pages SHOULD be clearly flagged and SHOULD be excluded from external search engine indexing. A registry's own search MAY list them, and SHOULD show the `draft` status beside each result.
 
 ## Tombstones and re-minted records
 

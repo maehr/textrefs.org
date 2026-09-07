@@ -1,8 +1,9 @@
 // What the sitemap advertises. Three rules keep a built page out of it.
 //
-// 1. ADR-0003 (as amended by ADR-0004): a draft record page is `noindex`,
-//    excluded from search, and excluded from the sitemap. The first two ship in
-//    the record templates; this module supplies the third. The rule is derived
+// 1. ADR-0003 (as amended by ADR-0004): a draft record page is `noindex` and
+//    excluded from the sitemap. The first ships in the record template; this
+//    module supplies the second. Site search is a separate policy: a draft stays
+//    in the Pagefind index, tagged with its status. The rule is derived
 //    from record status rather than from a route prefix, so it narrows on its
 //    own as records are promoted to `active` — excluding `/id/` wholesale would
 //    keep hiding pages that had earned a place in the sitemap.
