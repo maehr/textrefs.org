@@ -26,6 +26,16 @@ export const fixtureRegistry: CompiledRegistry = {
 			alternateOf: ['https://example.org/fixture-work'],
 			isReferencedBy: ['https://example.org/about-fixture-work'],
 		},
+		{
+			id: 'https://textrefs.org/id/work/fixture.draft',
+			key: 'fixture.draft',
+			type: 'Work',
+			preferred_label: 'Fixture Draft Work',
+			preferred_citation_system_key: 'fixture-section',
+			status: 'draft',
+			created: '2026-01-01',
+			modified: '2026-01-01',
+		},
 	],
 	systems: [
 		{

@@ -61,7 +61,7 @@ We choose **Option 4**. The status ladder becomes `draft` → `candidate` → `a
 ### Follow-up actions
 
 - [x] Compiler invariant: a promoted (`candidate`+) record MUST NOT reference a draft `Work`/`CitationSystem` (extend the tombstone invariant in `scripts/compile.ts`).
-- [x] Draft rendering: banner, `noindex`, and search (Pagefind) exclusion on record pages (extend the `Tombstone.astro` pattern).
+- [x] Draft rendering: banner and `noindex` on record pages (extend the `Tombstone.astro` pattern). **Amended 2026-09-07 ([#148](https://github.com/textrefs/textrefs.org/issues/148)):** the Decision above also excludes a draft from site search. That part is withdrawn. External indexing and internal discovery are two policies: a draft record stays `noindex` and out of the sitemap, but stays in the site's own Pagefind index, where its status is shown beside the result. Almost every record is a draft, so exclusion would empty the search UI of the tier the draft state exists to make reviewable.
 - [x] Sitemap exclusion for draft record pages — `astro.config.mjs` declares `@astrojs/sitemap` explicitly and filters on `isNoindex`, so drafts are dropped. The predicate keys on record status, not on route prefix, so it narrows as records are promoted ([#47](https://github.com/textrefs/textrefs.org/issues/47)).
 - [x] Downgrade the current unreviewed seed data to `draft` in `textrefs/registry`.
 - [ ] Optional CI persistence check: promoted ids diffed against the previous release dump ([#103](https://github.com/textrefs/textrefs.org/issues/103)).

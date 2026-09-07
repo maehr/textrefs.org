@@ -66,7 +66,9 @@ const jsonHref = `/id/system/${system.key}.json`;
 					href: jsonHref,
 				},
 			},
-			// Draft records are excluded from search indexing (ADR-0003).
+			// A draft record stays out of external search engines (ADR-0003) and
+			// out of the sitemap. It stays in the site's own Pagefind index, where
+			// the status tag below identifies it as a draft.
 			...(system.status === 'draft'
 				? [
 						{
@@ -80,7 +82,9 @@ const jsonHref = `/id/system/${system.key}.json`;
 >
 	<p class="reg-sub">
 		<span class="reg-tag">CitationSystem</span>{' '}
-		<span class="reg-tag">{system.status}</span>{' '}
+		<span class="reg-tag" data-pagefind-meta="status">{system.status}</span>{
+			' '
+		}
 		<code class="reg-iri">{system.id}</code>{' '}
 		<a href={jsonHref} class="reg-json">JSON</a>
 	</p>
