@@ -147,6 +147,43 @@ additional_systems:
 	assert.match(message, /invalid source file/);
 });
 
+// A key is the whole identity of a work or a citation system. Two files
+// claiming one used to pass: the systems Map kept the last file read and
+// dropped the other, and works had no check at all — so the second work would
+// mint the same reference UUIDs as the first, because ADR-0002 seeds them on
+// `(work_key, citation_system_key, locator)`. `setAlias` cannot catch that,
+// since both files produce the same alias target.
+
+test('two files declaring one citation system key fail the build', (t) => {
+	const message = expectCompileError(t, {
+		systems: {
+			'first-file': system('shared'),
+			'second-file': system('shared'),
+		},
+		works: {
+			'test.work': `${workHeader()}
+citation_system: shared
+references:
+  - '1'
+`,
+		},
+	});
+	assert.match(message, /citation system key "shared" is declared twice/);
+});
+
+test('two files declaring one work key fail the build', (t) => {
+	const body = `${workHeader()}
+citation_system: primary-section
+references:
+  - '1'
+`;
+	const message = expectCompileError(t, {
+		systems: twoSystems,
+		works: { 'first-file': body, 'second-file': body },
+	});
+	assert.match(message, /work key "test.work" is declared twice/);
+});
+
 test('a locator containing "/" is rejected before any alias is minted', (t) => {
 	const message = expectCompileError(t, {
 		systems: {
@@ -950,18 +987,22 @@ test('every descriptor carries the Frictionless fields', () => {
 });
 
 // `/dump/index.astro` renders DUMP_MANIFEST so that building the page costs no
-// serialisation. That is only safe while the manifest names exactly what
-// `dumpResources` produces, in the same order.
-test('DUMP_MANIFEST matches what dumpResources produces', () => {
-	const specs = dumpResources(compileFixture(workWithMappings()));
+// serialisation. Both it and `dumpResources` are derived from the one
+// `DUMP_SPECS` list, so they can no longer disagree about the set or its order.
+// What still needs pinning is that the manifest carries no body: forcing one is
+// exactly what the split exists to avoid.
+test('DUMP_MANIFEST lists the files without carrying a body', () => {
 	assert.deepEqual(
-		specs.map(({ name, filename, format }) => ({ name, filename, format })),
 		DUMP_MANIFEST.map(({ name, filename, format }) => ({
 			name,
 			filename,
 			format,
 		})),
+		dumpResources(compileFixture(workWithMappings())).map(
+			({ name, filename, format }) => ({ name, filename, format }),
+		),
 	);
+	for (const entry of DUMP_MANIFEST) assert.ok(!('body' in entry));
 });
 
 test('packageVersion drops a leading v and leaves the rest alone', () => {
